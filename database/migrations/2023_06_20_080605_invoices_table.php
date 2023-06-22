@@ -75,7 +75,7 @@ return new class extends Migration
             $table->integer('MaterCost')->nullable();
             $table->integer('LiftingCost')->nullable();
             $table->integer('LaborCost')->nullable();
-            $table->string('SiteExpense',100)->nullable();//材料増減係数
+            $table->integer('SiteExpense',100)->nullable();//材料増減係数
             $table->string('ReadDataKey')->nullable();
             $table->timestamps();
         });

@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\InvoiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,8 +13,6 @@ use App\Http\Controllers\InvoiceController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get("/", "InvoiceController@index")->name("home");
+Route::get("/2", "InvoiceController@index2")->name("javascript");
 Route::get("/readCsv", "InvoiceController@readCsv")->name("readCsv");
-// Route::get('readCsv', [InvoiceController::class, 'readCsv']);
