@@ -13,7 +13,7 @@ class InvoiceController extends Controller
     public function index()
     {
         $header = $this->_getTableHeader();
-        $list = json_encode(Invoice::select(array_keys($header))->take(10000)->get());
+        $list = json_encode(Invoice::select(array_keys($header))->take(10)->get());
         $headerkey = json_encode(array_keys($header));
         $headername = json_encode(($header));
         return view("invoice.index2", compact("headerkey","headername", "list"));
@@ -40,7 +40,7 @@ class InvoiceController extends Controller
             "Type" => [
                 "name" => "種別",
                 "class" => "wj-align-center",
-                "width" => 50
+                "width" => 30
             ],
             "PartName" => [
                 "name" => "部位名",
@@ -82,7 +82,7 @@ class InvoiceController extends Controller
             "MakerName" => [
                 "name" => "メーカー名",
                 "class" => "",
-                "width" => 30
+                "width" => 50
             ],
 
             "Unit" => [
@@ -103,12 +103,12 @@ class InvoiceController extends Controller
             "Amount" => [
                 "name" => "金額",
                 "class" => "wj-align-right",
-                "width" => 70
+                "width" => 90
             ],
             "Note" => [
                 "name" => "備考",
                 "class" => "note",
-                "width" => 80
+                "width" => 120
             ],
             "M_EstUP1" => [
                 "name" => "見積単価*",
@@ -128,12 +128,12 @@ class InvoiceController extends Controller
             "MaterCost" => [
                 "name" => "材料費",
                 "class" => "wj-align-right",
-                "width" => 60
+                "width" => 80
             ],
             "LaborCost" => [
                 "name" => "労務費",
                 "class" => "wj-align-right",
-                "width" => 60
+                "width" => 80
             ],
             "LiftingCost" => [
                 "name" => "揚重費",
@@ -153,7 +153,7 @@ class InvoiceController extends Controller
             "LaborOuts" => [
                 "name" => "労務•外注",
                 "class" => "wj-align-center",
-                "width" => 60
+                "width" => 50
             ],
             "MaterUnitPrice" => [
                 "name" => "材料単価*",
@@ -168,7 +168,7 @@ class InvoiceController extends Controller
             "OutsUnitPrice" => [
                 "name" => "外注単価",
                 "class" => "wj-align-right",
-                "width" => 50
+                "width" => 70
             ],
             "MaterScaleFactor" => [
                 "name" => "材料増減係数",
