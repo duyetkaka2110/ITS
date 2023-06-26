@@ -1,0 +1,189 @@
+body{
+    font-size: 14px;
+}
+
+.w-1em {
+    width: 1em !important;
+}
+
+.w-2em {
+    width: 2em !important;
+}
+
+.w-3em {
+    width: 3em !important;
+}
+
+.w-4em {
+    width: 4em !important;
+}
+
+.w-5em {
+    width: 5em !important;
+}
+
+.w-6em {
+    width: 6em !important;
+}
+
+.w-7em {
+    width: 7em !important;
+}
+
+.w-8em {
+    width: 8em !important;
+}
+
+.w-9em {
+    width: 9em !important;
+}
+
+.w-10em {
+    width: 10em !important;
+}
+
+.w-11em {
+    width: 11em !important;
+}
+
+.w-12em {
+    width: 12em !important;
+}
+
+.w-13em {
+    width: 13em !important;
+}
+
+.w-14em {
+    width: 14em !important;
+}
+
+.w-15em {
+    width: 15em !important;
+}
+
+.w-16em {
+    width: 16em !important;
+}
+
+.w-17em {
+    width: 17em !important;
+}
+
+.w-20em {
+    width: 20em !important;
+}
+
+.mw-1em {
+    min-width: 1em !important;
+}
+
+.mw-2em {
+    min-width: 2em !important;
+}
+
+.mw-3em {
+    min-width: 3em !important;
+}
+
+.mw-4em {
+    min-width: 4em !important;
+}
+
+.mw-5em {
+    min-width: 5em !important;
+}
+
+.mw-6em {
+    min-width: 6em !important;
+}
+
+.mw-7em {
+    min-width: 7em !important;
+}
+
+.mw-8em {
+    min-width: 8em !important;
+}
+
+.mw-9em {
+    min-width: 9em !important;
+}
+
+.mw-10em {
+    min-width: 10em !important;
+}
+
+.mw-11em {
+    min-width: 11em !important;
+}
+
+.mw-12em {
+    min-width: 12em !important;
+}
+
+.mw-13em {
+    min-width: 13em !important;
+}
+
+.mw-14em {
+    min-width: 14em !important;
+}
+
+.mw-15em {
+    min-width: 15em !important;
+}
+
+.mw-16em {
+    min-width: 16em !important;
+}
+
+.mw-17em {
+    min-width: 17em !important;
+}
+.w-100{
+    width: 100%;
+}
+.clear-both {
+    clear: both;
+}
+
+.mg-errors {
+    color: red;
+    margin-bottom: 10px;
+}
+
+.mg-errors p {
+    margin-bottom: 5px;
+}
+
+.dd-none {
+    display: none;
+}
+
+.vertical-midle {
+    vertical-align: middle !important;
+}
+
+.text-center-im {
+    text-align: center !important;
+}
+.justify-center{
+    justify-content: center !important;
+}
+.btn{
+    font-size: inherit;
+}
+
+.modal-dialog-centered {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: center;
+    align-items: center;
+    min-height: calc(100% - (0.5rem * 2));
+}
+@media (min-width: 576px) {
+    .modal-dialog-centered {
+        min-height: calc(100% - (1.75rem * 2));
+    }
+}

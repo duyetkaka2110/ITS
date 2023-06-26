@@ -16,3 +16,5 @@ use Illuminate\Support\Facades\Route;
 Route::get("/", "InvoiceController@index")->name("home");
 Route::get("/2", "InvoiceController@index2")->name("javascript");
 Route::get("/readCsv", "InvoiceController@readCsv")->name("readCsv");
+Route::get("/invoice-action", "InvoiceController@action")->name("invoice.action");
+Route::post("/invoice-action", "InvoiceController@action");

@@ -15,8 +15,8 @@ return new class extends Migration
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
             $table->integer('AdQuoNo');
-            $table->integer('DetailType');
-            $table->integer('DetailNo');
+            $table->integer('DetailType')->nullable();
+            $table->integer('DetailNo')->nullable();
             $table->string('Type',100)->nullable();
             $table->string('PartName',100)->nullable();
             $table->string('MaterialName',100)->nullable();
@@ -77,6 +77,7 @@ return new class extends Migration
             $table->integer('LaborCost')->nullable();
             $table->integer('SiteExpense',100)->nullable();//材料増減係数
             $table->string('ReadDataKey')->nullable();
+            $table->integer('SortNo')->nullable();
             $table->timestamps();
         });
     }

@@ -1,18 +1,17 @@
 
 document.readyState === 'complete' ? init() : window.onload = init;
 function init() {
-    var headerCol = [], datacopy = null;
-    // set header name, width, css
-    for (let col = 0; col < headerkey.length; col++) {
-        let key = headerkey[col];
+    var headerCol = [], datacopy = null, key, col;
+    // header row create
+    $.each(header, function (key, value) {
         headerCol.push({
-            binding: headerkey[col],
-            header: headername[key]["name"],
-            width: headername[key]["width"],
+            binding: key,
+            header: value["name"],
+            width: value["width"],
             wordWrap: true,
-            cssClass: headername[key]["class"]
+            cssClass: value["class"]
         })
-    }
+    })
     // create Grid table
     var flex = new wijmo.grid.FlexGrid("#grid", {
         itemsSource: new wijmo.collections.ObservableArray(list),
@@ -20,7 +19,8 @@ function init() {
         frozenColumns: 5,
         isReadOnly: true,
         allowResizing: 'BothAllCells',
-        selectionMode: 'Row'
+        selectionMode: 'Row',
+        allowSorting: false
     })
     // set css style 
     flex.topLeftCells.setCellData(0, 0, "行No");
@@ -29,7 +29,7 @@ function init() {
     flex.columnHeaders.rows.defaultSize = 55;
     flex.rows.defaultSize = 59;
     setRowHeaderNumber(flex)
-
+    console.info(flex)
     flex.hostElement.addEventListener('contextmenu', (e) => {
         ht = flex.hitTest(e);
         // set select rows style
@@ -40,53 +40,54 @@ function init() {
             e.stopImmediatePropagation();
         }
     }, true);
+    // メニュー一覧表示
+    let itemsSource = [];
+    $.each(cmd, function (key, value) {
+        if (value.cmd == cmd.cmdExit.cmd) {
+            itemsSource.push({
+                header: '<span class="wj-separator"></span>'
+            })
+        }
+        itemsSource.push({
+            header: '<i class="fa ' + value.icon + ' pr-2" aria-hidden="true"></i>' + value.name,
+            cmd: value.cmd,
+        })
+    })
     let menu = new wijmo.input.Menu(document.createElement('div'), {
         displayMemberPath: 'header',
         selectedValuePath: 'cmd',
         dropDownCssClass: 'ctx-menu',
-        itemsSource: [
-            { header: '<span class="glyphicon glyphicon-plus"></span>挿入', cmd: 'cmdNew' },
-            { header: '<span class="glyphicon glyphicon-copy"></span>コピー', cmd: 'cmdCopy' },
-            { header: '<span class="glyphicon glyphicon-paste"></span>貼り付け', cmd: 'cmdPaste' },
-            { header: '<span class="glyphicon glyphicon-share"></span>コピーした行の挿入', cmd: 'cmdPasteNew' },
-            { header: '<span class="glyphicon glyphicon-trash"></span>削除', cmd: 'cmdDel' },
-            { header: '<span class="wj-separator"></span>' },
-            { header: '<span class="glyphicon glyphicon-remove"></span>閉じる', cmd: 'cmdExit' }
-        ],
-        itemClicked: () => {
-            // 挿入
-            if (menu.selectedValue == "cmdNew") {
-                flex.itemsSource.insert(ht.row, null);
-            }
-            // 削除
-            if (menu.selectedValue == "cmdDel") {
-                $("#ConfirmModal").modal("show")
-                // flex.itemsSource.removeAt(ht.row);
-            }
-            // コピー
-            if (menu.selectedValue == "cmdCopy") {
-                datacopy = flex.itemsSource[ht.row];
-            }
-            // 貼り付け
-            if (menu.selectedValue == "cmdPaste") {
-                setCopyData(datacopy, ht)
-            }
-            // コピーした行の挿入
-            if (menu.selectedValue == "cmdPasteNew") {
-                if (datacopy) {
-                    flex.itemsSource.insert(ht.row, null);
-                    setCopyData(datacopy, ht)
+        itemsSource: itemsSource,
+        _itemClicked: () => {
+            let msg;
+            let lineNo = "行No:" + (ht.row + 1);
+            // 確認メッセージ取得
+            if (menu.selectedValue in cmd) {
+                if (cmd[menu.selectedValue].msg) {
+                    msg = lineNo + cmd[menu.selectedValue].msg;
+                } else {
+                    if (menu.selectedValue == cmd.cmdCopy.cmd) {
+                        datacopy = flex.itemsSource[ht.row];
+                    }
                 }
             }
-            setRowHeaderNumber(flex);
-            setRowSelected(flex, ht)
-        }
+            if (msg) {
+                // 確認メッセージ表示
+                dispConfirmModal(msg + "ます。よろしいですか？", menu.selectedValue);
+            }
+        },
+        get itemClicked() {
+            return this._itemClicked;
+        },
+        set itemClicked(value) {
+            this._itemClicked = value;
+        },
     });
     // disable menu when not have data copy
     menu.isDroppedDownChanging.addHandler((s, e) => {
         s.dropDown.childNodes.forEach(item => {
             if (!datacopy) {
-                if (item.innerText == '貼り付け' || item.innerText == 'コピーした行の挿入') {
+                if (item.innerText == cmd.cmdPaste.name || item.innerText == cmd.cmdPasteNew.name) {
                     wijmo.addClass(item, 'wj-state-disabled');
                 }
             } else {
@@ -106,6 +107,79 @@ function init() {
         }, true);
     }
 
+    // 削除確認ボタン時
+    $(".btnPopupOk").on("click", function () {
+        let dataAction = false, dataActionOldId = false;
+        let rowSelect = flex.itemsSource[ht.row];
+        console.info(rowSelect)
+        action = $(this).attr("data-action")
+
+        // 挿入
+        if (action == cmd.cmdNew.cmd) {
+            dataAction = 1;
+        }
+        // 削除
+        if (action == cmd.cmdDel.cmd) {
+            dataAction = rowSelect;
+        }
+        // 貼り付け
+        if (action == cmd.cmdPaste.cmd && datacopy) {
+            // 選択行後、id保存
+            dataActionOldId = rowSelect.id;
+            dataAction = datacopy;
+        }
+        // コピーした行の挿入
+        if (action == cmd.cmdPasteNew.cmd && datacopy) {
+            datacopy.SortNo = rowSelect.SortNo - 1;
+            dataAction = datacopy;
+        }
+        // DB更新
+        if (dataAction) {
+            $.ajax({
+                type: "get",
+                data: {
+                    action: action,
+                    data: dataAction,
+                    dataOldId: dataActionOldId,
+                },
+                url: $(".route-invoice-action").val(),
+                success: function (res) {
+                    if (!res["status"]) {
+                        // エラー表示
+                        dispMessageModal(res["msg"])
+                    } else {
+                        // 挿入
+                        if (action == cmd.cmdNew.cmd) {
+                            flex.itemsSource.insert(ht.row, null);
+                        }
+                        // 削除
+                        if (action == cmd.cmdDel.cmd) {
+                            flex.itemsSource.removeAt(ht.row);
+                        }
+                        // 貼り付け
+                        if (action == cmd.cmdPaste.cmd && datacopy) {
+                            setCopyData(datacopy, ht)
+                        }
+                        // コピーした行の挿入
+                        if (action == cmd.cmdPasteNew.cmd && datacopy) {
+                            flex.itemsSource.insert(ht.row, null);
+                            setCopyData(datacopy, ht)
+                        }
+                        setRowHeaderNumber(flex);
+                        setRowSelected(flex, ht)
+                    }
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.info(jqXHR["responseText"]);
+                }
+            });
+        }
+    })
+    // 編集ポップアップ画面表表示
+    flex.hostElement.addEventListener('dblclick', function (e) {
+        console.log('Double Click');
+    })
     // set data copy
     function setCopyData(datacopy, ht) {
         if (datacopy) {
