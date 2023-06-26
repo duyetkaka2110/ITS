@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="ja">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="Cache-Control" content="no-cache">
-    <title>GrapeCity Wijmo MultiRow Row and Column Freezing</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>見積</title>
     <!-- Wijmo styles and core (required) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="{{ URL::asset('css/bootstrap.min.css') }}" rel="stylesheet" />
@@ -32,15 +31,21 @@
 
     <script src="{{ URL::asset('js/invoice/app2.js') }}" type="text/javascript"></script>
     <style>
+        .bg-green,
+        .wj-cell.bg-green{
+           background: #b2ffd4;
+        }
         .wj-cell.wj-frozen-col{
             border-right: 2px solid #a2a2a2;
         }
         .wj-topleft .wj-header {
             white-space: inherit;
         }
-
+        .wj-cells .wj-cell.wj-state-selected{
+            background: #80adbf;
+        }
         .wj-flexgrid {
-            height: 550px;
+            height: 750px;
             /* position: absolute;
             inset: 0px; */
         }
@@ -74,7 +79,43 @@
     <div class="container-fluid">
         <div id="grid" class="has-ctx-menu"></div>
     </div>
+    <a href="/readCsv" target="_blank" >dyet</a>
     <input type="hidden" class="route-invoice-action" value="{{ route('invoice.action') }}" />
+    <!-- 編集ポップアップ -->
+    <div class="modal fade" id="InvoiceModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
+        <div class="modal-dialog " role="document">
+            <div class="modal-content w-100">
+                <div class="modal-header bg-primary pt-2 pb-2">
+                    <h6 class="modal-title text-white">見積編集</h6>
+                </div>
+                <div class="modal-body">
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                見積編集画面
+                </div>
+                <div class="modal-footer justify-center">
+                    <button type="button" class="btn btn-primary w-8em btnPopupOk" data-dismiss="modal">確認</button>
+                    <button type="button" class="btn btn-danger w-8em" data-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- 確認ポップアップ -->
     <div class="modal fade" id="ConfirmModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered mt-0 mb-0" role="document">

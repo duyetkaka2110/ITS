@@ -27,3 +27,8 @@ function dispConfirmModal(content, action) {
     $("#ConfirmModal .btnPopupOk").attr("data-action", action);
     $("#ConfirmModal").modal();
 }
+// 見積ポップアップ表示
+function dispInvoiceModal(content) {
+    $("#InvoiceModal .modal-body").html(content);
+    $("#InvoiceModal").modal();
+}

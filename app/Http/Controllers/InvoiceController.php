@@ -13,19 +13,25 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-
         $header = $this->_getTableHeader();
-        $key = array_keys(json_decode($header, true));
         $cmd = json_encode(config("const.cmd"));
-        $list = Invoice::where("AdQuoNo", 3)
+        $list = $this->_getList();
+        return view("invoice.index2", compact("header", "list", "cmd"));
+    }
+
+    /**
+     * 見積明細一覧取得
+     */
+    private function _getList()
+    {
+        return Invoice::select("*")
+            ->selectRaw("CASE WHEN No != 0 THEN No END AS No")
+            ->where("AdQuoNo", 3)
             ->where("DetailType", 1)
-            ->orderBy("id")
             ->orderBy("DetailType") // 明細区分
             ->orderBy("DetailNo") // 明細No
             ->orderBy("No")
-            ->get();
-        $list = json_encode($list);
-        return view("invoice.index2", compact("header", "list", "cmd"));
+            ->get()->toJson();
     }
     /**
      * 見積明細画面
@@ -42,36 +48,80 @@ class InvoiceController extends Controller
     {
         $action = $rq->action;
         $data = $rq->data;
-        $dataOldId = $rq->dataOldId;
+        $dataSelected = $rq->dataSelected;
+        $dataNoChange = $rq->dataNoChange;
+        $dataBeforeSel = $rq->dataBeforeSel;
         $id = null;
+        $NoUpdate = null;
+        if (isset($data["created_at"])) {
+            unset($data["created_at"]);
+        }
+        if (isset($data["updated_at"])) {
+            unset($data["updated_at"]);
+        }
 
         try {
             DB::beginTransaction();
+            $DetailNoUpdate = null;
             // 貼り付け
             if ($action == config("const.cmd.cmdPaste.cmd")) {
                 unset($data["id"]);
-                unset($data["SortNo"]);
-                Invoice::where("id", $dataOldId)->update($data);
+                unset($data["DetailNo"]);
+                unset($data["No"]);
+                if ($dataBeforeSel) {
+                    $data["No"] = $dataBeforeSel["No"] + 1;
+                    $NoUpdate = ' + ' . ($dataBeforeSel["No"] + 1);
+                }
+                Invoice::where("id", $dataSelected["id"])->update($data);
             }
 
             // コピーした行の挿入
             if ($action == config("const.cmd.cmdPasteNew.cmd")) {
                 unset($data["id"]);
+                $data["DetailNo"] = $dataSelected["DetailNo"];
+                $data["No"] = $dataSelected["No"];
                 $id = Invoice::insertGetId($data);
+                $DetailNoUpdate = ' + 1';
             }
             // 挿入
             if ($action == config("const.cmd.cmdNew.cmd")) {
-                $id = Invoice::insertGetId($data);
+                $dataNew = [
+                    "AdQuoNo" => 3,
+                    "DetailType" => 1,
+                    "DetailNo" => $data["DetailNo"],
+                    "No" => 0 // No：再設定
+                ];
+                $id = Invoice::insertGetId($dataNew);
+                $DetailNoUpdate = ' +1 ';
+                $NoUpdate = ' - ' . ($data["No"] - 1);
             }
             // 削除
             if ($action == config("const.cmd.cmdDel.cmd")) {
-                Invoice::where("id", $data["id"])->delete();
+                Invoice::findOrFail($data["id"])->delete();
+                $DetailNoUpdate = ' - 1';
+                // 削除行のNoがNULL場合
+                if ($dataNoChange && !$data["No"]) {
+                    $NoUpdate = ' + ' . $dataBeforeSel["No"];
+                }
             }
 
+            // 明細No:再設定
+            if ($DetailNoUpdate) {
+                Invoice::where('DetailNo', '>=', $data["DetailNo"])
+                    ->where("id", "!=", $id) // 行追加の外
+                    ->update(['DetailNo' => DB::Raw("DetailNo" . $DetailNoUpdate)]);
+            }
+            // 7列目の「No」更新
+            if ($dataNoChange && ($DetailNoUpdate || $NoUpdate)) {
+                Invoice::whereIn('id', $dataNoChange)
+                    ->where("id", "!=", $id) // 行追加の外
+                    ->update(['No' => DB::Raw("No" . ($NoUpdate ? $NoUpdate : $DetailNoUpdate))]);
+            }
             DB::commit();
             return [
                 "status" => true,
-                "id" => $id
+                "id" => $id,
+                "data" => $this->_getList()
             ];
         } catch (Throwable $e) {
             DB::rollBack();
@@ -88,15 +138,15 @@ class InvoiceController extends Controller
     private function _getTableHeader()
     {
         return json_encode([
-            "id" => [
-                "name" => "id",
+            // "id" => [
+            //     "name" => "id",
+            //     "class" => "wj-align-center",
+            //     "width" => 30
+            // ],
+            "DetailNo" => [
+                "name" => "行No",
                 "class" => "wj-align-center",
                 "width" => 30
-            ],
-            "SortNo" => [
-                "name" => "SortNo",
-                "class" => "wj-align-center",
-                "width" => 50
             ],
             "Type" => [
                 "name" => "種別",
@@ -213,27 +263,27 @@ class InvoiceController extends Controller
             ],
             "LaborOuts" => [
                 "name" => "労務•外注",
-                "class" => "wj-align-center",
+                "class" => "wj-align-center bg-green",
                 "width" => 50
             ],
             "MaterUnitPrice" => [
                 "name" => "材料単価*",
-                "class" => "wj-align-right",
+                "class" => "wj-align-right bg-green",
                 "width" => 50
             ],
             "LaborUnitPrice" => [
                 "name" => "労務単価*",
-                "class" => "wj-align-right",
+                "class" => "wj-align-right bg-green",
                 "width" => 50
             ],
             "OutsUnitPrice" => [
                 "name" => "外注単価",
-                "class" => "wj-align-right",
+                "class" => "wj-align-right bg-green",
                 "width" => 70
             ],
             "MaterScaleFactor" => [
                 "name" => "材料増減係数",
-                "class" => "wj-align-right",
+                "class" => "wj-align-right bg-green",
                 "width" => 50
             ]
         ]);

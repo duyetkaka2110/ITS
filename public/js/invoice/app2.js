@@ -16,19 +16,20 @@ function init() {
     var flex = new wijmo.grid.FlexGrid("#grid", {
         itemsSource: new wijmo.collections.ObservableArray(list),
         columns: headerCol,
+        autoGenerateColumns: false,
         frozenColumns: 5,
         isReadOnly: true,
         allowResizing: 'BothAllCells',
         selectionMode: 'Row',
-        allowSorting: false
+        allowSorting: false,
+        headersVisibility: "Column"
     })
     // set css style 
-    flex.topLeftCells.setCellData(0, 0, "行No");
+    flex.columnHeaders.rows.defaultSize = 55;
     flex.columnHeaders.rows[0].cssClass = "wj-align-center"
     flex.columnHeaders.rows[0].wordWrap = true;
     flex.columnHeaders.rows.defaultSize = 55;
     flex.rows.defaultSize = 59;
-    setRowHeaderNumber(flex)
     console.info(flex)
     flex.hostElement.addEventListener('contextmenu', (e) => {
         ht = flex.hitTest(e);
@@ -108,30 +109,51 @@ function init() {
     }
 
     // 削除確認ボタン時
-    $(".btnPopupOk").on("click", function () {
-        let dataAction = false, dataActionOldId = false;
+    $("#ConfirmModal .btnPopupOk").on("click", function () {
+        let dataAction = false, dataSelected = false, dataNoChange = [], dataBeforeSel = [];
         let rowSelect = flex.itemsSource[ht.row];
-        console.info(rowSelect)
+        let row = ht.row;
         action = $(this).attr("data-action")
 
-        // 挿入
-        if (action == cmd.cmdNew.cmd) {
-            dataAction = 1;
-        }
-        // 削除
-        if (action == cmd.cmdDel.cmd) {
-            dataAction = rowSelect;
+        // 挿入/削除
+        if (action == cmd.cmdNew.cmd || action == cmd.cmdDel.cmd) {
+            dataAction = dataSelected = rowSelect;
+            // 削除
+            if (action == cmd.cmdDel.cmd && !rowSelect.No && flex.itemsSource[row + 1].No && flex.itemsSource[row - 1].No) {
+                dataBeforeSel = flex.itemsSource[row - 1];
+                row++;
+            }
+            // No更新のidを取得
+            while (flex.itemsSource[row].No) {
+                dataNoChange.push(flex.itemsSource[row].id)
+                row++;
+            }
+
         }
         // 貼り付け
         if (action == cmd.cmdPaste.cmd && datacopy) {
+            if (!rowSelect.No && flex.itemsSource[row - 1].No) {
+                dataBeforeSel = flex.itemsSource[row - 1];
+                row++;
+                // No更新のidを取得
+                while (flex.itemsSource[row].No) {
+                    dataNoChange.push(flex.itemsSource[row].id)
+                    row++;
+                }
+            }
             // 選択行後、id保存
-            dataActionOldId = rowSelect.id;
+            dataSelected = rowSelect;
             dataAction = datacopy;
         }
         // コピーした行の挿入
         if (action == cmd.cmdPasteNew.cmd && datacopy) {
-            datacopy.SortNo = rowSelect.SortNo - 1;
+            dataSelected = rowSelect;
             dataAction = datacopy;
+            // No更新のidを取得
+            while (flex.itemsSource[row].No > 0) {
+                dataNoChange.push({ id: flex.itemsSource[row].id })
+                row++;
+            }
         }
         // DB更新
         if (dataAction) {
@@ -140,7 +162,9 @@ function init() {
                 data: {
                     action: action,
                     data: dataAction,
-                    dataOldId: dataActionOldId,
+                    dataSelected: dataSelected,
+                    dataNoChange: dataNoChange,
+                    dataBeforeSel: dataBeforeSel
                 },
                 url: $(".route-invoice-action").val(),
                 success: function (res) {
@@ -148,27 +172,12 @@ function init() {
                         // エラー表示
                         dispMessageModal(res["msg"])
                     } else {
-                        // 挿入
-                        if (action == cmd.cmdNew.cmd) {
-                            flex.itemsSource.insert(ht.row, null);
-                        }
-                        // 削除
-                        if (action == cmd.cmdDel.cmd) {
-                            flex.itemsSource.removeAt(ht.row);
-                        }
-                        // 貼り付け
-                        if (action == cmd.cmdPaste.cmd && datacopy) {
-                            setCopyData(datacopy, ht)
-                        }
-                        // コピーした行の挿入
-                        if (action == cmd.cmdPasteNew.cmd && datacopy) {
-                            flex.itemsSource.insert(ht.row, null);
-                            setCopyData(datacopy, ht)
-                        }
-                        setRowHeaderNumber(flex);
+                        // 一覧画面再表示
+                        scrollPosition = flex.scrollPosition;
+                        flex.itemsSource = new wijmo.collections.ObservableArray($.parseJSON(res["data"]));
+                        flex.scrollPosition = scrollPosition
                         setRowSelected(flex, ht)
                     }
-
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.info(jqXHR["responseText"]);
@@ -178,7 +187,11 @@ function init() {
     })
     // 編集ポップアップ画面表表示
     flex.hostElement.addEventListener('dblclick', function (e) {
-        console.log('Double Click');
+        console.info(e)
+        if(e.returnValue){
+            e.preventDefault();
+        }
+        $("#InvoiceModal").modal();
     })
     // set data copy
     function setCopyData(datacopy, ht) {

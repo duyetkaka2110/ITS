@@ -37,6 +37,13 @@ return [
             "icon" => "fa-trash",
             "msg" => "を削除し"
         ],
+        // 小計行追加
+        "cmdTotal" => [
+            "cmd" => "cmdTotal",
+            "name" => "小計行追加",
+            "icon" => "fa-calculator",
+            "msg" => "を小計し"
+        ],
         // 閉じる
         "cmdExit" => [
             "cmd" => "cmdExit",
