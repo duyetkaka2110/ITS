@@ -8,6 +8,9 @@ use DB;
 
 class InvoiceController extends Controller
 {
+    protected $AdQuoNo = 3;
+    protected $DetailType = 1;
+
     /**
      * 見積明細画面
      */
@@ -21,18 +24,35 @@ class InvoiceController extends Controller
 
     /**
      * 見積明細一覧取得
+     * param array $whereInId id一覧の検索条件
+     * param bool $jsonFLag デフォルト true
+     * param string $column デフォルト null
+     * return 配列/json
      */
-    private function _getList()
+    private function _getList(array $whereInId = [], bool $jsonFLag = true, string $column = "")
     {
-        return Invoice::select("*")
+        $list =  Invoice::select("*")
             ->selectRaw("CASE WHEN No != 0 THEN No END AS No")
-            ->where("AdQuoNo", 3)
-            ->where("DetailType", 1)
-            ->orderBy("DetailType") // 明細区分
-            ->orderBy("DetailNo") // 明細No
-            ->orderBy("No")
-            ->get()->toJson();
+            ->where("AdQuoNo", $this->AdQuoNo)
+            ->where("DetailType", $this->DetailType)
+            ->when($whereInId, function ($query, $whereInId) {
+                return $query->whereIn("id", $whereInId);
+            })
+            ->when($column == "", function ($query) {
+                return $query->orderBy("DetailNo") // 明細No
+                    ->orderBy("No") // No
+                    ->get();
+            })
+            ->when($column, function ($query, $column) {
+                return $query->sum($column);
+            });
+
+
+        if ($jsonFLag) return $list->toJson();
+        return $list;
     }
+
+
     /**
      * 見積明細画面
      */
@@ -44,83 +64,70 @@ class InvoiceController extends Controller
         $headername = (($header));
         return view("invoice.javascript", compact("headerkey", "headername", "list"));
     }
+
+    /**
+     * 見積明細更新
+     * param Request $rq
+     * return 配列
+     */
     public function action(Request $rq)
     {
         $action = $rq->action;
-        $data = $rq->data;
+        $dataCopy = $rq->dataCopy;
         $dataSelected = $rq->dataSelected;
         $dataNoChange = $rq->dataNoChange;
-        $dataBeforeSel = $rq->dataBeforeSel;
-        $id = null;
-        $NoUpdate = null;
-        if (isset($data["created_at"])) {
-            unset($data["created_at"]);
-        }
-        if (isset($data["updated_at"])) {
-            unset($data["updated_at"]);
-        }
+        $dataBeforeNo = $rq->dataBeforeNo;
+        $totalNext = $rq->totalNext;
+        $prevListTotal = $rq->prevListTotal;
 
         try {
             DB::beginTransaction();
-            $DetailNoUpdate = null;
+            $data = [
+                "DetailNoUpdate" => null,
+                "NoUpdate" => NULL,
+                "dataNew" => []
+            ];
             // 貼り付け
             if ($action == config("const.cmd.cmdPaste.cmd")) {
-                unset($data["id"]);
-                unset($data["DetailNo"]);
-                unset($data["No"]);
-                if ($dataBeforeSel) {
-                    $data["No"] = $dataBeforeSel["No"] + 1;
-                    $NoUpdate = ' + ' . ($dataBeforeSel["No"] + 1);
-                }
-                Invoice::where("id", $dataSelected["id"])->update($data);
+                $data = $this->_setPaste($data, $dataCopy, $dataSelected);
             }
 
             // コピーした行の挿入
             if ($action == config("const.cmd.cmdPasteNew.cmd")) {
-                unset($data["id"]);
-                $data["DetailNo"] = $dataSelected["DetailNo"];
-                $data["No"] = $dataSelected["No"];
-                $id = Invoice::insertGetId($data);
-                $DetailNoUpdate = ' + 1';
+                $data = $this->_setPasteNew($data, $dataCopy, $dataSelected);
             }
             // 挿入
             if ($action == config("const.cmd.cmdNew.cmd")) {
-                $dataNew = [
-                    "AdQuoNo" => 3,
-                    "DetailType" => 1,
-                    "DetailNo" => $data["DetailNo"],
-                    "No" => 0 // No：再設定
-                ];
-                $id = Invoice::insertGetId($dataNew);
-                $DetailNoUpdate = ' +1 ';
-                $NoUpdate = ' - ' . ($data["No"] - 1);
+                $data = $this->_setNew($data, $dataSelected);
             }
             // 削除
             if ($action == config("const.cmd.cmdDel.cmd")) {
-                Invoice::findOrFail($data["id"])->delete();
-                $DetailNoUpdate = ' - 1';
-                // 削除行のNoがNULL場合
-                if ($dataNoChange && !$data["No"]) {
-                    $NoUpdate = ' + ' . $dataBeforeSel["No"];
-                }
+                $data = $this->_setDel($data, $dataBeforeNo, $dataSelected);
+            }
+
+            // 小計行追加
+            if ($action == config("const.cmd.cmdTotal.cmd")) {
+                $data = $this->_setTotal($data, $prevListTotal, $totalNext, $dataSelected);
             }
 
             // 明細No:再設定
-            if ($DetailNoUpdate) {
-                Invoice::where('DetailNo', '>=', $data["DetailNo"])
-                    ->where("id", "!=", $id) // 行追加の外
-                    ->update(['DetailNo' => DB::Raw("DetailNo" . $DetailNoUpdate)]);
+            if ($data["DetailNoUpdate"]) {
+                Invoice::where('DetailNo', '>=', $dataSelected["DetailNo"][0])
+                    ->update(['DetailNo' => DB::Raw("DetailNo" . $data["DetailNoUpdate"])]);
             }
             // 7列目の「No」更新
-            if ($dataNoChange && ($DetailNoUpdate || $NoUpdate)) {
+            if ($dataNoChange && $data["NoUpdate"]) {
                 Invoice::whereIn('id', $dataNoChange)
-                    ->where("id", "!=", $id) // 行追加の外
-                    ->update(['No' => DB::Raw("No" . ($NoUpdate ? $NoUpdate : $DetailNoUpdate))]);
+                    ->update(['No' => DB::Raw("No" . $data["NoUpdate"])]);
             }
+            if ($data["dataNew"]) {
+                Invoice::insert($data["dataNew"]);
+            }
+            // 小計再設定
+            $this->_resetTotal();
             DB::commit();
             return [
                 "status" => true,
-                "id" => $id,
                 "data" => $this->_getList()
             ];
         } catch (Throwable $e) {
@@ -130,6 +137,176 @@ class InvoiceController extends Controller
                 "msg" =>  GetMessage::getMessageByID("error003")
             ];
         }
+    }
+
+    /**
+     * 小計再設定
+     */
+    private function _resetTotal()
+    {
+        $list = Invoice::select("id", "DetailNo", "Amount")
+            ->where("AdQuoNo", $this->AdQuoNo)
+            ->where("DetailType", $this->DetailType)
+            ->where("FirstName", config("const.cmd.cmdTotal.text"))
+            ->orderBy("DetailNo") // 明細No
+            ->get()->toArray();
+        if ($list) {
+            $preDetailNo = 0;
+            foreach ($list as $k => $l) {
+                $list[$k]["Amount"] =    $this->_getSum("Amount", $preDetailNo, $l["DetailNo"] - 1);
+                $preDetailNo = $l["DetailNo"] + 1;
+            }
+            Invoice::upsert($list, "id");
+        }
+    }
+
+    /**
+     * 小計取得
+     * param string $key
+     * param int $DetailNoStart
+     * param int $DetailNoENd
+     * return int
+     */
+    private function _getSum(string $key, int $DetailNoStart, int $DetailNoENd)
+    {
+        return Invoice::select("*")
+            ->selectRaw("CASE WHEN No != 0 THEN No END AS No")
+            ->where("AdQuoNo", $this->AdQuoNo)
+            ->where("DetailType", $this->DetailType)
+            ->whereBetween('DetailNo', [$DetailNoStart, $DetailNoENd])
+            ->sum($key);
+    }
+    /**
+     * 貼り付け機能
+     * param $data 結果データ
+     * param $prevListTotal
+     * param $totalNext
+     * return 配列
+     */
+    private function _setTotal($data, $prevListTotal, $totalNext, $dataSelected)
+    {
+        // 小計行追加
+        $data["dataNew"][] = [
+            "AdQuoNo" => $this->AdQuoNo,
+            "DetailType" => $this->DetailType,
+            "DetailNo" => $dataSelected["first"] + 1,
+            "FirstName" => config("const.cmd.cmdTotal.text"),
+            "SpecName1" => "小計",
+        ];
+
+        $data["NoUpdate"] = ' - ' . $dataSelected["firstNo"] - 1;
+        $data["DetailNoUpdate"] = ' + 1';
+        return $data;
+    }
+
+    /**
+     * 貼り付け機能
+     * param $data 結果データ
+     * param $dataCopy　コピーデータ
+     * param $dataSelected　選択データ
+     * return 配列
+     */
+    private function _setPaste($data, $dataCopy, $dataSelected)
+    {
+        // コピーデータ取得
+        $list = $this->_getList($dataCopy["id"], false)->toArray();
+
+        // 新しいデータ更新
+        $no = $dataSelected["prevItemNo"] ? ($dataSelected["prevItemNo"]) : 0;
+        foreach ($list as $k => $l) {
+            unset($l["id"]);
+            unset($l["DetailNo"]);
+            // 7列目の「No」更新
+            if ($l["No"]) {
+                $no++;
+            } else {
+                $no = 0;
+            }
+            $l["No"] = $no;
+            Invoice::where("id", $dataSelected["id"][$k])->update($l);
+        }
+
+        if (!$no) {
+            // 7列目の「No」再設定
+            $data["NoUpdate"] = ' - ' . $dataSelected["nextItemNo"] - 1;
+        } else {
+            if ($dataCopy["haveNoNull"] || $dataSelected["nextItemNo"] != ($no + 1)) {
+                $data["NoUpdate"] = ' - ' . $dataSelected["nextItemNo"] - $no - 1;
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * コピーした行の挿入機能
+     * param $data 結果データ
+     * param $dataCopy　コピーデータ
+     * param $dataSelected　選択データ
+     * return 配列
+     */
+    private function _setPasteNew($data, $dataCopy, $dataSelected)
+    {
+        // コピーデータ取得
+        $list = $this->_getList($dataCopy["id"], false)->toArray();
+
+        $no = $dataSelected["prevItemNo"] ? ($dataSelected["prevItemNo"]) : 0;
+        foreach ($list as $k => $l) {
+            unset($l["id"]);
+            $l["DetailNo"] = $dataSelected["DetailNo"][$k];
+            // 7列目の「No」更新
+            if ($l["No"]) {
+                $no++;
+            } else {
+                $no = 0;
+            }
+            $l["No"] = $no;
+            $data["dataNew"][] = $l;
+        }
+        $data["NoUpdate"] = ' - ' . $dataSelected["firstNo"] - $no - 1;
+        $data["DetailNoUpdate"] = ' + ' . $dataSelected["count"];
+        return $data;
+    }
+
+
+    /**
+     * 挿入機能
+     * param $data 結果データ
+     * param $dataSelected　選択データ
+     * return 配列
+     */
+    private function _setNew($data, $dataSelected)
+    {
+        foreach ($dataSelected["DetailNo"] as $item) {
+            $data["dataNew"][] = [
+                "AdQuoNo" => $this->AdQuoNo,
+                "DetailType" => $this->DetailType,
+                "DetailNo" => $item,
+                "No" => NULL // No：再設定
+            ];
+        }
+        $data["DetailNoUpdate"] = ' +  ' . $dataSelected["count"];
+        $data["NoUpdate"] = ' - ' . (reset($dataSelected["No"]) - 1);
+        return $data;
+    }
+
+
+    /**
+     * 削除機能
+     * param $data 結果データ
+     * param $dataBeforeNo　選択行前
+     * param $dataSelected　選択データ
+     * return 配列
+     */
+    private function _setDel($data, $dataBeforeNo, $dataSelected)
+    {
+        // 行削除
+        Invoice::whereIn("id", $dataSelected["id"])->delete();
+        $data["DetailNoUpdate"] = ' - ' . $dataSelected["count"];
+        // 削除行一覧のNoがNULLある,また削除行前にNoがNULLある場合
+        if ($dataBeforeNo || (!$dataSelected["prevItemNo"] && $dataSelected["nextItemNo"] > 1)) {
+            $data["NoUpdate"] = ' - ' . (end($dataSelected["No"]) ? end($dataSelected["No"]) : 0) . ' +' . ($dataBeforeNo ? $dataBeforeNo : 0);
+        }
+        return $data;
     }
     /**
      * 見積明細一覧画面フォーマット取得
@@ -180,7 +357,7 @@ class InvoiceController extends Controller
                 "class" => "wj-align-center",
                 "width" => 40
             ],
-            "FisrtName" => [
+            "FirstName" => [
                 "name" => "名称",
                 "class" => "text-danger",
                 "width" => 120

@@ -28,7 +28,7 @@ return [
             "cmd" => "cmdNew",
             "name" => "挿入",
             "icon" => "fa-plus-square",
-            "msg" => "から1行挿入し"
+            "msg" => "を挿入し"
         ],
         // 削除
         "cmdDel" => [
@@ -42,7 +42,8 @@ return [
             "cmd" => "cmdTotal",
             "name" => "小計行追加",
             "icon" => "fa-calculator",
-            "msg" => "を小計し"
+            "msg" => "を小計し",
+            "text" => "（内部）"
         ],
         // 閉じる
         "cmdExit" => [

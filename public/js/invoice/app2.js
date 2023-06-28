@@ -14,15 +14,24 @@ function init() {
     })
     // create Grid table
     var flex = new wijmo.grid.FlexGrid("#grid", {
+        loadedRows: function (s, e) {
+            for (var i = 0; i < s.rows.length; i++) {
+                var row = s.rows[i];
+                var item = row.dataItem;
+                if (item.FirstName == cmd.cmdTotal.text) {
+                    row.cssClass = 'row-total';
+                }
+            }
+        },
         itemsSource: new wijmo.collections.ObservableArray(list),
         columns: headerCol,
         autoGenerateColumns: false,
-        frozenColumns: 5,
+        frozenColumns: 6,
         isReadOnly: true,
         allowResizing: 'BothAllCells',
-        selectionMode: 'Row',
+        selectionMode: 'RowRange',
         allowSorting: false,
-        headersVisibility: "Column"
+        headersVisibility: "Column",
     })
     // set css style 
     flex.columnHeaders.rows.defaultSize = 55;
@@ -34,7 +43,6 @@ function init() {
     flex.hostElement.addEventListener('contextmenu', (e) => {
         ht = flex.hitTest(e);
         // set select rows style
-        flex.selection = new wijmo.grid.CellRange(ht.row, 0, 1, 1)
         if (ht.cellType == 2) {
             // show on row header only
             e.preventDefault();
@@ -61,14 +69,23 @@ function init() {
         itemsSource: itemsSource,
         _itemClicked: () => {
             let msg;
-            let lineNo = "行No:" + (ht.row + 1);
             // 確認メッセージ取得
             if (menu.selectedValue in cmd) {
+                let totalRowsRun = flex.selection.rowSpan;
+
+                if (menu.selectedValue == cmd.cmdPaste.cmd || menu.selectedValue == cmd.cmdPasteNew.cmd) {
+                    totalRowsRun = datacopy.count;
+                }
+                if (menu.selectedValue == cmd.cmdTotal.cmd ) {
+                    totalRowsRun = 1;
+                }
+                let lineNo = "行No:" + (flex.selection.row2 + 1) + "から" + totalRowsRun + "行";
+
                 if (cmd[menu.selectedValue].msg) {
                     msg = lineNo + cmd[menu.selectedValue].msg;
                 } else {
                     if (menu.selectedValue == cmd.cmdCopy.cmd) {
-                        datacopy = flex.itemsSource[ht.row];
+                        datacopy = getSeletedItems(flex);
                     }
                 }
             }
@@ -94,6 +111,14 @@ function init() {
             } else {
                 wijmo.removeClass(item, 'wj-state-disabled');
             }
+            // 小計行追加disabled
+            if (item.innerText == cmd.cmdTotal.name) {
+                if (flex.selection.topRow == 0) {
+                    wijmo.addClass(item, 'wj-state-disabled');
+                } else {
+                    wijmo.removeClass(item, 'wj-state-disabled');
+                }
+            }
         });
     });
     // use it as a context menu for one or more elements
@@ -110,61 +135,49 @@ function init() {
 
     // 削除確認ボタン時
     $("#ConfirmModal .btnPopupOk").on("click", function () {
-        let dataAction = false, dataSelected = false, dataNoChange = [], dataBeforeSel = [];
-        let rowSelect = flex.itemsSource[ht.row];
-        let row = ht.row;
-        action = $(this).attr("data-action")
-
+        let dataAction = false,
+            dataBeforeNo = [],
+            totalNext = [],
+            prevListTotal = [];
+        var action = $(this).attr("data-action")
+        var dataSelected = getSeletedItems(flex, action);
+        let row = dataSelected.first;
         // 挿入/削除
         if (action == cmd.cmdNew.cmd || action == cmd.cmdDel.cmd) {
-            dataAction = dataSelected = rowSelect;
             // 削除
-            if (action == cmd.cmdDel.cmd && !rowSelect.No && flex.itemsSource[row + 1].No && flex.itemsSource[row - 1].No) {
-                dataBeforeSel = flex.itemsSource[row - 1];
-                row++;
-            }
-            // No更新のidを取得
-            while (flex.itemsSource[row].No) {
-                dataNoChange.push(flex.itemsSource[row].id)
-                row++;
+            if (action == cmd.cmdDel.cmd) {
+                if ((dataSelected.prevItemNo != 0 && dataSelected.nextItemNo && dataSelected.haveNoNull)
+                    || (dataSelected.prevItemNo == 0 && dataSelected.nextItemNo > 1)) {
+                    row = dataSelected.last + 1;
+                    if (dataSelected.prevItemNo != 0)
+                        dataBeforeNo = flex.itemsSource[dataSelected.first - 1].No;
+                }
             }
 
         }
         // 貼り付け
         if (action == cmd.cmdPaste.cmd && datacopy) {
-            if (!rowSelect.No && flex.itemsSource[row - 1].No) {
-                dataBeforeSel = flex.itemsSource[row - 1];
-                row++;
-                // No更新のidを取得
-                while (flex.itemsSource[row].No) {
-                    dataNoChange.push(flex.itemsSource[row].id)
-                    row++;
-                }
-            }
+            row = dataSelected.last + 1;
             // 選択行後、id保存
-            dataSelected = rowSelect;
             dataAction = datacopy;
         }
         // コピーした行の挿入
         if (action == cmd.cmdPasteNew.cmd && datacopy) {
-            dataSelected = rowSelect;
             dataAction = datacopy;
-            // No更新のidを取得
-            while (flex.itemsSource[row].No > 0) {
-                dataNoChange.push({ id: flex.itemsSource[row].id })
-                row++;
-            }
         }
+
         // DB更新
-        if (dataAction) {
+        if (dataSelected.count) {
             $.ajax({
                 type: "get",
                 data: {
                     action: action,
-                    data: dataAction,
+                    dataCopy: dataAction,
                     dataSelected: dataSelected,
-                    dataNoChange: dataNoChange,
-                    dataBeforeSel: dataBeforeSel
+                    dataNoChange: getNextHaveNo(flex, row),// 選択一覧の下、No更新のidを取得
+                    dataBeforeNo: dataBeforeNo,
+                    prevListTotal: prevListTotal,
+                    totalNext: totalNext
                 },
                 url: $(".route-invoice-action").val(),
                 success: function (res) {
@@ -176,23 +189,67 @@ function init() {
                         scrollPosition = flex.scrollPosition;
                         flex.itemsSource = new wijmo.collections.ObservableArray($.parseJSON(res["data"]));
                         flex.scrollPosition = scrollPosition
-                        setRowSelected(flex, ht)
+                        setRowSelected(flex, dataSelected)
                     }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.info(jqXHR["responseText"]);
                 }
             });
         }
     })
+
     // 編集ポップアップ画面表表示
     flex.hostElement.addEventListener('dblclick', function (e) {
-        console.info(e)
-        if(e.returnValue){
+        if (e.returnValue) {
             e.preventDefault();
         }
         $("#InvoiceModal").modal();
     })
+
+    const sortOnKey = (key, string, desc) => {
+        const caseInsensitive = string && string === "CI";
+        return (a, b) => {
+            a = caseInsensitive ? a[key].toLowerCase() : a[key];
+            b = caseInsensitive ? b[key].toLowerCase() : b[key];
+            if (string) {
+                return desc ? b.localeCompare(a) : a.localeCompare(b);
+            }
+            return desc ? b - a : a - b;
+        }
+    };
+    function getSeletedItems(flex, actionCheck = null) {
+        var selectedItems = flex.selectedItems;
+        let i, first = flex.selection.topRow,
+            last = flex.selection.bottomRow;
+        if (actionCheck == cmd.cmdPaste.cmd || actionCheck == cmd.cmdPasteNew.cmd) {
+            selectedItems = [];
+            // from first row, get list items same copy clipboard items
+            for (i = 0; i < datacopy.count; i++) {
+                selectedItems.push(flex.itemsSource[first + i])
+            }
+            // set last row number
+            last += (i - 1);
+        }
+        return getDataSelected(selectedItems, first, last);
+    }
+
+    // 選択行データ取得
+    function getDataSelected(selectedItems, first, last) {
+        selectedItems.sort(sortOnKey("DetailNo", false, false))
+        var NoItems = selectedItems.map(el => el.No);
+        var dataSelected = {
+            count: selectedItems.length,
+            id: selectedItems.map(el => el.id),
+            DetailNo: selectedItems.map(el => el.DetailNo),
+            No: NoItems,
+            haveNoNull: NoItems.some(v => v === null) ? 1 : null,
+            first: first,// first selected row
+            last: last, // last selected row
+            firstNo: selectedItems[0].No,
+            lastNo: selectedItems[selectedItems.length - 1].No,
+            prevItemNo: first > 0 ? flex.itemsSource[first - 1].No : 0,
+            nextItemNo: last < flex.itemsSource.length ? flex.itemsSource[last + 1].No : 0,
+        }
+        return dataSelected;
+    }
     // set data copy
     function setCopyData(datacopy, ht) {
         if (datacopy) {
@@ -207,7 +264,16 @@ function init() {
         }
     }
     // set selected row style
-    function setRowSelected(flex, ht) {
-        flex.selection = new wijmo.grid.CellRange(ht.row, 0, 1, 1)
+    function setRowSelected(flex, dataSelected) {
+        flex.selection = new wijmo.grid.CellRange(dataSelected.first, 0, dataSelected.first, 1)
+    }
+    // get list items after selected rows, No can change
+    function getNextHaveNo(flex, row) {
+        let dataNoChange = [];
+        while (flex.itemsSource[row].No) {
+            dataNoChange.push(flex.itemsSource[row].id);
+            row++;
+        }
+        return dataNoChange;
     }
 }

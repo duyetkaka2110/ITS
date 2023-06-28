@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="Cache-Control" content="no-cache">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>見積</title>
     <!-- Wijmo styles and core (required) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -30,10 +31,31 @@
     </script>
 
     <script src="{{ URL::asset('js/invoice/app2.js') }}" type="text/javascript"></script>
+    <script> 
+    $(document).ready(function(){
+        $(".reload").on("click",function(){
+            location.reload();
+        })
+        $(".reset").on("click",function(){
+            $.ajax({
+                type: "get",
+                url: "/readCsv",
+                success: function (res) {
+                }
+            });
+            setTimeout(function() {
+                location.reload();
+            }, 2000);
+        })
+    })
+    </script>
     <style>
         .bg-green,
         .wj-cell.bg-green{
            background: #b2ffd4;
+        }
+        .row-total{
+            font-weight: bold;
         }
         .wj-cell.wj-frozen-col{
             border-right: 2px solid #a2a2a2;
@@ -79,7 +101,8 @@
     <div class="container-fluid">
         <div id="grid" class="has-ctx-menu"></div>
     </div>
-    <a href="/readCsv" target="_blank" >dyet</a>
+    <button class="reload w-17em" style="height: 100px;" >画面再表示</button>
+    <button class="reset w-17em" style="height: 100px;" >データリセット</button>
     <input type="hidden" class="route-invoice-action" value="{{ route('invoice.action') }}" />
     <!-- 編集ポップアップ -->
     <div class="modal fade" id="InvoiceModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
