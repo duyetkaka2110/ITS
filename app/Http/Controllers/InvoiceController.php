@@ -306,6 +306,9 @@ class InvoiceController extends Controller
         if ($dataBeforeNo || (!$dataSelected["prevItemNo"] && $dataSelected["nextItemNo"] > 1)) {
             $data["NoUpdate"] = ' - ' . (end($dataSelected["No"]) ? end($dataSelected["No"]) : 0) . ' +' . ($dataBeforeNo ? $dataBeforeNo : 0);
         }
+        if(!$dataSelected["haveNoNull"]){
+            $data["NoUpdate"] = ' - ' . $dataSelected["count"];
+        }
         return $data;
     }
     /**
