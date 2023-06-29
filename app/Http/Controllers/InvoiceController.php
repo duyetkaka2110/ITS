@@ -144,7 +144,7 @@ class InvoiceController extends Controller
      */
     private function _resetTotal()
     {
-        $list = Invoice::select("id", "DetailNo", "Amount")
+        $list = Invoice::select("id", "DetailNo", "Amount", "AdQuoNo", "DetailType")
             ->where("AdQuoNo", $this->AdQuoNo)
             ->where("DetailType", $this->DetailType)
             ->where("FirstName", config("const.cmd.cmdTotal.text"))
