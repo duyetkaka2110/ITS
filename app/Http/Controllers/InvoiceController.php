@@ -169,9 +169,7 @@ class InvoiceController extends Controller
      */
     private function _getSum(string $key, int $DetailNoStart, int $DetailNoENd)
     {
-        return Invoice::select("*")
-            ->selectRaw("CASE WHEN No != 0 THEN No END AS No")
-            ->where("AdQuoNo", $this->AdQuoNo)
+        return Invoice::where("AdQuoNo", $this->AdQuoNo)
             ->where("DetailType", $this->DetailType)
             ->whereBetween('DetailNo', [$DetailNoStart, $DetailNoENd])
             ->sum($key);
