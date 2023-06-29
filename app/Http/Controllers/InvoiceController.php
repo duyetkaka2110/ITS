@@ -302,12 +302,12 @@ class InvoiceController extends Controller
         // 行削除
         Invoice::whereIn("id", $dataSelected["id"])->delete();
         $data["DetailNoUpdate"] = ' - ' . $dataSelected["count"];
+        if (!$dataSelected["haveNoNull"]) {
+            $data["NoUpdate"] = $data["DetailNoUpdate"];
+        }
         // 削除行一覧のNoがNULLある,また削除行前にNoがNULLある場合
         if ($dataBeforeNo || (!$dataSelected["prevItemNo"] && $dataSelected["nextItemNo"] > 1)) {
             $data["NoUpdate"] = ' - ' . (end($dataSelected["No"]) ? end($dataSelected["No"]) : 0) . ' +' . ($dataBeforeNo ? $dataBeforeNo : 0);
-        }
-        if(!$dataSelected["haveNoNull"]){
-            $data["NoUpdate"] = ' - ' . $dataSelected["count"];
         }
         return $data;
     }
