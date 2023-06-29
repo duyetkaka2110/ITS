@@ -76,9 +76,6 @@ class InvoiceController extends Controller
         $dataCopy = $rq->dataCopy;
         $dataSelected = $rq->dataSelected;
         $dataNoChange = $rq->dataNoChange;
-        $dataBeforeNo = $rq->dataBeforeNo;
-        $totalNext = $rq->totalNext;
-        $prevListTotal = $rq->prevListTotal;
 
         try {
             DB::beginTransaction();
@@ -102,12 +99,12 @@ class InvoiceController extends Controller
             }
             // 削除
             if ($action == config("const.cmd.cmdDel.cmd")) {
-                $data = $this->_setDel($data, $dataBeforeNo, $dataSelected);
+                $data = $this->_setDel($data, $dataSelected);
             }
 
             // 小計行追加
             if ($action == config("const.cmd.cmdTotal.cmd")) {
-                $data = $this->_setTotal($data, $prevListTotal, $totalNext, $dataSelected);
+                $data = $this->_setTotal($data, $dataSelected);
             }
 
             // 明細No:再設定
@@ -177,11 +174,9 @@ class InvoiceController extends Controller
     /**
      * 貼り付け機能
      * param $data 結果データ
-     * param $prevListTotal
-     * param $totalNext
      * return 配列
      */
-    private function _setTotal($data, $prevListTotal, $totalNext, $dataSelected)
+    private function _setTotal($data,  $dataSelected)
     {
         // 小計行追加
         $data["dataNew"][] = [
@@ -291,23 +286,15 @@ class InvoiceController extends Controller
     /**
      * 削除機能
      * param $data 結果データ
-     * param $dataBeforeNo　選択行前
      * param $dataSelected　選択データ
      * return 配列
      */
-    private function _setDel($data, $dataBeforeNo, $dataSelected)
+    private function _setDel($data, $dataSelected)
     {
         // 行削除
         Invoice::whereIn("id", $dataSelected["id"])->delete();
         $data["DetailNoUpdate"] = ' - ' . $dataSelected["count"];
-        if (!$dataSelected["haveNoNull"]) {
-            $data["NoUpdate"] = $data["DetailNoUpdate"];
-        } else {
-            // 削除行一覧のNoがNULLある,また削除行前にNoがNULLある場合
-            if ($dataBeforeNo || (!$dataSelected["prevItemNo"] && $dataSelected["nextItemNo"] > 1)) {
-                $data["NoUpdate"] = ' - ' . (end($dataSelected["No"]) ? end($dataSelected["No"]) : 0) . ' +' . ($dataBeforeNo ? $dataBeforeNo : 0);
-            }
-        }
+        $data["NoUpdate"] = ' - ' . (end($dataSelected["No"]) ? end($dataSelected["No"]) : 0) - ($dataSelected["prevItemNo"] ? $dataSelected["prevItemNo"] : 0);
         return $data;
     }
     /**

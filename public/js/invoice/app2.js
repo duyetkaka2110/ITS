@@ -76,7 +76,7 @@ function init() {
                 if (menu.selectedValue == cmd.cmdPaste.cmd || menu.selectedValue == cmd.cmdPasteNew.cmd) {
                     totalRowsRun = datacopy.count;
                 }
-                if (menu.selectedValue == cmd.cmdTotal.cmd ) {
+                if (menu.selectedValue == cmd.cmdTotal.cmd) {
                     totalRowsRun = 1;
                 }
                 let lineNo = "行No:" + (flex.selection.row2 + 1) + "から" + totalRowsRun + "行";
@@ -135,26 +135,15 @@ function init() {
 
     // 削除確認ボタン時
     $("#ConfirmModal .btnPopupOk").on("click", function () {
-        let dataAction = false,
-            dataBeforeNo = [],
-            totalNext = [],
-            prevListTotal = [];
+        let dataAction = false;
         var action = $(this).attr("data-action")
         var dataSelected = getSeletedItems(flex, action);
         let row = dataSelected.first;
-        // 挿入/削除
-        if (action == cmd.cmdNew.cmd || action == cmd.cmdDel.cmd) {
-            // 削除
-            if (action == cmd.cmdDel.cmd) {
-                if ((dataSelected.prevItemNo != 0 && dataSelected.nextItemNo && dataSelected.haveNoNull)
-                    || (dataSelected.prevItemNo == 0 && dataSelected.nextItemNo > 1)) {
-                    row = dataSelected.last + 1;
-                    if (dataSelected.prevItemNo != 0)
-                        dataBeforeNo = flex.itemsSource[dataSelected.first - 1].No;
-                }
-            }
-
+        // 削除
+        if (action == cmd.cmdDel.cmd) {
+            row = dataSelected.last + 1;
         }
+
         // 貼り付け
         if (action == cmd.cmdPaste.cmd && datacopy) {
             row = dataSelected.last + 1;
@@ -175,9 +164,6 @@ function init() {
                     dataCopy: dataAction,
                     dataSelected: dataSelected,
                     dataNoChange: getNextHaveNo(flex, row),// 選択一覧の下、No更新のidを取得
-                    dataBeforeNo: dataBeforeNo,
-                    prevListTotal: prevListTotal,
-                    totalNext: totalNext
                 },
                 url: $(".route-invoice-action").val(),
                 success: function (res) {
