@@ -28,18 +28,13 @@ class InvoiceController extends Controller
             ->join(m_koshu::getTableName("K"), "m_shiyos.Koshu_ID", "K.Koshu_ID")
             ->join(m_tani::getTableName("T"), "m_shiyos.Tani_ID", "T.Tani_ID")
             ->join(m_shiyo_shubetsu::getTableName("SS"),"m_shiyos.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
-            // ->paginate(1);
             ->take(1000)
             ->get()->toJson();
-            
-        // $shiyo = m_shiyo::select("*")//"m_shiyos.Shiyo_Nm", "B.Bui_NM", "T.Tani_Nm")//, "SS.Shiyo_Shubetsu_Nm")
-        // // ->selectRaw("CONCAT(m_koshus.Koshu_Cd,'　',m_koshus.Koshu_Nm) as Koshu_Nm")
-        // ->join("m_buis", "m_shiyos.Bui_ID", "m_buis.Bui_ID")
-        // ->join("m_koshus", "m_shiyos.Koshu_ID", "m_koshus.Koshu_ID")
-        // ->join("m_tanis", "m_shiyos.Tani_ID", "m_tanis.Tani_ID")
-        // ->join("m_shiyo_shubetsus","m_shiyos.Shiyo_Shubetsu_ID", "m_shiyo_shubetsus.Shiyo_Shubetsu_ID")
-        // ->take(10)
-        // ->get()->toJson();
+        // $shiyo = m_shiyo::select("m_shiyos.Shiyo_Nm", "B.Bui_NM")
+        //     ->join(m_bui::getTableName("B"), "m_shiyos.Bui_ID", "B.Bui_ID")
+        //     ->take(1000)
+        //     ->get()->toJson();
+
         $headerShiyo = $this->_getTableHeaderShiyo();
         $header = $this->_getTableHeader();
         $cmd = json_encode(config("const.cmd"));
@@ -339,19 +334,19 @@ class InvoiceController extends Controller
                 "name" => "種別",
                 "class" => "wj-align-left-im",
                 "width" => 140,
-                "line1" => "<select class='form-control pl-1'  ><option>dererer</option><option>sd</option><option>derer234324er</option></select>"
+                "line1" => "<select class='form-control pl-1'  ><option></option><option>sd</option><option>derer234324er</option></select>"
             ],
             "Bui_NM" => [
                 "name" => "部位",
                 "class" => "align-items-baseline",
                 "width" => 100,
-                "line1" => "<select class='form-control pl-1'  ><option>dererer</option><option>sd</option><option>derer234324er</option></select>"
+                "line1" => "<select class='form-control pl-1'  ><option></option><option>sd</option><option>derer234324er</option></select>"
             ],
             "Shiyo_Shubetsu_Nm" => [
                 "name" => "材質",
                 "class" => "",
                 "width" => 100,
-                "line1" => "<select class='form-control pl-1'  ><option>dererer</option><option>sd</option><option>derer234324er</option></select>"
+                "line1" => "<select class='form-control pl-1'  ><option></option><option>sd</option><option>derer234324er</option></select>"
             ],
             "Shiyo_Nm" => [
                 "name" => "仕様",
