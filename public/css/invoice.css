@@ -1,5 +1,111 @@
+.bg-green,
+.wj-cell.bg-green {
+    background: #b2ffd4;
+}
 
-.wj-flexsheet {
-    height: 400px !important;
-    margin: 6px 0;
+.row-total {
+    font-weight: bold;
+}
+
+.wj-cell.wj-frozen-col {
+    border-right: 2px solid #a2a2a2;
+}
+
+.wj-topleft .wj-header {
+    white-space: inherit;
+}
+
+.wj-cells .wj-cell.wj-state-selected {
+    background: #80adbf;
+}
+
+#grid.wj-flexgrid {
+    height: 750px;
+}
+
+#shiyo.wj-flexgrid,
+#shiyo_selected.wj-flexgrid {
+    max-height: 250px;
+}
+
+/* use flex display to center-align cells vertically */
+.wj-flexgrid .wj-cell {
+    display: flex;
+    align-items: center;
+}
+
+#grid.wj-flexgrid .wj-cell.wj-align-right {
+    justify-content: flex-end;
+}
+
+.wj-flexgrid .wj-cell.wj-align-center {
+    justify-content: center;
+}
+
+.wj-flexgrid .wj-cell.note {
+    display: inherit;
+}
+
+.wj-cells .wj-cell.wj-state-selected.text-danger,
+.wj-cells .wj-cell.wj-state-multi-selected.text-danger {
+    color: #fff !important;
+}
+
+.modal-dialog.modal-lg {
+    width: 95%;
+    max-width: 1200px;
+    margin-top: 20px;
+}
+
+.mg-ig-row {
+    width: 75px;
+}
+
+.mg-ig-row input {
+    height: 27px;
+}
+
+.mg-ig-row span {
+    font-size: 83%;
+}
+
+.col-form-label {
+    padding: 3px 10px;
+}
+
+#shiyo .wj-cell.wj-header.header-red-bold {
+    background: #ff7e69;
+}
+
+#shiyo .wj-cell.wj-header.header-red-normal {
+    background: #ffa99b;
+}
+
+#shiyo .wj-cell {
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.wijmo-custom .wj-cells .wj-cell.wj-state-multi-selected,
+.wijmo-custom .wj-cells .wj-cell.wj-state-selected {
+    background: #ccfaf8;
+    color: #000;
+}
+
+.wj-align-left-im {
+    text-align: left !important;
+}
+
+.wj-align-center-im {
+    text-align: center !important;
+}
+
+.wj-align-right-im {
+    text-align: right !important;
+}
+
+#shiyo_selected .wj-cell.wj-header {
+    background: #4de5d3;
 }

@@ -15,6 +15,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get("/", "InvoiceController@index")->name("home");
 Route::get("/2", "InvoiceController@index2")->name("javascript");
-Route::get("/readCsv", "InvoiceController@readCsv")->name("readCsv");
 Route::get("/invoice-action", "InvoiceController@action")->name("invoice.action");
 Route::post("/invoice-action", "InvoiceController@action");
+
+// データ追加
+Route::get("/readAll", "DataController@readAll")->name("readAll");
+Route::get("/readCsvInvoice", "DataController@readCsvInvoice")->name("readCsvInvoice");
+Route::get("/readCsvShiyo", "DataController@readCsvShiyo")->name("readCsvShiyo");
+Route::get("/readCsvZairyo", "DataController@readCsvZairyo")->name("readCsvZairyo");
+Route::get("/readCsvTani", "DataController@readCsvTani")->name("readCsvTani");

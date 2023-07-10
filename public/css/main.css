@@ -141,13 +141,21 @@ body{
 .mw-17em {
     min-width: 17em !important;
 }
-.w-100{
-    width: 100%;
+.h-20{
+    height: 20px;
+}
+.h-25{
+    height: 25px !important;
+}
+.h-30{
+    height: 28px !important;
 }
 .clear-both {
     clear: both;
 }
-
+.form-control{
+    font-size: inherit;
+}
 .mg-errors {
     color: red;
     margin-bottom: 10px;
@@ -173,6 +181,9 @@ body{
 }
 .btn{
     font-size: inherit;
+}
+.btn-custom{
+    padding: 2px 10px ;
 }
 
 .modal-dialog-centered {

@@ -1,30 +1,19 @@
 
 document.readyState === 'complete' ? init() : window.onload = init;
 function init() {
-    var headerCol = [], datacopy = null, key, col;
-    // header row create
-    $.each(header, function (key, value) {
-        headerCol.push({
-            binding: key,
-            header: value["name"],
-            width: value["width"],
-            wordWrap: true,
-            cssClass: value["class"]
-        })
-    })
+    var datacopy = null;
     // create Grid table
     var flex = new wijmo.grid.FlexGrid("#grid", {
         loadedRows: function (s, e) {
             for (var i = 0; i < s.rows.length; i++) {
                 var row = s.rows[i];
-                var item = row.dataItem;
-                if (item.FirstName == cmd.cmdTotal.text) {
+                if (row.dataItem.FirstName == cmd.cmdTotal.text) {
                     row.cssClass = 'row-total';
                 }
             }
         },
         itemsSource: new wijmo.collections.ObservableArray(list),
-        columns: headerCol,
+        columns: getheaderCol(header),
         autoGenerateColumns: false,
         frozenColumns: 6,
         isReadOnly: true,
@@ -34,7 +23,6 @@ function init() {
         headersVisibility: "Column",
     })
     // set css style 
-    flex.columnHeaders.rows.defaultSize = 55;
     flex.columnHeaders.rows[0].cssClass = "wj-align-center"
     flex.columnHeaders.rows[0].wordWrap = true;
     flex.columnHeaders.rows.defaultSize = 55;
@@ -187,7 +175,19 @@ function init() {
         if (e.returnValue) {
             e.preventDefault();
         }
-        $("#InvoiceModal").modal();
+        selected = flex.selectedItems[0];
+        console.info(selected);
+        modal = "#InvoiceModal";
+        $(modal +  " input[name=DetailNo]").val("No."+selected["DetailNo"])
+        $(modal +  " input[name=FisrtName]").val(selected["FisrtName"])
+        $(modal +  " input[name=StandDimen]").val(selected["StandDimen"])
+        $(modal +  " input[name=MakerName]").val(selected["MakerName"])
+        $(modal +  " input[name=Unit]").val(selected["Unit"])
+        $(modal +  " input[name=Quantity]").val(selected["Quantity"])
+        $(modal +  " input[name=UnitPrice]").val(selected["UnitPrice"])
+        $(modal +  " input[name=Amount]").val(selected["Amount"])
+        $(modal +  " input[name=Note]").val(selected["Note"])
+        $(modal).modal();
     })
 
     const sortOnKey = (key, string, desc) => {
@@ -236,19 +236,6 @@ function init() {
         }
         return dataSelected;
     }
-    // set data copy
-    function setCopyData(datacopy, ht) {
-        if (datacopy) {
-            flex.itemsSource[ht.row] = datacopy;
-            flex.collectionView.refresh()
-        }
-    }
-    // set number line
-    function setRowHeaderNumber(flex) {
-        for (var r = 0; r < flex.rowHeaders.rows.length; r++) {
-            flex.rowHeaders.setCellData(r, 0, r + 1);
-        }
-    }
     // set selected row style
     function setRowSelected(flex, dataSelected) {
         flex.selection = new wijmo.grid.CellRange(dataSelected.first, 0, dataSelected.first, 1)
@@ -262,4 +249,85 @@ function init() {
         }
         return dataNoChange;
     }
+
+    function getheaderCol(header) {
+        var headerCol = [];
+        // header row create
+        $.each(header, function (key, value) {
+            headerCol.push({
+                binding: key,
+                header: value["name"],
+                width: value["width"] ? value["width"] : 100,
+                wordWrap: true,
+                cssClass: value["class"]
+            })
+        })
+        return headerCol;
+    }
+
+    // 工事仕様の選択画面
+    var headerColShiyo = [];
+    var layoutDefinition = [];
+    var headerLayoutDefinition = [];
+    // header row create
+    $.each(headerShiyo, function (key, value) {
+        headerColShiyo.push({
+            binding: key,
+            header: value["name"],
+            width: value["width"] ? value["width"] : 100,
+            wordWrap: true,
+            cssClass: value["class"]
+        })
+        width = value["width"] ? value["width"] : 100;
+        layoutDefinition.push(
+            {
+                colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"], dataMap: [1, 2, 3, 4], cells: [
+                    { binding: key, header: value["name"], width: width, cssClass: value["class"] },
+                ]
+            });
+        headerLayoutDefinition.push(
+            {
+                cells: [
+                    { colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"], dataMap: [1, 2, 3, 4] },//header line 1
+                    { binding: key, header: value["name"], align: 'center', width: width, cssClass: value["class"] }, // header line 2
+                ]
+            });
+    })
+
+    
+    var shiyo_selected_flex = new wijmo.grid.FlexGrid("#shiyo_selected", {
+        itemsSource: new wijmo.collections.ObservableArray([]),
+        columns: headerColShiyo,
+        autoGenerateColumns: false,
+        isReadOnly: true,
+        selectionMode: 'Row',
+        allowSorting: false,
+        headersVisibility: "Column",
+    })
+
+
+
+    // create the MultiRow
+    let shiyo_flex = new wijmo.grid.multirow.MultiRow('#shiyo', {
+        layoutDefinition: layoutDefinition,
+        headerLayoutDefinition: headerLayoutDefinition,
+        itemsSource: new wijmo.collections.ObservableArray(shiyo),
+        formatItem: function (s, e) {
+            /* show HTML in column headers */
+            if (e.panel == s.columnHeaders) {
+                e.cell.innerHTML = e.cell.textContent;
+            }
+        },
+        autoGenerateColumns: false,
+        isReadOnly: true,
+        selectionMode: 'Row',
+        allowSorting: false,
+        headersVisibility: "Column",
+        imeEnabled:true
+    });
+    headerRow1 = shiyo_flex.columnHeaders.rows[1];
+    headerRow1.height = 45;
+    headerRow1.cssClass = "header-red-bold"
+    shiyo_flex.columnHeaders.rows[2].cssClass = "header-red-normal"
+
 }
