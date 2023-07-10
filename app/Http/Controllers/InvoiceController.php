@@ -22,11 +22,11 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        $shiyo = m_shiyo::select("*")//"m_shiyos.Shiyo_Nm", "B.Bui_NM", "T.Tani_Nm")//, "SS.Shiyo_Shubetsu_Nm")
-            // ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
-            // ->join(m_bui::getTableName("B"), "m_shiyos.Bui_ID", "B.Bui_ID")
-            // ->join(m_koshu::getTableName("K"), "m_shiyos.Koshu_ID", "K.Koshu_ID")
-            // ->join(m_tani::getTableName("T"), "m_shiyos.Tani_ID", "T.Tani_ID")
+        $shiyo = m_shiyo::select("m_shiyos.Shiyo_Nm", "B.Bui_NM", "T.Tani_Nm", "SS.Shiyo_Shubetsu_Nm")
+            ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
+            ->join(m_bui::getTableName("B"), "m_shiyos.Bui_ID", "B.Bui_ID")
+            ->join(m_koshu::getTableName("K"), "m_shiyos.Koshu_ID", "K.Koshu_ID")
+            ->join(m_tani::getTableName("T"), "m_shiyos.Tani_ID", "T.Tani_ID")
             ->join(m_shiyo_shubetsu::getTableName("SS"),"m_shiyos.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
             // ->paginate(1);
             ->take(10)
