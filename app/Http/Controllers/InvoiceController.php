@@ -51,7 +51,7 @@ class InvoiceController extends Controller
             ->when($rq->filled("Shiyo_Nm"), function ($q) use ($rq) {
                 return $q->where('m_shiyos.Shiyo_Nm', 'LIKE',  "%{$rq->Shiyo_Nm}%");
             })->toSql();
-            dd($shiyo);
+            echo ($shiyo);die;
             // ->paginate(10);
         return  [
             "data" => $shiyo->items(),
