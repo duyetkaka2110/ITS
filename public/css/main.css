@@ -73,7 +73,12 @@ body{
 .w-20em {
     width: 20em !important;
 }
-
+.w-20px{
+    width: 20px !important;
+}
+.w-25px{
+    width: 25px !important;
+}
 .mw-1em {
     min-width: 1em !important;
 }

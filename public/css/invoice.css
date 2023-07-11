@@ -109,3 +109,8 @@
 #shiyo_selected .wj-cell.wj-header {
     background: #4de5d3;
 }
+#shiyoPage.wj-content.wj-pager {
+    width: 400px;
+    margin: 0 auto;
+    display: block;
+}

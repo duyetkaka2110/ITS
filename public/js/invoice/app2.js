@@ -178,15 +178,15 @@ function init() {
         selected = flex.selectedItems[0];
         console.info(selected);
         modal = "#InvoiceModal";
-        $(modal +  " input[name=DetailNo]").val("No."+selected["DetailNo"])
-        $(modal +  " input[name=FisrtName]").val(selected["FisrtName"])
-        $(modal +  " input[name=StandDimen]").val(selected["StandDimen"])
-        $(modal +  " input[name=MakerName]").val(selected["MakerName"])
-        $(modal +  " input[name=Unit]").val(selected["Unit"])
-        $(modal +  " input[name=Quantity]").val(selected["Quantity"])
-        $(modal +  " input[name=UnitPrice]").val(selected["UnitPrice"])
-        $(modal +  " input[name=Amount]").val(selected["Amount"])
-        $(modal +  " input[name=Note]").val(selected["Note"])
+        $(modal + " input[name=DetailNo]").val("No." + selected["DetailNo"])
+        $(modal + " input[name=FisrtName]").val(selected["FisrtName"])
+        $(modal + " input[name=StandDimen]").val(selected["StandDimen"])
+        $(modal + " input[name=MakerName]").val(selected["MakerName"])
+        $(modal + " input[name=Unit]").val(selected["Unit"])
+        $(modal + " input[name=Quantity]").val(selected["Quantity"])
+        $(modal + " input[name=UnitPrice]").val(selected["UnitPrice"])
+        $(modal + " input[name=Amount]").val(selected["Amount"])
+        $(modal + " input[name=Note]").val(selected["Note"])
         $(modal).modal();
     })
 
@@ -279,6 +279,7 @@ function init() {
             cssClass: value["class"]
         })
         width = value["width"] ? value["width"] : 100;
+
         layoutDefinition.push(
             {
                 colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"], dataMap: [1, 2, 3, 4], cells: [
@@ -294,7 +295,7 @@ function init() {
             });
     })
     console.info(headerShiyo)
-    
+
     var shiyo_selected_flex = new wijmo.grid.FlexGrid("#shiyo_selected", {
         itemsSource: new wijmo.collections.ObservableArray([]),
         columns: headerColShiyo,
@@ -305,32 +306,16 @@ function init() {
         headersVisibility: "Column",
     })
 
-    // create ODataCollectionView to demonstrate server-based paging
-    var url = $("input[name=route-getListShiyo]").val();
-    console.info(url)
-    // var view = new ODataCollectionView(url, '', {
-    //     pageSize: 6,
-    //     pageOnServer: true,
-    //     sortOnServer: true
-    // });
-    // //
-    // // create pager
-    // var pager = new CollectionViewNavigator('#shiyoPage', {
-    //     byPage: true,
-    //     headerFormat: 'Page {currentPage:n0} of {pageCount:n0}',
-    //     cv: view
-    // });
-
 
     // create the MultiRow
     let shiyo_flex = new wijmo.grid.multirow.MultiRow('#shiyo', {
         layoutDefinition: layoutDefinition,
         headerLayoutDefinition: headerLayoutDefinition,
-        itemsSource: new wijmo.collections.ObservableArray(shiyo),
+        itemsSource: [],//new wijmo.collections.ObservableArray(shiyo),
+        alternatingRowStep: 0,
         formatItem: function (s, e) {
             /* show HTML in column headers */
             if (e.panel == s.columnHeaders) {
-                // console.info(e.cell)
                 e.cell.innerHTML = e.cell.textContent;
             }
         },
@@ -339,11 +324,45 @@ function init() {
         selectionMode: 'Row',
         allowSorting: false,
         headersVisibility: "Column",
-        imeEnabled:true
+        imeEnabled: true,
+        updatedView: function () {
+            if (dataSearch.length == 5) {
+                // 検索条件保存
+                $("select[name=Koshu_ID]").val(dataSearch[1]["value"]);
+                $("select[name=Bui_ID]").val(dataSearch[2]["value"]);
+                $("select[name=Shiyo_Shubetsu_ID]").val(dataSearch[3]["value"]);
+                $("input[name=Shiyo_Nm]").val(dataSearch[4]["value"]);
+            }
+        }
     });
     headerRow1 = shiyo_flex.columnHeaders.rows[1];
     headerRow1.height = 45;
     headerRow1.cssClass = "header-red-bold"
     shiyo_flex.columnHeaders.rows[2].cssClass = "header-red-normal"
     // console.info(shiyo_flex);
+    $(document).on("change", ".btn-search", function () {
+        shiyoAjax(shiyo_flex);
+    })
+    shiyoAjax(shiyo_flex);
+    function shiyoAjax(shiyo_flex) {
+        dataSearch = $(".form-shiyo").serializeArray();
+        $.ajax({
+            type: "get",
+            data: dataSearch,
+            url: $("input[name=route-getListShiyo]").val(),
+            success: function (res) {
+                shiyo_flex.itemsSource = res["data"]//new wijmo.collections.ObservableArray(res["data"]),
+                $("#shiyoPage").html(res["pagi"])
+            }
+        });
+    }
+    $(document).on("click", "#shiyoPage .page-link", function (e) {
+        e.preventDefault();
+        page = getQueryStringValue($(this).attr('href'), "page")
+        if (page) {
+            $(".form-shiyo input[name=page]").val(page);
+            shiyoAjax(shiyo_flex);
+
+        }
+    })
 }

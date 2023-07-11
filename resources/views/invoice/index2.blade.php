@@ -3,12 +3,14 @@
 @section("css")
 <link href="{{ URL::asset('css/wijmo.min.css') }}" rel="stylesheet" />
 <link href="{{ URL::asset('css/invoice.css') }}" rel="stylesheet" />
+    <link href="{{ URL::asset('css/bootstrap.min.css') }}" rel="stylesheet" />
 @endsection
 @section("js")
 <!-- Wijmo styles and core (required) -->
 
 <script src="{{ URL::asset('js/wijmo.min.js') }}"></script>
 <script src="{{ URL::asset('js/wijmo.input.min.js') }}"></script>
+<script src="{{ URL::asset('js/wijmo.odata.min.js') }}"></script>
 <script src="{{ URL::asset('js/wijmo.grid.min.js') }}"></script>
 <script src="{{ URL::asset('js/wijmo.grid.multirow.min.js') }}"></script>
 <!-- apply your Wijmo licenseKey  (optional) -->
@@ -19,7 +21,9 @@
     var list = <?php echo $list ?>;
     var header = <?php echo $header ?>;
     var cmd = <?php echo $cmd ?>;
-    var shiyo = <?php echo $shiyo ?>;
+    var shiyo = "";
+    <?php //echo $shiyo 
+    ?>;
     var headerShiyo = <?php echo $headerShiyo ?>;
 </script>
 
@@ -140,11 +144,15 @@
                 <div id="shiyo_selected" class="wijmo-custom">
 
                 </div>
-                <div id="shiyo" class="wijmo-custom mt-2">
+                <form class="form-shiyo">
+                    {{ Form::hidden("page",0)}}
+                    <div id="shiyo" class="wijmo-custom mt-2">
 
+                    </div>
+                </form>
+
+                <div id="shiyoPage" class="mt-2">
                 </div>
-
-                <div id="shiyoPage"></div>
             </div>
         </div>
     </div>

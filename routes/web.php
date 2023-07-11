@@ -18,6 +18,8 @@ Route::get("/2", "InvoiceController@index2")->name("javascript");
 Route::get("/invoice-action", "InvoiceController@action")->name("invoice.action");
 Route::post("/invoice-action", "InvoiceController@action");
 Route::get("/getListShiyo", "InvoiceController@getListShiyo")->name("getListShiyo");
+Route::get('/$metadata', "InvoiceController@metadata")->name("metadata");
+
 
 
 // データ追加

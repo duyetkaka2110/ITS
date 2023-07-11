@@ -21,40 +21,54 @@ class InvoiceController extends Controller
     /**
      * 見積明細画面
      */
-    public function index()
+    public function index(Request $rq)
     {
-        $shiyo = m_shiyo::select("m_shiyos.Shiyo_Nm", "B.Bui_NM", "T.Tani_Nm")
-            ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
-            // ->selectRaw( "SS.Shiyo_Shubetsu_Nm")
-            // ->join(m_shiyo_shubetsu::getTableName("SS"),"m_shiyos.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
-            ->join(m_bui::getTableName("B"), "m_shiyos.Bui_ID", "B.Bui_ID")
-            ->join(m_koshu::getTableName("K"), "m_shiyos.Koshu_ID", "K.Koshu_ID")
-            ->join(m_tani::getTableName("T"), "m_shiyos.Tani_ID", "T.Tani_ID")
-            ->take(1000)
-            ->get()->toJson();
-
         $headerShiyo = $this->_getTableHeaderShiyo();
         $header = $this->_getTableHeader();
         $cmd = json_encode(config("const.cmd"));
         $list = $this->_getList();
-        return view("invoice.index2", compact("header", "list", "cmd", "shiyo", "headerShiyo"));
+        // $shiyo = $this->getListShiyo($rq);
+        return view("invoice.index2", compact("header", "list", "cmd", "headerShiyo"));
     }
     public function getListShiyo(Request $rq)
     {
-        $rq->page = 0;
-        if ($rq->skip && $rq->top)
-            $rq->page = $rq->skip / $rq->top;
-        $shiyo = m_shiyo::select("m_shiyos.Shiyo_Nm", "B.Bui_NM", "T.Tani_Nm")
+        $shiyo = m_shiyo::select("m_shiyos.Shiyo_Nm")
             ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
-            // ->selectRaw( "SS.Shiyo_Shubetsu_Nm")
-            // ->join(m_shiyo_shubetsu::getTableName("SS"),"m_shiyos.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
+            ->select( "SS.Shiyo_Shubetsu_Nm", "B.Bui_NM", "T.Tani_Nm")
+            ->join(m_shiyo_shubetsu::getTableName("SS"),"m_shiyos.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
             ->join(m_bui::getTableName("B"), "m_shiyos.Bui_ID", "B.Bui_ID")
-            ->join(m_koshu::getTableName("K"), "m_shiyos.Koshu_ID", "K.Koshu_ID")
             ->join(m_tani::getTableName("T"), "m_shiyos.Tani_ID", "T.Tani_ID")
-            ->paginate($rq->top);
-            return $shiyo;
+            ->join(m_koshu::getTableName("K"), "m_shiyos.Koshu_ID", "K.Koshu_ID")
+            ->when($rq->filled("Koshu_ID"), function ($q) use ($rq) {
+                return $q->where('K.Koshu_ID',  $rq->Koshu_ID);
+            })
+            ->when($rq->filled("Bui_ID"), function ($q) use ($rq) {
+                return $q->where('B.Bui_ID',  $rq->Bui_ID);
+            })
+            ->when($rq->filled("Shiyo_Shubetsu_ID"), function ($q) use ($rq) {
+                return $q->where('SS.Shiyo_Shubetsu_ID',  $rq->Shiyo_Shubetsu_ID);
+            })
+            ->when($rq->filled("Shiyo_Nm"), function ($q) use ($rq) {
+                return $q->where('m_shiyos.Shiyo_Nm', 'LIKE',  "%{$rq->Shiyo_Nm}%");
+            })
+            ->paginate(10);
+        return  [
+            "data" => $shiyo->items(),
+            "pagi" => $shiyo->links("vendor.pagination.bootstrap-4")->toHtml()
+        ];
+        return [
+            "odata.metadata" => route("getListShiyo") . '/$metadata',
+            "odata.count" => $shiyo->count(),
+            "value" => $shiyo
+                ->offset($rq->input('$skip'))
+                ->limit($rq->input('$top'))
+                ->get()->toArray()
+        ];
     }
-
+    public function metadata()
+    {
+        return true;
+    }
     /**
      * 見積明細一覧取得
      * param array $whereInId id一覧の検索条件
@@ -352,25 +366,25 @@ class InvoiceController extends Controller
                 "name" => "種別",
                 "class" => "wj-align-left-im",
                 "width" => 140,
-                "line1" => Form::select('Koshu', ["" => ""] + $koshus, null, ["class" => "form-control p-1 "])->toHtml()
+                "line1" => Form::select('Koshu_ID', ["" => ""] + $koshus, null, ["class" => "form-control p-1 btn-search "])->toHtml()
             ],
             "Bui_NM" => [
                 "name" => "部位",
                 "class" => "align-items-baseline",
                 "width" => 100,
-                "line1" => Form::select('Bui', ["" => ""] + $buis, null, ["class" => "form-control p-1 "])->toHtml()
+                "line1" => Form::select('Bui_ID', ["" => ""] + $buis, null, ["class" => "form-control p-1 btn-search"])->toHtml()
             ],
             "Shiyo_Shubetsu_Nm" => [
                 "name" => "材質",
                 "class" => "",
                 "width" => 100,
-                "line1" => Form::select('Shiyo_Shubetsu', ["" => ""] + $m_shiyo_shubetsus, null, ["class" => "form-control p-1 "])->toHtml()
+                "line1" => Form::select('Shiyo_Shubetsu_ID', ["" => ""] + $m_shiyo_shubetsus, null, ["class" => "form-control p-1 btn-search"])->toHtml()
             ],
             "Shiyo_Nm" => [
                 "name" => "仕様",
                 "class" => "",
                 "width" => 300,
-                "line1" => "<input type='text' name='' class='w-100 form-control pl-1' />"
+                "line1" => "<input type='text' name='Shiyo_Nm' class='w-100 form-control pl-1 btn-search' />"
             ],
             "Tani_Nm" => [
                 "name" => "単位",

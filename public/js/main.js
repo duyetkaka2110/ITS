@@ -33,3 +33,9 @@ function dispInvoiceModal(content) {
     $("#InvoiceModal .modal-body").html(content);
     $("#InvoiceModal").modal();
 }
+function getQueryStringValue(uri, key) {     
+    if(!uri) return false;   
+    var regEx = new RegExp("[\\?&]" + key + "=([^&#]*)");        
+    var matches = uri.match(regEx);
+    return matches == null ? null : matches[1];
+}
