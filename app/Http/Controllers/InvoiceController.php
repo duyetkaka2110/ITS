@@ -52,6 +52,7 @@ class InvoiceController extends Controller
             ->join(m_koshu::getTableName("K"), "m_shiyos.Koshu_ID", "K.Koshu_ID")
             ->join(m_tani::getTableName("T"), "m_shiyos.Tani_ID", "T.Tani_ID")
             ->paginate($rq->top);
+            return $shiyo;
     }
 
     /**
