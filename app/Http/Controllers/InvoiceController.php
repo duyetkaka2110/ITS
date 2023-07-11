@@ -11,6 +11,7 @@ use App\Models\m_shiyo_shubetsu;
 use App\Models\m_zairyo;
 use App\Models\m_tani;
 use DB;
+use Form;
 
 class InvoiceController extends Controller
 {
@@ -22,24 +23,35 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        $shiyo = m_shiyo::select("m_shiyos.Shiyo_Nm", "B.Bui_NM", "T.Tani_Nm", "SS.Shiyo_Shubetsu_Nm")
+        $shiyo = m_shiyo::select("m_shiyos.Shiyo_Nm", "B.Bui_NM", "T.Tani_Nm")
             ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
+            // ->selectRaw( "SS.Shiyo_Shubetsu_Nm")
+            // ->join(m_shiyo_shubetsu::getTableName("SS"),"m_shiyos.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
             ->join(m_bui::getTableName("B"), "m_shiyos.Bui_ID", "B.Bui_ID")
             ->join(m_koshu::getTableName("K"), "m_shiyos.Koshu_ID", "K.Koshu_ID")
             ->join(m_tani::getTableName("T"), "m_shiyos.Tani_ID", "T.Tani_ID")
-            ->join(m_shiyo_shubetsu::getTableName("SS"),"m_shiyos.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
             ->take(1000)
             ->get()->toJson();
-        // $shiyo = m_shiyo::select("m_shiyos.Shiyo_Nm", "B.Bui_NM")
-        //     ->join(m_bui::getTableName("B"), "m_shiyos.Bui_ID", "B.Bui_ID")
-        //     ->take(1000)
-        //     ->get()->toJson();
 
         $headerShiyo = $this->_getTableHeaderShiyo();
         $header = $this->_getTableHeader();
         $cmd = json_encode(config("const.cmd"));
         $list = $this->_getList();
         return view("invoice.index2", compact("header", "list", "cmd", "shiyo", "headerShiyo"));
+    }
+    public function getListShiyo(Request $rq)
+    {
+        $rq->page = 0;
+        if ($rq->skip && $rq->top)
+            $rq->page = $rq->skip / $rq->top;
+        $shiyo = m_shiyo::select("m_shiyos.Shiyo_Nm", "B.Bui_NM", "T.Tani_Nm")
+            ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
+            // ->selectRaw( "SS.Shiyo_Shubetsu_Nm")
+            // ->join(m_shiyo_shubetsu::getTableName("SS"),"m_shiyos.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
+            ->join(m_bui::getTableName("B"), "m_shiyos.Bui_ID", "B.Bui_ID")
+            ->join(m_koshu::getTableName("K"), "m_shiyos.Koshu_ID", "K.Koshu_ID")
+            ->join(m_tani::getTableName("T"), "m_shiyos.Tani_ID", "T.Tani_ID")
+            ->paginate($rq->top);
     }
 
     /**
@@ -324,6 +336,11 @@ class InvoiceController extends Controller
      */
     private function _getTableHeaderShiyo()
     {
+        $koshus = m_koshu::select("Koshu_ID")
+            ->selectRaw("CONCAT(Koshu_Cd,'　',Koshu_Nm) as Koshu_Nm")
+            ->pluck("Koshu_Nm", "Koshu_ID")->toArray();
+        $buis = m_bui::pluck("Bui_Nm", "Bui_ID")->toArray();
+        $m_shiyo_shubetsus = m_shiyo_shubetsu::pluck("Shiyo_Shubetsu_Nm", "Shiyo_Shubetsu_ID")->toArray();
         return json_encode([
             // "id" => [
             //     "name" => "id",
@@ -334,19 +351,19 @@ class InvoiceController extends Controller
                 "name" => "種別",
                 "class" => "wj-align-left-im",
                 "width" => 140,
-                "line1" => "<select class='form-control pl-1'  ><option></option><option>sd</option><option>derer234324er</option></select>"
+                "line1" => Form::select('Koshu', ["" => ""] + $koshus, null, ["class" => "form-control p-1 "])->toHtml()
             ],
             "Bui_NM" => [
                 "name" => "部位",
                 "class" => "align-items-baseline",
                 "width" => 100,
-                "line1" => "<select class='form-control pl-1'  ><option></option><option>sd</option><option>derer234324er</option></select>"
+                "line1" => Form::select('Bui', ["" => ""] + $buis, null, ["class" => "form-control p-1 "])->toHtml()
             ],
             "Shiyo_Shubetsu_Nm" => [
                 "name" => "材質",
                 "class" => "",
                 "width" => 100,
-                "line1" => "<select class='form-control pl-1'  ><option></option><option>sd</option><option>derer234324er</option></select>"
+                "line1" => Form::select('Shiyo_Shubetsu', ["" => ""] + $m_shiyo_shubetsus, null, ["class" => "form-control p-1 "])->toHtml()
             ],
             "Shiyo_Nm" => [
                 "name" => "仕様",

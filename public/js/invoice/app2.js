@@ -293,7 +293,7 @@ function init() {
                 ]
             });
     })
-
+    console.info(headerShiyo)
     
     var shiyo_selected_flex = new wijmo.grid.FlexGrid("#shiyo_selected", {
         itemsSource: new wijmo.collections.ObservableArray([]),
@@ -305,6 +305,21 @@ function init() {
         headersVisibility: "Column",
     })
 
+    // create ODataCollectionView to demonstrate server-based paging
+    var url = $("input[name=route-getListShiyo]").val();
+    console.info(url)
+    // var view = new ODataCollectionView(url, '', {
+    //     pageSize: 6,
+    //     pageOnServer: true,
+    //     sortOnServer: true
+    // });
+    // //
+    // // create pager
+    // var pager = new CollectionViewNavigator('#shiyoPage', {
+    //     byPage: true,
+    //     headerFormat: 'Page {currentPage:n0} of {pageCount:n0}',
+    //     cv: view
+    // });
 
 
     // create the MultiRow
@@ -315,6 +330,7 @@ function init() {
         formatItem: function (s, e) {
             /* show HTML in column headers */
             if (e.panel == s.columnHeaders) {
+                // console.info(e.cell)
                 e.cell.innerHTML = e.cell.textContent;
             }
         },
@@ -329,5 +345,5 @@ function init() {
     headerRow1.height = 45;
     headerRow1.cssClass = "header-red-bold"
     shiyo_flex.columnHeaders.rows[2].cssClass = "header-red-normal"
-
+    // console.info(shiyo_flex);
 }

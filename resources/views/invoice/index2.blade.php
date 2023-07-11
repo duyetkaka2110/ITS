@@ -45,7 +45,6 @@
         $("#InvoiceModal").modal();
 
     })
-
 </script>
 
 @endsection
@@ -90,7 +89,6 @@
                     <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">全て初期値に戻す</button>
                 </div>
                 <div class="clear-both"></div>
-
                 <div class="">
                     <div class="form-group row mb-1">
                         <label class="col-sm-2 col-form-label text-right">明細書</label>
@@ -145,8 +143,11 @@
                 <div id="shiyo" class="wijmo-custom mt-2">
 
                 </div>
+
+                <div id="shiyoPage"></div>
             </div>
         </div>
     </div>
 </div>
+{{ Form::hidden('route-getListShiyo', route('getListShiyo')) }}
 @endsection

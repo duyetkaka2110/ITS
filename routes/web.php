@@ -17,6 +17,8 @@ Route::get("/", "InvoiceController@index")->name("home");
 Route::get("/2", "InvoiceController@index2")->name("javascript");
 Route::get("/invoice-action", "InvoiceController@action")->name("invoice.action");
 Route::post("/invoice-action", "InvoiceController@action");
+Route::get("/getListShiyo", "InvoiceController@getListShiyo")->name("getListShiyo");
+
 
 // データ追加
 Route::get("/readAll", "DataController@readAll")->name("readAll");
