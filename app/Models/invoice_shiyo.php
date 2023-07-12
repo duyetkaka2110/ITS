@@ -5,12 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class m_shiyo extends Model
+class invoice_shiyo extends Model
 {
     use HasFactory;
-
-    protected $hidden = ["created_at", "updated_at"];
-
     // string $As 短い名
     public static function getTableName(string $As = "")
     {

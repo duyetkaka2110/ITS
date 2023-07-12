@@ -34,6 +34,11 @@
 
     @include("layouts.modal")
     @yield("modal")
+    <div class="text-center mg-loading d-none loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
 </body>
 
 </html>

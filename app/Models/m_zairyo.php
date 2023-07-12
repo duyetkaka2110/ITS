@@ -12,10 +12,10 @@ class m_zairyo extends Model
     protected $hidden = ["created_at", "updated_at"];
 
     // string $As 短い名
-    public static function getTableName( string $As = "")
+    public static function getTableName(string $As = "")
     {
-        if($As){
-            return (new self())->getTable()." AS ".$As;
+        if ($As) {
+            return (new self())->getTable() . " AS " . $As;
         }
         return (new self())->getTable();
     }

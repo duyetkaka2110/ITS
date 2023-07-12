@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Invoice;
+use App\Models\invoice_shiyo;
 use App\Models\m_bui;
 use App\Models\m_koshu;
 use App\Models\m_shiyo;
@@ -12,6 +13,7 @@ use App\Models\m_zairyo;
 use App\Models\m_tani;
 use DB;
 use Form;
+use Illuminate\Pagination\Paginator;
 
 class InvoiceController extends Controller
 {
@@ -24,15 +26,56 @@ class InvoiceController extends Controller
     public function index(Request $rq)
     {
         $headerShiyo = $this->_getTableHeaderShiyo();
+        $headerShiyoSelected = $this->_getTableHeaderShiyoSelected();
         $header = $this->_getTableHeader();
         $cmd = json_encode(config("const.cmd"));
         $list = $this->_getList();
-        // $shiyo = $this->getListShiyo($rq);
-        return view("invoice.index2", compact("header", "list", "cmd", "headerShiyo"));
+        $tanis = m_tani::orderBy("Sort_No")->pluck("Tani_Nm", "Tani_ID")->toArray();
+        return view("invoice.index2", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis"));
+    }
+
+    public function getMitsumoreDetail(Request $rq)
+    {
+        if ($rq->filled("Invoice_ID")) {
+            return [
+                "status" => true,
+                "data" => $this->getListShiyoSelected($rq->Invoice_ID)
+            ];
+        }
+        return [
+            "status" => false
+        ];
+    }
+    public function setMitsumoreShiyo(Request $rq)
+    {
+        if ($rq->filled("Shiyo_ID") && $rq->filled("Invoice_ID")) {
+            return [
+                "status" => true,
+                "id" => invoice_shiyo::insertGetId($rq->only('Shiyo_ID', 'Invoice_ID')),
+                "data" => $this->getListShiyoSelected($rq->Invoice_ID)
+            ];
+        }
+        return [
+            "status" => false
+        ];
+    }
+    public function getListShiyoSelected($Invoice_ID)
+    {
+        return invoice_shiyo::select("S.*")
+            ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
+            ->join(m_shiyo::getTableName("S"), "S.Shiyo_ID", "invoice_shiyos.Shiyo_ID")
+            ->select("SS.Shiyo_Shubetsu_Nm", "B.Bui_NM", "T.Tani_Nm")
+            ->join(m_shiyo_shubetsu::getTableName("SS"), "S.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
+            ->join(m_bui::getTableName("B"), "S.Bui_ID", "B.Bui_ID")
+            ->join(m_tani::getTableName("T"), "S.Tani_ID", "T.Tani_ID")
+            ->join(m_koshu::getTableName("K"), "S.Koshu_ID", "K.Koshu_ID")
+            ->where("invoice_shiyos.Invoice_ID", $Invoice_ID)
+            // ->orderBy("invoice_shiyos.id")
+            ->get()->toArray();
     }
     public function getListShiyo(Request $rq)
     {
-        $shiyo = m_shiyo::select("m_shiyos.Shiyo_Nm")
+        $listObj = m_shiyo::select("m_shiyos.Shiyo_ID", "m_shiyos.Shiyo_Nm")
             ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
             ->select("SS.Shiyo_Shubetsu_Nm", "B.Bui_NM", "T.Tani_Nm")
             ->join(m_shiyo_shubetsu::getTableName("SS"), "m_shiyos.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
@@ -50,15 +93,25 @@ class InvoiceController extends Controller
             })
             ->when($rq->filled("Shiyo_Nm"), function ($q) use ($rq) {
                 return $q->where('m_shiyos.Shiyo_Nm', 'LIKE',  "%{$rq->Shiyo_Nm}%");
-            })->paginate(10);
+            });
+        $perPage = 10;
+        $list = $listObj->paginate($perPage);
+        $lastPage = $list->lastPage();
+        if ($rq->page > $lastPage) {
+            // 更新周期での再描画で表示ページが存在しないページとなった場合、最終ページを表示するよう
+            Paginator::currentPageResolver(function () use ($lastPage) {
+                return $lastPage;
+            });
+            $list = $listObj->paginate($perPage);
+        }
         return  [
-            "data" => $shiyo->items(),
-            "pagi" => $shiyo->links("vendor.pagination.bootstrap-4")->toHtml()
+            "data" => $list->items(),
+            "pagi" => $list->links("vendor.pagination.bootstrap-4")->toHtml()
         ];
         return [
             "odata.metadata" => route("getListShiyo") . '/$metadata',
-            "odata.count" => $shiyo->count(),
-            "value" => $shiyo
+            "odata.count" => $list->count(),
+            "value" => $list
                 ->offset($rq->input('$skip'))
                 ->limit($rq->input('$top'))
                 ->get()->toArray()
@@ -345,13 +398,103 @@ class InvoiceController extends Controller
     }
 
     /**
+     * 仕様選択した行フォーマット取得
+     * return ヘーダ一覧
+     */
+    private function _getTableHeaderShiyoSelected()
+    {
+        return json_encode([
+            // "id" => [
+            //     "name" => "id",
+            //     "class" => "wj-align-center",
+            //     "width" => 30
+            // ],
+
+            "button" => [
+                "name" => " ",
+                "class" => "",
+                "width" => 100,
+            ],
+            "note" => [
+                "name" => " ",
+                "class" => "",
+                "width" => 30,
+            ],
+            "row" => [
+                "name" => " ",
+                "class" => "",
+                "width" => 30,
+            ],
+            "Koshu_Nm" => [
+                "name" => "種別",
+                "class" => "wj-align-left-im",
+                "width" => 140,
+            ],
+            "Bui_NM" => [
+                "name" => "部位",
+                "class" => "align-items-baseline",
+                "width" => 100,
+            ],
+            "Shiyo_Shubetsu_Nm" => [
+                "name" => "材質",
+                "class" => "",
+                "width" => 100,
+            ],
+            "Shiyo_Nm" => [
+                "name" => "仕様",
+                "class" => "",
+                "width" => 300,
+            ],
+            "Tani_Nm" => [
+                "name" => "単位",
+                "class" => "wj-align-center",
+                "width" => 50,
+            ],
+            "chiu" => [
+                "name" => "見積あたり数量",
+                "class" => "",
+                "width" => 140,
+            ],
+            "Combi_Kbn" => [
+                "name" => "見積単価",
+                "class" => "wj-align-center",
+                "width" => "",
+            ],
+            "Type_Side" => [
+                "name" => "材料単価",
+                "class" => "wj-align-center",
+                "width" => "",
+            ],
+            "Sunpo_Loss_ID" => [
+                "name" => "党務単価",
+                "class" => "wj-align-center",
+                "width" => "",
+            ],
+            "a" => [
+                "name" => "揚重費",
+                "class" => "",
+                "width" => "",
+            ],
+            "b" => [
+                "name" => "現場経費",
+                "class" => "",
+                "width" => "",
+            ],
+            "c" => [
+                "name" => "利益率",
+                "class" => "",
+                "width" => "",
+            ],
+        ]);
+    }
+    /**
      * 仕様フォーマット取得
      * return ヘーダ一覧
      */
     private function _getTableHeaderShiyo()
     {
         $koshus = m_koshu::select("Koshu_ID")
-            ->selectRaw("CONCAT(Koshu_Cd,'　',Koshu_Nm) as Koshu_Nm")
+            ->selectRaw("CONCAT(Koshu_Cd,' ',Koshu_Nm) as Koshu_Nm")
             ->pluck("Koshu_Nm", "Koshu_ID")->toArray();
         $buis = m_bui::pluck("Bui_Nm", "Bui_ID")->toArray();
         $m_shiyo_shubetsus = m_shiyo_shubetsu::pluck("Shiyo_Shubetsu_Nm", "Shiyo_Shubetsu_ID")->toArray();
@@ -455,6 +598,11 @@ class InvoiceController extends Controller
                 "name" => "仕様名２",
                 "class" => "",
                 "width" => 120
+            ],
+            "SpecName3" => [
+                "name" => "...",
+                "class" => "",
+                "width" => 30
             ],
             "No" => [
                 "name" => "No",

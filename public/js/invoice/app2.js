@@ -175,18 +175,28 @@ function init() {
         if (e.returnValue) {
             e.preventDefault();
         }
-        selected = flex.selectedItems[0];
-        console.info(selected);
+        flex_selected = flex.selectedItems[0];
+        console.info(flex_selected);
         modal = "#InvoiceModal";
-        $(modal + " input[name=DetailNo]").val("No." + selected["DetailNo"])
-        $(modal + " input[name=FisrtName]").val(selected["FisrtName"])
-        $(modal + " input[name=StandDimen]").val(selected["StandDimen"])
-        $(modal + " input[name=MakerName]").val(selected["MakerName"])
-        $(modal + " input[name=Unit]").val(selected["Unit"])
-        $(modal + " input[name=Quantity]").val(selected["Quantity"])
-        $(modal + " input[name=UnitPrice]").val(selected["UnitPrice"])
-        $(modal + " input[name=Amount]").val(selected["Amount"])
-        $(modal + " input[name=Note]").val(selected["Note"])
+        $(modal + " input[name=DetailNo]").val("No." + flex_selected["DetailNo"])
+        $(modal + " input[name=FisrtName]").val(flex_selected["FisrtName"])
+        $(modal + " input[name=StandDimen]").val(flex_selected["StandDimen"])
+        $(modal + " input[name=MakerName]").val(flex_selected["MakerName"])
+        $(modal + " select[name=UnitOrg_ID]").val(flex_selected["UnitOrg_ID"])
+        $(modal + " input[name=Quantity]").val(flex_selected["Quantity"])
+        $(modal + " input[name=UnitPrice]").val(flex_selected["UnitPrice"])
+        $(modal + " input[name=Amount]").val(flex_selected["Amount"])
+        $(modal + " input[name=Note]").val(flex_selected["Note"])
+
+        $.ajax({
+            type: "get",
+            data: { Invoice_ID: flex_selected["id"] },
+            url: $("input[name=route-getMitsumoreDetail]").val(),
+            success: function (res) {
+                if (res["status"])
+                    shiyo_selected_flex.itemsSource = res["data"]//new wijmo.collections.ObservableArray(res["data"]),
+            }
+        });
         $(modal).modal();
     })
 
@@ -295,18 +305,27 @@ function init() {
             });
     })
     console.info(headerShiyo)
-
+    var headerColShiyoSelected = [];
+    $.each(headerShiyoSelected, function (key, value) {
+        headerColShiyoSelected.push({
+            binding: key,
+            header: value["name"],
+            width: value["width"] ? value["width"] : 100,
+            wordWrap: true,
+            cssClass: value["class"]
+        })
+    })
     var shiyo_selected_flex = new wijmo.grid.FlexGrid("#shiyo_selected", {
-        itemsSource: new wijmo.collections.ObservableArray([]),
-        columns: headerColShiyo,
+        itemsSource: [],
+        columns: headerColShiyoSelected,
         autoGenerateColumns: false,
         isReadOnly: true,
         selectionMode: 'Row',
         allowSorting: false,
         headersVisibility: "Column",
+        imeEnabled: true,
     })
-
-
+    let dataSearch = [];
     // create the MultiRow
     let shiyo_flex = new wijmo.grid.multirow.MultiRow('#shiyo', {
         layoutDefinition: layoutDefinition,
@@ -339,11 +358,60 @@ function init() {
     headerRow1.height = 45;
     headerRow1.cssClass = "header-red-bold"
     shiyo_flex.columnHeaders.rows[2].cssClass = "header-red-normal"
+
+    // 赤画面行にクリック時,青画面に追加
+    shiyo_flex.hostElement.addEventListener('dblclick', function (e) {
+        if (e.returnValue) {
+            e.preventDefault();
+        }
+        console.info(flex_selected)
+        Shiyo_ID = shiyo_flex.selectedItems[0]["Shiyo_ID"];
+        Invoice_ID = flex_selected["id"];
+        $.ajax({
+            type: "get",
+            data: {
+                Shiyo_ID: shiyo_flex.selectedItems[0]["Shiyo_ID"],
+                Invoice_ID: flex_selected["id"]
+            },
+            url: $("input[name=route-setMitsumoreShiyo]").val(),
+            success: function (res) {
+                if(res["status"]){
+                    shiyo_selected_flex.itemsSource = res["data"]
+                }
+            }
+        });
+    })
     // console.info(shiyo_flex);
-    $(document).on("change", ".btn-search", function () {
+    $(document).on("change", ".btn-search", function (e) {
+
+        if (e.target.name == "Koshu_ID") {
+            $("select[name=Bui_ID]").val("");
+            $("select[name=Shiyo_Shubetsu_ID]").val("");
+            $("input[name=Shiyo_Nm]").val("");
+        }
+        if (e.target.name == "Bui_ID") {
+            $("select[name=Shiyo_Shubetsu_ID]").val("");
+        }
         shiyoAjax(shiyo_flex);
     })
-    shiyoAjax(shiyo_flex);
+    $(document).on("click", "#shiyoPage .page-link", function (e) {
+        e.preventDefault();
+        page = getQueryStringValue($(this).attr('href'), "page")
+        if (page) {
+            $(".form-shiyo input[name=page]").val(page);
+            shiyoAjax(shiyo_flex);
+
+        }
+    })
+    $('.form-shiyo').bind("keypress", function (e) {
+        if (e.keyCode == 13) {
+            if (e.target.name == "Shiyo_Nm") {
+                shiyoAjax(shiyo_flex);
+            }
+            e.preventDefault();
+            return false;
+        }
+    }); shiyoAjax(shiyo_flex)
     function shiyoAjax(shiyo_flex) {
         dataSearch = $(".form-shiyo").serializeArray();
         $.ajax({
@@ -355,14 +423,19 @@ function init() {
                 $("#shiyoPage").html(res["pagi"])
             }
         });
+        // if (dataSearch.length == 5 && dataSearch[1]["value"] && dataSearch[2]["value"] && dataSearch[3]["value"]) {
+        //     $.ajax({
+        //         type: "get",
+        //         data: dataSearch,
+        //         url: $("input[name=route-getListShiyo]").val(),
+        //         success: function (res) {
+        //             shiyo_flex.itemsSource = res["data"]//new wijmo.collections.ObservableArray(res["data"]),
+        //             $("#shiyoPage").html(res["pagi"])
+        //         }
+        //     });
+        // } else {
+        //     shiyo_flex.itemsSource = [];
+        //     $("#shiyoPage").html("")
+        // }
     }
-    $(document).on("click", "#shiyoPage .page-link", function (e) {
-        e.preventDefault();
-        page = getQueryStringValue($(this).attr('href'), "page")
-        if (page) {
-            $(".form-shiyo input[name=page]").val(page);
-            shiyoAjax(shiyo_flex);
-
-        }
-    })
 }

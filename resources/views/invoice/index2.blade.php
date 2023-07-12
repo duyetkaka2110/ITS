@@ -3,7 +3,6 @@
 @section("css")
 <link href="{{ URL::asset('css/wijmo.min.css') }}" rel="stylesheet" />
 <link href="{{ URL::asset('css/invoice.css') }}" rel="stylesheet" />
-    <link href="{{ URL::asset('css/bootstrap.min.css') }}" rel="stylesheet" />
 @endsection
 @section("js")
 <!-- Wijmo styles and core (required) -->
@@ -25,6 +24,7 @@
     <?php //echo $shiyo 
     ?>;
     var headerShiyo = <?php echo $headerShiyo ?>;
+    var headerShiyoSelected = <?php echo $headerShiyoSelected ?>;
 </script>
 
 <script src="{{ URL::asset('js/invoice/app2.js') }}" type="text/javascript"></script>
@@ -69,7 +69,7 @@
         <div class="modal-content w-100">
             <div class="modal-header bg-primary pt-2 pb-2">
                 <h6 class="modal-title text-white">工事仕様の選択</h6>
-                <button type="button" class="close text-white pt-2 pr-2" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-white " data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -121,9 +121,7 @@
                     <div class="form-group row mb-1">
                         <label class="col-sm-2 col-form-label text-right">単位</label>
                         <div class="col-sm-10 pl-0">
-                            <select name="Unit" class="form-control p-1 h-30 col-3 Unit">
-                                <option></option>
-                            </select>
+                            {!!  Form::select('UnitOrg_ID', ["" => ""] + $tanis, null, ["class" => "form-control p-1 h-30 col-3 Unit"]) !!}
                         </div>
                     </div>
                     <div class="form-group row mb-1">
@@ -158,4 +156,6 @@
     </div>
 </div>
 {{ Form::hidden('route-getListShiyo', route('getListShiyo')) }}
+{{ Form::hidden('route-setMitsumoreShiyo', route('setMitsumoreShiyo')) }}
+{{ Form::hidden('route-getMitsumoreDetail', route('getMitsumoreDetail')) }}
 @endsection

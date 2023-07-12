@@ -62,7 +62,7 @@
 }
 
 .mg-ig-row input {
-    height: 27px;
+    height: 28px;
 }
 
 .mg-ig-row span {
@@ -113,4 +113,13 @@
     width: 400px;
     margin: 0 auto;
     display: block;
+}
+#InvoiceModal .close{
+    padding: 7px;
+    top: 9px;
+    position: relative;
+}
+#shiyo_selected .wj-header{
+    display: block;
+    text-align: center;
 }

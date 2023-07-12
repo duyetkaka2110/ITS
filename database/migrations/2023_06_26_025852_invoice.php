@@ -26,7 +26,9 @@ return new class extends Migration
             $table->string('StandDimen')->nullable();
             $table->string('MakerName')->nullable();
             $table->string('MakerNameOrg')->nullable();
+            $table->integer('Unit_ID')->nullable();
             $table->string('Unit',3)->nullable();
+            $table->integer('UnitOrg_ID')->nullable();
             $table->string('UnitOrg',3)->nullable();
             $table->decimal('Quantity', $precision = 8, $scale = 1)->nullable(); //数量
             $table->integer('UnitPrice')->nullable();

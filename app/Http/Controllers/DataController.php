@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
+use App\Models\invoice_shiyo;
 use App\Models\m_shiyo;
 use App\Models\m_zairyo;
 use App\Models\m_tani;
 use App\Models\m_bui;
+use App\Models\m_bui_kbn;
 use App\Models\m_koshu;
 use App\Models\m_shiyo_shubetsu;
 use App\Models\m_zairyo_shubetsu;
@@ -16,15 +18,17 @@ class DataController extends Controller
     protected $appPath = 'app/';
     protected $fileExe = ".csv";
 
-    public function readAll(){
+    public function readAll()
+    {
+        $this->_read($this->appPath . m_bui_kbn::getTableName() . $this->fileExe, m_bui_kbn::select("*"), m_bui_kbn::getTableName());
         // $this->_read($this->appPath . m_shiyo::getTableName() . $this->fileExe, m_shiyo::select("*"), m_shiyo::getTableName());
         // $this->_read($this->appPath . m_zairyo::getTableName() . $this->fileExe, m_zairyo::select("*"), m_zairyo::getTableName());
         // $this->_read($this->appPath . m_tani::getTableName() . $this->fileExe, m_tani::select("*"), m_tani::getTableName());
-        $this->_read($this->appPath . Invoice::getTableName() . $this->fileExe, Invoice::select("*"), Invoice::getTableName());
-        $this->_read($this->appPath . m_bui::getTableName() . $this->fileExe, m_bui::select("*"), m_bui::getTableName());
-        $this->_read($this->appPath . m_koshu::getTableName() . $this->fileExe, m_koshu::select("*"), m_koshu::getTableName());
-        $this->_read($this->appPath . m_zairyo_shubetsu::getTableName() . $this->fileExe, m_zairyo_shubetsu::select("*"), m_zairyo_shubetsu::getTableName());
-        $this->_read($this->appPath . m_shiyo_shubetsu::getTableName() . $this->fileExe, m_shiyo_shubetsu::select("*"), m_shiyo_shubetsu::getTableName());
+        // $this->_read($this->appPath . Invoice::getTableName() . $this->fileExe, Invoice::select("*"), Invoice::getTableName());
+        // $this->_read($this->appPath . m_bui::getTableName() . $this->fileExe, m_bui::select("*"), m_bui::getTableName());
+        // $this->_read($this->appPath . m_koshu::getTableName() . $this->fileExe, m_koshu::select("*"), m_koshu::getTableName());
+        // $this->_read($this->appPath . m_zairyo_shubetsu::getTableName() . $this->fileExe, m_zairyo_shubetsu::select("*"), m_zairyo_shubetsu::getTableName());
+        // $this->_read($this->appPath . m_shiyo_shubetsu::getTableName() . $this->fileExe, m_shiyo_shubetsu::select("*"), m_shiyo_shubetsu::getTableName());
     }
 
     /**
@@ -65,6 +69,9 @@ class DataController extends Controller
     {
         echo "starting....";
         $table->truncate();
+        if ($tblName == Invoice::getTableName()) {
+            invoice_shiyo::truncate();
+        }
         $filePath = storage_path($filename);
         $file = fopen($filePath, 'r');
 
@@ -83,8 +90,27 @@ class DataController extends Controller
             }
             if (isset($temp["UPDATE_DATE"]))
                 $temp["UPDATE_DATE"] = \Carbon\Carbon::parse($temp["UPDATE_DATE"])->format("Y-m-d");
+            if ($tblName == Invoice::getTableName()) {
+                if (isset($temp["Unit"])) $temp["Unit_ID"] = m_tani::where("Tani_Nm", $temp["Unit"])->value("Tani_ID");
+                if (isset($temp["UnitOrg"])) $temp["UnitOrg_ID"] = m_tani::where("Tani_Nm", $temp["UnitOrg"])->value("Tani_ID");
+            }
 
-            $table->insert($temp);
+            $id = $table->insertGetId($temp);
+
+            if ($tblName == Invoice::getTableName()) {
+                if (isset($temp["SpecName1"])) {
+                    invoice_shiyo::insert([
+                        "Shiyo_ID" => m_shiyo::where("Shiyo_Nm", $temp["SpecName1"])->value("Shiyo_ID"),
+                        "Invoice_ID" => $id
+                    ]);
+                }
+                if (isset($temp["SpecName2"])) {
+                    invoice_shiyo::insert([
+                        "Shiyo_ID" => m_shiyo::where("Shiyo_Nm", $temp["SpecName2"])->value("Shiyo_ID"),
+                        "Invoice_ID" => $id
+                    ]);
+                }
+            }
             $count++;
             if ($count == 500) {
                 // dd($temp);
