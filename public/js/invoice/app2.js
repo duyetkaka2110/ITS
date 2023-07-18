@@ -473,11 +473,11 @@ function init() {
             // 検索条件保存
             console.info(dataSearch)
             if (dataSearch[1] != undefined) {
-                var tag = $("select[name=Koshu_ID] option[value='" + dataSearch[1].value + "']").attr("class");
+                var tag = $("select[name=Koshu_ID] option[value='" + dataSearch[1].value + "']").attr("data-bui");
                 $("select[name=Koshu_ID]").val(dataSearch[1].value);
-                $("select[name=Bui_ID] option").hide();
-                $("select[name=Bui_ID] ." + tag).show();
-                $("select[name=Shiyo_Shubetsu_ID] option").hide();
+                $("select[name=Bui_ID] option.a").hide();
+                $("select[name=Bui_ID] .a" + tag).show();
+                $("select[name=Shiyo_Shubetsu_ID] option.a").hide();
                 $("select[name=Shiyo_Shubetsu_ID] .a" + dataSearch[1].value ).show();
             }
             if (dataSearch[2] != undefined) {

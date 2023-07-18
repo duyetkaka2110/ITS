@@ -626,14 +626,14 @@ class InvoiceController extends Controller
             ->selectRaw("CONCAT(Koshu_Cd,' ',Koshu_Nm) as Koshu_Nm")->get();
         $koshus =  $m_koshus->pluck("Koshu_Nm", "Koshu_ID")->toArray();
         $koshus_attr = $m_koshus->mapWithKeys(function ($item) {
-            return [$item->Koshu_ID => ['class' => "a" . $item->Bui_Kbn_ID]];
+            return [$item->Koshu_ID => ['class' => "a a" . $item->Bui_Kbn_ID, 'data-bui' =>  $item->Bui_Kbn_ID]];
         })->toArray();
 
         // 部位
         $m_bui = m_bui::select("Bui_Kbn_ID", "Bui_Nm", "Bui_ID")->get();
         $buis = $m_bui->pluck("Bui_Nm", "Bui_ID")->toArray();
         $buis_attr = $m_bui->mapWithKeys(function ($item) {
-            return [$item->Bui_ID => ['class' =>  "a" . $item->Bui_Kbn_ID]];
+            return [$item->Bui_ID => ['class' =>  "a a" . $item->Bui_Kbn_ID]];
         })->toArray();
 
         // 材質
@@ -645,7 +645,7 @@ class InvoiceController extends Controller
             ->get();
         $shiyo_shubetsus = $m_shiyo->pluck("Shiyo_Shubetsu_Nm", "Shiyo_Shubetsu_ID")->toArray();
         $shiyo_shubetsus_attr = $m_shiyo->mapWithKeys(function ($item) {
-            return [$item->Shiyo_Shubetsu_ID => ['class' =>  "a" . $item->Koshu_ID]];
+            return [$item->Shiyo_Shubetsu_ID => ['class' =>  "a a" . $item->Koshu_ID]];
         })->toArray();
 
         return json_encode([
