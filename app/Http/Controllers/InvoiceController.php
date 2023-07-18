@@ -526,6 +526,7 @@ class InvoiceController extends Controller
     {
         // 行削除
         Invoice::whereIn("id", $dataSelected["id"])->delete();
+        invoice_shiyo::whereIn("Invoice_ID", $dataSelected["id"])->delete();
         $data["DetailNoUpdate"] = ' - ' . $dataSelected["count"];
         $data["NoUpdate"] = ' - ' . (end($dataSelected["No"]) ? end($dataSelected["No"]) : 0) - ($dataSelected["prevItemNo"] ? $dataSelected["prevItemNo"] : 0);
         return $data;

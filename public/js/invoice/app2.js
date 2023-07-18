@@ -125,7 +125,7 @@ function init() {
     $("#ConfirmModal .btnPopupOk").on("click", function () {
         let dataAction = false;
         var action = $(this).attr("data-action")
-        if (action == cmd.cmdDel.cmd || action == cmd.cmdPaste.cmd || action == cmd.cmdPasteNew.cmd) {
+        if (action in cmd) {
             var dataSelected = getSeletedItems(flex, action);
             let row = dataSelected.first;
             // 削除
@@ -471,7 +471,6 @@ function init() {
         imeEnabled: true,
         updatedView: function () {
             // 検索条件保存
-            console.info(dataSearch)
             if (dataSearch[1] != undefined) {
                 var tag = $("select[name=Koshu_ID] option[value='" + dataSearch[1].value + "']").attr("data-bui");
                 $("select[name=Koshu_ID]").val(dataSearch[1].value);
