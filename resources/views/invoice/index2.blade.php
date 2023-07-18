@@ -75,6 +75,9 @@
             <div class="modal-body pt-1">
                 <form class="form-selected">
                     <div class=" float-right mr-2 mb-3">
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">入力項目クリア</button>
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">初期値に戻す</button>
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">全て初期値に戻す</button>
                         <button type="button" class="btn btn-primary btn-custom ml-2 mt-1 btnSave" data-btn="btnSave">選択行に登録</button>
                         <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">同名行に反映(シート)</button>
                         <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">同名行に反映(全体)</button>
@@ -85,9 +88,6 @@
                                 <span class="input-group-text p-1">行</span>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">入力項目クリア</button>
-                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">初期値に戻す</button>
-                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">全て初期値に戻す</button>
                     </div>
                     <div class="clear-both"></div>
                     <div class="">
