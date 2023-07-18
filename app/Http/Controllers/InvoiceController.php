@@ -10,6 +10,7 @@ use App\Models\m_koshu;
 use App\Models\m_seko_tanka;
 use App\Models\m_shiyo;
 use App\Models\m_shiyo_shubetsu;
+use App\Models\m_shiyo_shubetsu_kbn;
 use App\Models\m_zairyo;
 use App\Models\m_tani;
 use DB;
@@ -244,9 +245,12 @@ class InvoiceController extends Controller
             "S.Koshu_ID",
             "S.Bui_ID",
             "B.Bui_Nm",
+            "K.Bui_Kbn_ID",
             "K.Koshu_Cd",
             "A1.Shiyo_Nm as SpecName1",
-            "A2.Shiyo_Nm as SpecName2"
+            "A2.Shiyo_Nm as SpecName2",
+            "SK.Shiyo_Shubetsu_Nm as Shubetsu_Nm",
+            "SK.Shiyo_Shubetsu_ID"
         )
             ->selectRaw("CASE WHEN A3.Shiyo_Nm IS NOT NULL 
                                 THEN '有'
@@ -259,6 +263,7 @@ class InvoiceController extends Controller
             ->leftJoin(m_shiyo::getTableName("S"), "S.Shiyo_ID", "A1.Shiyo_ID")
             ->leftJoin(m_koshu::getTableName("K"), "K.Koshu_ID",  "S.Koshu_ID")
             ->leftJoin(m_bui::getTableName("B"), "B.Bui_ID", "S.Bui_ID")
+            ->leftJoin(m_shiyo_shubetsu::getTableName("SK"), "SK.Shiyo_Shubetsu_ID", "S.Shiyo_Shubetsu_ID")
             ->where(Invoice::getTableName() . ".AdQuoNo", $this->AdQuoNo)
             ->where(Invoice::getTableName() . ".DetailType", $this->DetailType)
             ->when($whereInId, function ($query, $whereInId) {
@@ -632,13 +637,15 @@ class InvoiceController extends Controller
         })->toArray();
 
         // 材質
-        $m_shiyo = m_shiyo::select("SS.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_Nm")
-            ->selectRaw("CONCAT(Koshu_ID,'_',Bui_ID) as Koshu_ID_Bui_ID")
-            ->join(m_shiyo_shubetsu::getTableName("SS"), "SS.Shiyo_Shubetsu_ID", m_shiyo::getTableName() . ".Shiyo_Shubetsu_ID")
-            ->groupBy("Koshu_ID_Bui_ID", "SS.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_Nm")->get();
+        // $m_shiyo = m_shiyo::select("SS.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_Nm")
+        //     ->selectRaw("CONCAT(Koshu_ID,'_',Bui_ID) as Koshu_ID_Bui_ID")
+        //     ->join(m_shiyo_shubetsu::getTableName("SS"), "SS.Shiyo_Shubetsu_ID", m_shiyo::getTableName() . ".Shiyo_Shubetsu_ID")
+        //     ->groupBy("Koshu_ID_Bui_ID", "SS.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_Nm")->get();
+        $m_shiyo = m_shiyo_shubetsu_kbn::select("Koshu_ID", "Shiyo_Shubetsu_ID", "Shiyo_Shubetsu_Nm")
+            ->get();
         $shiyo_shubetsus = $m_shiyo->pluck("Shiyo_Shubetsu_Nm", "Shiyo_Shubetsu_ID")->toArray();
         $shiyo_shubetsus_attr = $m_shiyo->mapWithKeys(function ($item) {
-            return [$item->Shiyo_Shubetsu_ID => ['class' =>  "d-none a" . $item->Koshu_ID_Bui_ID]];
+            return [$item->Shiyo_Shubetsu_ID => ['class' =>  "a" . $item->Koshu_ID]];
         })->toArray();
 
         return json_encode([
@@ -713,7 +720,7 @@ class InvoiceController extends Controller
                 "width" => 60
             ],
 
-            "MaterialName" => [
+            "Shubetsu_Nm" => [
                 "name" => "材質名",
                 "class" => "",
                 "width" => 60

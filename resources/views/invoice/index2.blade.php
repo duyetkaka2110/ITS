@@ -107,19 +107,19 @@
                             <div class="form-group row mb-1">
                                 <label class="col-sm-2 col-form-label text-right">名称</label>
                                 <div class="col-sm-10 pl-0">
-                                    <input type="text" class="form-control p-1 h-30" name="FirstName">
+                                    <input type="text" class="form-control p-1 h-30  text-danger" name="FirstName">
                                 </div>
                             </div>
                             <div class="form-group row mb-1">
                                 <label class="col-sm-2 col-form-label text-right">規格・寸法</label>
                                 <div class="col-sm-10 pl-0">
-                                    <input type="text" class="form-control p-1 h-30" name="StandDimen">
+                                    <input type="text" class="form-control p-1 h-30 text-danger" name="StandDimen">
                                 </div>
                             </div>
                             <div class="form-group row mb-1">
                                 <label class="col-sm-2 col-form-label text-right">メーカ名</label>
                                 <div class="col-sm-10 pl-0">
-                                    <input type="text" class="form-control p-1 h-30 col-5" name="MakerName">
+                                    <input type="text" class="form-control p-1 h-30 col-5 text-danger" name="MakerName">
                                 </div>
                             </div>
                             <div class="form-group row mb-1">

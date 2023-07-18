@@ -182,7 +182,6 @@ function init() {
             e.preventDefault();
         }
         flex_selected = flex.selectedItems[0];
-        console.info(flex_selected)
         modal = "#InvoiceModal";
         $(modal + " input[name=id]").val(flex_selected["id"])
         $(modal + " input[name=DetailNo]").val("No." + flex_selected["DetailNo"])
@@ -202,15 +201,17 @@ function init() {
             data: {
                 Invoice_ID: flex_selected["id"],
                 Koshu_ID: flex_selected["Koshu_ID"],
-                Bui_ID: flex_selected["Bui_ID"]
+                Bui_ID: flex_selected["Bui_ID"],
+                Shiyo_Shubetsu_ID: flex_selected["Shiyo_Shubetsu_ID"]
             },
             url: $("input[name=route-getMitsumoreDetail]").val(),
             success: function (res) {
                 if (res["status"]) {
                     dataSearch = [];
                     dataSearch.push({ name: "page", value: 1 })
-                    dataSearch.push({ name: "Koshu_ID", value: flex_selected["Koshu_ID"] })
+                    dataSearch.push({ name: "Koshu_ID", value: flex_selected["Koshu_ID"], tag: "a" + flex_selected["Bui_Kbn_ID"] })
                     dataSearch.push({ name: "Bui_ID", value: flex_selected["Bui_ID"] })
+                    dataSearch.push({ name: "Shiyo_Shubetsu_ID", value: flex_selected["Shiyo_Shubetsu_ID"] })
                     shiyo_selected_flex.itemsSource = res["data"]
                     shiyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["dataShiyo"]["data"]);
                     $("#shiyoPage").html(res["dataShiyo"]["pagi"])
@@ -470,12 +471,20 @@ function init() {
         imeEnabled: true,
         updatedView: function () {
             // 検索条件保存
+            console.info(dataSearch)
             if (dataSearch[1] != undefined) {
+                var tag = $("select[name=Koshu_ID] option[value='" + dataSearch[1].value + "']").attr("class");
                 $("select[name=Koshu_ID]").val(dataSearch[1].value);
                 $("select[name=Bui_ID] option").hide();
-                $("select[name=Bui_ID] .a" + dataSearch[1].value).show();
+                $("select[name=Bui_ID] ." + tag).show();
+                $("select[name=Shiyo_Shubetsu_ID] option").hide();
+                $("select[name=Shiyo_Shubetsu_ID] .a" + dataSearch[1].value ).show();
             }
-            if (dataSearch[2] != undefined) $("select[name=Bui_ID]").val(dataSearch[2].value);
+            if (dataSearch[2] != undefined) {
+                $("select[name=Bui_ID]").val(dataSearch[2].value);
+                if (dataSearch[1] != undefined) {
+                }
+            }
             if (dataSearch[3] != undefined) $("select[name=Shiyo_Shubetsu_ID]").val(dataSearch[3].value);
             if (dataSearch[4] != undefined) $("input[name=Shiyo_Nm]").val(dataSearch[4].value);
 
@@ -507,6 +516,7 @@ function init() {
         // 種別
         if (e.target.name == "Koshu_ID") {
             dataSearch[1].value = value;
+            dataSearch[1].tag = myTag;
             dataSearch[2].value = '';
             if (dataSearch[3] != undefined) dataSearch[3].value = '';
             if (dataSearch[4] != undefined) dataSearch[4].value = '';
@@ -521,6 +531,7 @@ function init() {
         if (e.target.name == "Bui_ID") {
             // 選択した行をクレアします
             shiyo_selected_flex.itemsSource = [];
+            dataSearch[2].tag = myTag;
 
             if (dataSearch[3] != undefined) $("select[name=Shiyo_Shubetsu_ID]").val('');
             if (dataSearch[4] != undefined) $("input[name=Shiyo_Nm]").val('');
@@ -559,15 +570,13 @@ function init() {
     });
     function shiyoAjax(shiyo_flex) {
         dataSearch = $(".form-shiyo").serializeArray();
-        if (dataSearch[1]["value"] && dataSearch[2]["value"] ) {//&& dataSearch[3]["value"]
+        if (dataSearch[1]["value"] && dataSearch[2]["value"]) {//&& dataSearch[3]["value"]
             $.ajax({
                 type: ajaxMethod,
                 data: dataSearch,
                 url: $("input[name=route-getListShiyo]").val(),
                 success: function (res) {
-
                     if (res["status"]) {
-                        console.info(res)
                         shiyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["data"]),
                             $("#shiyoPage").html(res["pagi"])
                     } else {
