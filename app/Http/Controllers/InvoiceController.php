@@ -240,31 +240,34 @@ class InvoiceController extends Controller
      */
     private function _getList(array $whereInId = [], bool $jsonFLag = true, string $column = "")
     {
-        $list =  Invoice::select(
-            Invoice::getTableName() . ".*",
-            "S.Koshu_ID",
-            "S.Bui_ID",
-            "B.Bui_Nm",
-            "K.Bui_Kbn_ID",
-            "K.Koshu_Cd",
-            "A1.Shiyo_Nm as SpecName1",
-            "A2.Shiyo_Nm as SpecName2",
-            "SK.Shiyo_Shubetsu_Nm as Shubetsu_Nm",
-            "SK.Shiyo_Shubetsu_ID"
-        )
-            ->selectRaw("CASE WHEN A3.Shiyo_Nm IS NOT NULL 
+        $list =  Invoice::select("*");
+        if (!$whereInId) {
+            $list =  Invoice::select(
+                Invoice::getTableName() . ".*",
+                "S.Koshu_ID",
+                "S.Bui_ID",
+                "B.Bui_Nm",
+                "K.Bui_Kbn_ID",
+                "K.Koshu_Cd",
+                "A1.Shiyo_Nm as SpecName1",
+                "A2.Shiyo_Nm as SpecName2",
+                "SK.Shiyo_Shubetsu_Nm as Shubetsu_Nm",
+                "SK.Shiyo_Shubetsu_ID"
+            )
+                ->selectRaw("CASE WHEN A3.Shiyo_Nm IS NOT NULL 
                                 THEN '有'
                                 ELSE ''
                         END AS SpecName3")
-            ->selectRaw("CASE WHEN No != 0 THEN No END AS No")
-            ->leftJoin($this->_getRawSortNo(1), "A1.Invoice_ID", Invoice::getTableName() . ".id")
-            ->leftJoin($this->_getRawSortNo(2), "A2.Invoice_ID",  Invoice::getTableName() . ".id")
-            ->leftJoin($this->_getRawSortNo(3), "A3.Invoice_ID",  Invoice::getTableName() . ".id")
-            ->leftJoin(m_shiyo::getTableName("S"), "S.Shiyo_ID", "A1.Shiyo_ID")
-            ->leftJoin(m_koshu::getTableName("K"), "K.Koshu_ID",  "S.Koshu_ID")
-            ->leftJoin(m_bui::getTableName("B"), "B.Bui_ID", "S.Bui_ID")
-            ->leftJoin(m_shiyo_shubetsu::getTableName("SK"), "SK.Shiyo_Shubetsu_ID", "S.Shiyo_Shubetsu_ID")
-            ->where(Invoice::getTableName() . ".AdQuoNo", $this->AdQuoNo)
+                ->selectRaw("CASE WHEN No != 0 THEN No END AS No")
+                ->leftJoin($this->_getRawSortNo(1), "A1.Invoice_ID", Invoice::getTableName() . ".id")
+                ->leftJoin($this->_getRawSortNo(2), "A2.Invoice_ID",  Invoice::getTableName() . ".id")
+                ->leftJoin($this->_getRawSortNo(3), "A3.Invoice_ID",  Invoice::getTableName() . ".id")
+                ->leftJoin(m_shiyo::getTableName("S"), "S.Shiyo_ID", "A1.Shiyo_ID")
+                ->leftJoin(m_koshu::getTableName("K"), "K.Koshu_ID",  "S.Koshu_ID")
+                ->leftJoin(m_bui::getTableName("B"), "B.Bui_ID", "S.Bui_ID")
+                ->leftJoin(m_shiyo_shubetsu::getTableName("SK"), "SK.Shiyo_Shubetsu_ID", "S.Shiyo_Shubetsu_ID");
+        }
+        $list = $list->where(Invoice::getTableName() . ".AdQuoNo", $this->AdQuoNo)
             ->where(Invoice::getTableName() . ".DetailType", $this->DetailType)
             ->when($whereInId, function ($query, $whereInId) {
                 return $query->whereIn(Invoice::getTableName() . ".id", $whereInId);
@@ -450,16 +453,12 @@ class InvoiceController extends Controller
             }
             $l["No"] = $no;
             Invoice::where("id", $dataSelected["id"][$k])->update($l);
+            invoice_shiyo::where("Invoice_ID", $dataSelected["id"][$k])->delete();
+            invoice_shiyo::insert(invoice_shiyo::select("Shiyo_ID", "AtariSuryo", "Sort_No")
+                ->selectRaw($dataSelected["id"][$k] . " as Invoice_ID")->where("Invoice_ID", $dataCopy["id"][$k])->get()->toArray());
         }
 
-        if (!$no) {
-            // 7列目の「No」再設定
-            $data["NoUpdate"] = ' - ' . $dataSelected["nextItemNo"] - 1;
-        } else {
-            if ($dataCopy["haveNoNull"] || $dataSelected["nextItemNo"] != ($no + 1)) {
-                $data["NoUpdate"] = ' - ' . $dataSelected["nextItemNo"] - $no - 1;
-            }
-        }
+        $data["NoUpdate"] = ' - ' . $dataSelected["nextItemNo"] - $no;
         return $data;
     }
 
@@ -486,7 +485,9 @@ class InvoiceController extends Controller
                 $no = 0;
             }
             $l["No"] = $no;
-            $data["dataNew"][] = $l;
+            $id = Invoice::insertGetId($l);
+            invoice_shiyo::insert(invoice_shiyo::select("Shiyo_ID", "AtariSuryo", "Sort_No")
+                ->selectRaw($id . " as Invoice_ID")->where("Invoice_ID", $dataCopy["id"][$k])->get()->toArray());
         }
         $data["NoUpdate"] = ' - ' . $dataSelected["firstNo"] - $no - 1;
         $data["DetailNoUpdate"] = ' + ' . $dataSelected["count"];
