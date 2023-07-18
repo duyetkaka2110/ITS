@@ -12,9 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable($this->table))
+            Schema::drop($this->table);
         Schema::create($this->table, function (Blueprint $table) {
             $table->id();
-            $table->integer('Koshu_ID')->nullable();
+            $table->integer('Koshu_ID')->nullable()->index();
             $table->string('Koshu_Cd')->nullable();
             $table->string('Koshu_Nm')->nullable();
             $table->integer('Koji_Kbn_ID')->nullable();

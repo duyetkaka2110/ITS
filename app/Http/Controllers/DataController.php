@@ -10,6 +10,7 @@ use App\Models\m_tani;
 use App\Models\m_bui;
 use App\Models\m_bui_kbn;
 use App\Models\m_koshu;
+use App\Models\m_seko_tanka;
 use App\Models\m_shiyo_shubetsu;
 use App\Models\m_zairyo_shubetsu;
 
@@ -20,7 +21,8 @@ class DataController extends Controller
 
     public function readAll()
     {
-        $this->_read($this->appPath . m_bui_kbn::getTableName() . $this->fileExe, m_bui_kbn::select("*"), m_bui_kbn::getTableName());
+        $this->_read($this->appPath . m_seko_tanka::getTableName() . $this->fileExe, m_seko_tanka::select("*"), m_seko_tanka::getTableName());
+        // $this->_read($this->appPath . m_bui_kbn::getTableName() . $this->fileExe, m_bui_kbn::select("*"), m_bui_kbn::getTableName());
         // $this->_read($this->appPath . m_shiyo::getTableName() . $this->fileExe, m_shiyo::select("*"), m_shiyo::getTableName());
         // $this->_read($this->appPath . m_zairyo::getTableName() . $this->fileExe, m_zairyo::select("*"), m_zairyo::getTableName());
         // $this->_read($this->appPath . m_tani::getTableName() . $this->fileExe, m_tani::select("*"), m_tani::getTableName());
@@ -93,21 +95,29 @@ class DataController extends Controller
             if ($tblName == Invoice::getTableName()) {
                 if (isset($temp["Unit"])) $temp["Unit_ID"] = m_tani::where("Tani_Nm", $temp["Unit"])->value("Tani_ID");
                 if (isset($temp["UnitOrg"])) $temp["UnitOrg_ID"] = m_tani::where("Tani_Nm", $temp["UnitOrg"])->value("Tani_ID");
+                if (isset($temp["Type"])) {
+                    $temp["Type"] = m_koshu::where("Koshu_Cd", explode(" ",$temp["Type"])[0])->value("Koshu_ID");
+                }
+                if (isset($temp["PartName"])) {
+                    $temp["PartName"] = m_bui::where("Bui_Nm", $temp["PartName"])->value("Bui_ID");
+                }
             }
 
             $id = $table->insertGetId($temp);
 
             if ($tblName == Invoice::getTableName()) {
-                if (isset($temp["SpecName1"])) {
+                 if (isset($temp["SpecName1"])) {
                     invoice_shiyo::insert([
                         "Shiyo_ID" => m_shiyo::where("Shiyo_Nm", $temp["SpecName1"])->value("Shiyo_ID"),
-                        "Invoice_ID" => $id
+                        "Invoice_ID" => $id,
+                        "Sort_No" => 1
                     ]);
                 }
                 if (isset($temp["SpecName2"])) {
                     invoice_shiyo::insert([
                         "Shiyo_ID" => m_shiyo::where("Shiyo_Nm", $temp["SpecName2"])->value("Shiyo_ID"),
-                        "Invoice_ID" => $id
+                        "Invoice_ID" => $id,
+                        "Sort_No" => 2
                     ]);
                 }
             }

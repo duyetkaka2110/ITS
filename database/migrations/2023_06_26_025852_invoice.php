@@ -6,30 +6,33 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    protected $table = 'invoices';
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('invoices', function (Blueprint $table) {
+        if (Schema::hasTable($this->table))
+            Schema::drop($this->table);
+        Schema::create($this->table, function (Blueprint $table) {
             $table->id();
-            $table->integer('AdQuoNo');
+            $table->integer('AdQuoNo')->index();
             $table->integer('DetailType');
             $table->integer('DetailNo')->nullable();
-            $table->string('Type',100)->nullable();
-            $table->string('PartName',100)->nullable();
-            $table->string('MaterialName',100)->nullable();
-            $table->string('SpecName1',100)->nullable();
-            $table->string('SpecName2',100)->nullable();
+            $table->string('Type', 100)->nullable();
+            $table->string('PartName', 100)->nullable();
+            $table->string('MaterialName', 100)->nullable();
+            $table->string('SpecName1', 100)->nullable();
+            $table->string('SpecName2', 100)->nullable();
             $table->integer('No')->default(0)->nullable();
             $table->string('FirstName')->nullable();
             $table->string('StandDimen')->nullable();
             $table->string('MakerName')->nullable();
             $table->string('MakerNameOrg')->nullable();
             $table->integer('Unit_ID')->nullable();
-            $table->string('Unit',3)->nullable();
+            $table->string('Unit', 3)->nullable();
             $table->integer('UnitOrg_ID')->nullable();
-            $table->string('UnitOrg',3)->nullable();
+            $table->string('UnitOrg', 3)->nullable();
             $table->decimal('Quantity', $precision = 8, $scale = 1)->nullable(); //数量
             $table->integer('UnitPrice')->nullable();
             $table->integer('UnitPriceOrg')->nullable();
@@ -54,8 +57,8 @@ return new class extends Migration
             $table->boolean('AmountChangeFlag')->default(0)->nullable();
             $table->boolean('MakerChangeFlag')->default(0)->nullable();
             $table->boolean('UnitChangeFlag')->default(0)->nullable();
-            $table->string('SpecCode1',20)->nullable();
-            $table->string('SpecCode2',20)->nullable();
+            $table->string('SpecCode1', 20)->nullable();
+            $table->string('SpecCode2', 20)->nullable();
             $table->boolean('ReadFlag')->default(0)->nullable();
             $table->integer('M_EstUP1')->nullable();
             $table->integer('M_MaterUP1')->nullable();
@@ -76,7 +79,7 @@ return new class extends Migration
             $table->integer('MaterCost')->nullable();
             $table->integer('LiftingCost')->nullable();
             $table->integer('LaborCost')->nullable();
-            $table->integer('SiteExpense')->nullable();//材料増減係数
+            $table->integer('SiteExpense')->nullable(); //材料増減係数
             $table->string('ReadDataKey')->nullable();
             $table->timestamps();
         });

@@ -24,8 +24,8 @@ Route::get("/", "InvoiceController@index")->name("home");
 Route::get("/2", "InvoiceController@index2")->name("javascript");
 Route::get("/invoice-action", "InvoiceController@action")->name("invoice.action");
 Route::post("/invoice-action", "InvoiceController@action");
+
 Route::get("/getListShiyo", "InvoiceController@getListShiyo")->name("getListShiyo");
 Route::get('/setMitsumoreShiyo', "InvoiceController@setMitsumoreShiyo")->name("setMitsumoreShiyo");
 Route::get('/getMitsumoreDetail', "InvoiceController@getMitsumoreDetail")->name("getMitsumoreDetail");
-
-
+Route::get('/invoice-store', "InvoiceController@store")->name("i.store");

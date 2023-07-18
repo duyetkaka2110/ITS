@@ -232,3 +232,6 @@ body {
     position: absolute;
     top: 45%;
 }
+.cursor-point{
+    cursor: pointer;
+}

@@ -46,7 +46,6 @@
                 location.reload();
             }, 2000);
         })
-        $("#InvoiceModal").modal();
 
     })
 </script>
@@ -69,79 +68,99 @@
         <div class="modal-content w-100">
             <div class="modal-header bg-primary pt-2 pb-2">
                 <h6 class="modal-title text-white">工事仕様の選択</h6>
-                <button type="button" class="close text-white " data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-white ">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body pt-1">
-                <div class=" float-right mr-2">
-                    <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">選択行に登録</button>
-                    <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">同名行に反映(シート)</button>
-                    <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">同名行に反映(全体)</button>
-                    <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">新規行として追加</button>
-                    <div class="input-group align-bottom mg-ig-row ml-2 mt-1 d-inline-flex">
-                        <input type="text" class="form-control p-1">
-                        <div class="input-group-append">
-                            <span class="input-group-text p-1">行</span>
+                <form class="form-selected">
+                    <div class=" float-right mr-2 mb-3">
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1 btnSave" data-btn="btnSave">選択行に登録</button>
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">同名行に反映(シート)</button>
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">同名行に反映(全体)</button>
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1 btnSave" data-btn="btnSaveNew">新規行として追加</button>
+                        <div class="input-group align-bottom mg-ig-row ml-2 mt-1 d-inline-flex">
+                            <input type="number" min=1 class="form-control p-1" name="RowAdd">
+                            <div class="input-group-append">
+                                <span class="input-group-text p-1">行</span>
+                            </div>
                         </div>
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">入力項目クリア</button>
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">初期値に戻す</button>
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">全て初期値に戻す</button>
                     </div>
-                </div>
-                <div class="clear-both"></div>
-                <div class="row float-right mr-2 mt-2">
-                    <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">入力項目クリア</button>
-                    <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">初期値に戻す</button>
-                    <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">全て初期値に戻す</button>
-                </div>
-                <div class="clear-both"></div>
-                <div class="">
-                    <div class="form-group row mb-1">
-                        <label class="col-sm-2 col-form-label text-right">明細書</label>
-                        <div class="col-sm-10 pl-0 ">
-                            <input type="text" name="DetailNo" readonly class="form-control w-5em   p-1 h-30" value="">
+                    <div class="clear-both"></div>
+                    <div class="">
+                        <div class="form-group row mb-1">
+                            <label class="col-sm-2 col-form-label text-right">明細書</label>
+                            <div class="col-sm-10 pl-0 ">
+                                {{ Form::hidden("id",null)}}
+                                {{ Form::hidden("Type",null)}}
+                                {{ Form::hidden("PartName",null)}}
+                                <input type="text" name="DetailNo" readonly class="form-control w-5em d-inline  p-1 h-30" value="">
+                                <span class="cursor-point p-2 d-inline btn-collapse" title="表示/非表示" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="true" aria-controls="collapseExample">
+                                    <i class="fa fa-minus-square-o" aria-hidden="true"></i>
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group row mb-1">
-                        <label class="col-sm-2 col-form-label text-right">名称</label>
-                        <div class="col-sm-10 pl-0">
-                            <input type="text" class="form-control p-1 h-30" name="FisrtName">
-                        </div>
-                    </div>
-                    <div class="form-group row mb-1">
-                        <label class="col-sm-2 col-form-label text-right">規格・寸法</label>
-                        <div class="col-sm-10 pl-0">
-                            <input type="text" class="form-control p-1 h-30" name="StandDimen">
-                        </div>
-                    </div>
-                    <div class="form-group row mb-1">
-                        <label class="col-sm-2 col-form-label text-right">メーカ名</label>
-                        <div class="col-sm-10 pl-0">
-                            <input type="text" class="form-control p-1 h-30 col-5" name="MakerName">
-                        </div>
-                    </div>
-                    <div class="form-group row mb-1">
-                        <label class="col-sm-2 col-form-label text-right">単位</label>
-                        <div class="col-sm-10 pl-0">
-                            {!!  Form::select('UnitOrg_ID', ["" => ""] + $tanis, null, ["class" => "form-control p-1 h-30 col-3 Unit"]) !!}
-                        </div>
-                    </div>
-                    <div class="form-group row mb-1">
-                        <label class="col-sm-2 col-form-label text-right">数量</label>
-                        <div class="col-sm-10 pl-0">
-                            <input type="number" class="form-control p-1 h-30 col-3 d-inline text-right" name="Quantity">
-                            <span class="ml-2 pr-1">単価</span><input type="number" name="UnitPrice" class="form-control p-1 h-30 col-3 d-inline text-right">
-                            <span class="ml-2 pr-1">金額</span><input type="text" name="Amount" class="form-control p-1 h-30 col-3 d-inline text-right">
-                        </div>
-                    </div>
-                    <div class="form-group row mb-1">
-                        <label class="col-sm-2 col-form-label text-right">備考</label>
-                        <div class="col-sm-10 pl-0">
-                            <input type="text" class="form-control p-1 h-30" name="Note">
-                        </div>
-                    </div>
-                </div>
-                <div id="shiyo_selected" class="wijmo-custom">
+                        <div id="collapseExample" class="collapse show">
+                            <div class="form-group row mb-1">
+                                <label class="col-sm-2 col-form-label text-right">名称</label>
+                                <div class="col-sm-10 pl-0">
+                                    <input type="text" class="form-control p-1 h-30" name="FirstName">
+                                </div>
+                            </div>
+                            <div class="form-group row mb-1">
+                                <label class="col-sm-2 col-form-label text-right">規格・寸法</label>
+                                <div class="col-sm-10 pl-0">
+                                    <input type="text" class="form-control p-1 h-30" name="StandDimen">
+                                </div>
+                            </div>
+                            <div class="form-group row mb-1">
+                                <label class="col-sm-2 col-form-label text-right">メーカ名</label>
+                                <div class="col-sm-10 pl-0">
+                                    <input type="text" class="form-control p-1 h-30 col-5" name="MakerName">
+                                </div>
+                            </div>
+                            <div class="form-group row mb-1">
+                                <label class="col-sm-2 col-form-label text-right">単位</label>
+                                <div class="col-sm-10 pl-0">
+                                    {!! Form::select('UnitOrg_ID', ["" => ""] + $tanis, null, ["class" => "form-control p-1 h-30 col-3 Unit"]) !!}
+                                </div>
+                            </div>
+                            <div class="form-group row mb-1">
+                                <label class="col-sm-2 col-form-label text-right">数量</label>
+                                <div class="col-sm-10 pl-0">
+                                    <input type="number" class="form-control p-1 h-30 col-3 d-inline text-right" name="Quantity">
+                                    <span class="ml-2 pr-1">単価</span>
+                                    <div class="input-group align-bottom pl-0 col-3 mt-1 d-inline-flex">
+                                        <input type="text" class="form-control p-1 h-30  d-inline text-right" name="UnitPrice" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text p-1 font-s-83">円</span>
+                                        </div>
+                                    </div>
+                                    <span class="ml-2 pr-1">金額</span>
 
-                </div>
+                                    <div class="input-group align-bottom pl-0 col-3 mt-1 d-inline-flex">
+                                        <input type="text" class="form-control p-1 h-30  d-inline text-right" name="Amount" readonly>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text p-1 font-s-83">円</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-1">
+                                <label class="col-sm-2 col-form-label text-right">備考</label>
+                                <div class="col-sm-10 pl-0">
+                                    <input type="text" class="form-control p-1 h-30" name="Note">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="shiyo_selected" class="wijmo-custom">
+
+                    </div>
+                </form>
                 <form class="form-shiyo">
                     {{ Form::hidden("page",0)}}
                     <div id="shiyo" class="wijmo-custom mt-2">
@@ -158,4 +177,5 @@
 {{ Form::hidden('route-getListShiyo', route('getListShiyo')) }}
 {{ Form::hidden('route-setMitsumoreShiyo', route('setMitsumoreShiyo')) }}
 {{ Form::hidden('route-getMitsumoreDetail', route('getMitsumoreDetail')) }}
+{{ Form::hidden('route-istore', route('i.store')) }}
 @endsection
