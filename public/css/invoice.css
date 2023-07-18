@@ -81,7 +81,7 @@
     background: #ffa99b;
 }
 
-.wj-flexgrid .wj-cells .wj-cell {
+.wijmo-custom.wj-flexgrid .wj-cells .wj-cell {
     display: block;
     white-space: nowrap;
     text-overflow: ellipsis;

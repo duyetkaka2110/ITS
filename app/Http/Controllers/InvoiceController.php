@@ -204,7 +204,7 @@ class InvoiceController extends Controller
                     return $q->where('B.Bui_ID',  $rq->Bui_ID);
                 })
                 ->when($rq->filled("Shiyo_Shubetsu_ID"), function ($q) use ($rq) {
-                    return $q->where('SS.Shiyo_Shubetsu_ID',  $rq->Shiyo_Shubetsu_ID);
+                    return $q->where('m_shiyos.Shiyo_Shubetsu_ID',  $rq->Shiyo_Shubetsu_ID);
                 })
                 ->when($rq->filled("Shiyo_Nm"), function ($q) use ($rq) {
                     return $q->where('m_shiyos.Shiyo_Nm', 'LIKE',  "%{$rq->Shiyo_Nm}%");
@@ -219,7 +219,7 @@ class InvoiceController extends Controller
                 });
                 $list = $listObj->paginate($perPage);
             }
-
+            // dd($rq->Shiyo_Shubetsu_ID,$list->items());
             return  [
                 "status" => true,
                 "data" => $list->items(),

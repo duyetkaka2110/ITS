@@ -169,10 +169,11 @@ function init() {
                     }
                 });
             }
-        }
-        // 工事仕様の選択画面閉じる
-        if (action == "close") {
-            $("#InvoiceModal").modal("hide")
+        } else {
+            // 工事仕様の選択画面閉じる
+            if (action == "close") {
+                $("#InvoiceModal").modal("hide")
+            }
         }
     })
 
@@ -477,7 +478,7 @@ function init() {
                 $("select[name=Bui_ID] option.a").hide();
                 $("select[name=Bui_ID] .a" + tag).show();
                 $("select[name=Shiyo_Shubetsu_ID] option.a").hide();
-                $("select[name=Shiyo_Shubetsu_ID] .a" + dataSearch[1].value ).show();
+                $("select[name=Shiyo_Shubetsu_ID] .a" + dataSearch[1].value).show();
             }
             if (dataSearch[2] != undefined) {
                 $("select[name=Bui_ID]").val(dataSearch[2].value);
@@ -576,8 +577,9 @@ function init() {
                 url: $("input[name=route-getListShiyo]").val(),
                 success: function (res) {
                     if (res["status"]) {
-                        shiyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["data"]),
-                            $("#shiyoPage").html(res["pagi"])
+                        console.info(res)
+                        shiyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["data"]);
+                        $("#shiyoPage").html(res["pagi"])
                     } else {
                         shiyo_flex.itemsSource = [];
                         $("#shiyoPage").html("")
