@@ -469,7 +469,6 @@ function init() {
         headersVisibility: "Column",
         imeEnabled: true,
         updatedView: function () {
-            console.info(dataSearch)
             // 検索条件保存
             if (dataSearch[1] != undefined) {
                 $("select[name=Koshu_ID]").val(dataSearch[1].value);
@@ -560,13 +559,15 @@ function init() {
     });
     function shiyoAjax(shiyo_flex) {
         dataSearch = $(".form-shiyo").serializeArray();
-        if (dataSearch.length == 5 && dataSearch[1]["value"] && dataSearch[2]["value"] && dataSearch[3]["value"]) {
+        if (dataSearch[1]["value"] && dataSearch[2]["value"] ) {//&& dataSearch[3]["value"]
             $.ajax({
                 type: ajaxMethod,
                 data: dataSearch,
                 url: $("input[name=route-getListShiyo]").val(),
                 success: function (res) {
+
                     if (res["status"]) {
+                        console.info(res)
                         shiyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["data"]),
                             $("#shiyoPage").html(res["pagi"])
                     } else {
