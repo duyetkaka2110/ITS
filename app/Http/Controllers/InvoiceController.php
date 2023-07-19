@@ -704,7 +704,7 @@ class InvoiceController extends Controller
         return json_encode([
             "DetailNo" => [
                 "name" => "行No",
-                "class" => "wj-align-center",
+                "class" => "align-center-im",
                 "width" => 40
             ],
             "Koshu_Cd" => [
@@ -741,7 +741,7 @@ class InvoiceController extends Controller
             ],
             "No" => [
                 "name" => "No",
-                "class" => "wj-align-center",
+                "class" => "wj-align-center align-center-im",
                 "width" => 40
             ],
             "FirstName" => [

@@ -37,6 +37,9 @@
 #grid.wj-flexgrid .wj-cell.wj-align-right {
     justify-content: flex-end;
 }
+#grid.wj-flexgrid .wj-cell.align-center-im{
+    justify-content: center !important;
+}
 
 .wj-flexgrid .wj-cell.wj-align-center {
     justify-content: center;
