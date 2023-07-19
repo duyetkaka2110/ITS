@@ -9,8 +9,8 @@
 
             </div>
             <div class="modal-footer justify-center">
-                <button type="button" class="btn btn-primary w-8em btnPopupOk" data-dismiss="modal">確認</button>
-                <button type="button" class="btn btn-danger w-8em" data-dismiss="modal">閉じる</button>
+                <button type="button" class="btn btn-primary w-8em btnPopupOk" data-dismiss="modal">はい</button>
+                <button type="button" class="btn btn-danger w-8em" data-dismiss="modal">いいえ</button>
             </div>
         </div>
     </div>

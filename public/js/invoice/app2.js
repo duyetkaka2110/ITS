@@ -519,7 +519,7 @@ function init() {
 
     // 工事仕様の選択画面閉じるのポップアップ表示
     $("#InvoiceModal .close").on("click", function () {
-        dispConfirmModal("工事仕様の選択画面を閉じます。データ登録しません。よろしいですか？", "close");
+        dispConfirmModal("編集中のデータはまだ保存していません。<br>編集中の内容を破棄し、見積明細画面に戻りますか？", "close");
     })
 
     // ページング
