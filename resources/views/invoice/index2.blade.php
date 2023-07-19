@@ -30,8 +30,9 @@
 <script src="{{ URL::asset('js/invoice/app2.js') }}" type="text/javascript"></script>
 <script>
     $(document).ready(function() {
-
-
+        $(".btn-secondary").on("click",function(){
+            dispMessageModal("工事中です")
+        })
 
         $(".reload").on("click", function() {
             location.reload();
@@ -75,12 +76,12 @@
             <div class="modal-body pt-1">
                 <form class="form-selected">
                     <div class=" float-right mr-2 mb-3">
-                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">入力項目クリア</button>
-                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">初期値に戻す</button>
-                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">全て初期値に戻す</button>
+                        <button type="button" class="btn btn-secondary btn-custom ml-2 mt-1">入力項目クリア</button>
+                        <button type="button" class="btn btn-secondary btn-custom ml-2 mt-1">初期値に戻す</button>
+                        <button type="button" class="btn btn-secondary btn-custom ml-2 mt-1">全て初期値に戻す</button>
                         <button type="button" class="btn btn-primary btn-custom ml-2 mt-1 btnSave" data-btn="btnSave">選択行に登録</button>
-                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">同名行に反映(シート)</button>
-                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1">同名行に反映(全体)</button>
+                        <button type="button" class="btn btn-secondary btn-custom ml-2 mt-1">同名行に反映(シート)</button>
+                        <button type="button" class="btn btn-secondary btn-custom ml-2 mt-1">同名行に反映(全体)</button>
                         <button type="button" class="btn btn-primary btn-custom ml-2 mt-1 btnSave" data-btn="btnSaveNew">新規行として追加</button>
                         <div class="input-group align-bottom mg-ig-row ml-2 mt-1 d-inline-flex">
                             <input type="number" min=1 class="form-control p-1" name="RowAdd">
