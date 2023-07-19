@@ -30,7 +30,7 @@
 <script src="{{ URL::asset('js/invoice/app2.js') }}" type="text/javascript"></script>
 <script>
     $(document).ready(function() {
-        $(".btn-secondary").on("click",function(){
+        $(".btn-secondary").on("click", function() {
             dispMessageModal("工事中です")
         })
 
@@ -84,7 +84,7 @@
                         <button type="button" class="btn btn-secondary btn-custom ml-2 mt-1">同名行に反映(全体)</button>
                         <button type="button" class="btn btn-primary btn-custom ml-2 mt-1 btnSave" data-btn="btnSaveNew">新規行として追加</button>
                         <div class="input-group align-bottom mg-ig-row ml-2 mt-1 d-inline-flex">
-                            <input type="number" min=1 class="form-control p-1" name="RowAdd">
+                            <input type="number" min=1 max=99 class="form-control p-1" name="RowAdd">
                             <div class="input-group-append">
                                 <span class="input-group-text p-1">行</span>
                             </div>
@@ -132,7 +132,7 @@
                             <div class="form-group row mb-1">
                                 <label class="col-sm-2 col-form-label text-right">数量</label>
                                 <div class="col-sm-10 pl-0">
-                                    <input type="number" class="form-control p-1 h-30 col-3 d-inline text-right" name="Quantity">
+                                    <input type="number" class="form-control p-1 h-30 col-3 d-inline text-right" min=0 name="Quantity">
                                     <span class="ml-2 pr-1">単価</span>
                                     <div class="input-group align-bottom pl-0 col-3 mt-1 d-inline-flex">
                                         <input type="text" class="form-control p-1 h-30  d-inline text-right" name="UnitPrice" readonly>

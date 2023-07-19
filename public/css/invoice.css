@@ -28,7 +28,6 @@
     max-height: 250px;
 }
 
-/* use flex display to center-align cells vertically */
 .wj-flexgrid .wj-cell {
     display: flex;
     align-items: center;
