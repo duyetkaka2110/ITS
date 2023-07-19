@@ -510,6 +510,7 @@ function init() {
             $("select[name=Shiyo_Shubetsu_ID]").val('');
             $("input[name=Shiyo_Nm]").val('');
         }
+        $(".form-shiyo input[name=page]").val(1);
         shiyoAjax(shiyo_flex);
     })
 
