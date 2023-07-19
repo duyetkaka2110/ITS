@@ -179,55 +179,54 @@ class InvoiceController extends Controller
      */
     public function getListShiyo(Request $rq)
     {
-        if ($rq->filled("Koshu_ID") && $rq->filled("Bui_ID")) {
-            $listObj = m_shiyo::select(
-                "m_shiyos.Shiyo_ID",
-                "m_shiyos.Shiyo_Nm",
-                "SS.Shiyo_Shubetsu_Nm",
-                "B.Bui_NM",
-                "T.Tani_Nm",
-                "ST.M_Tanka_IPN",
-                "ST.Z_Tanka_IPN",
-                "ST.R_Tanka_IPN"
-            )
-                ->selectRaw("0 as AtariSuryo")
-                ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
-                ->join(m_koshu::getTableName("K"), "m_shiyos.Koshu_ID", "K.Koshu_ID")
-                ->join(m_bui::getTableName("B"), "m_shiyos.Bui_ID", "B.Bui_ID")
-                ->leftJoin(m_shiyo_shubetsu::getTableName("SS"), "m_shiyos.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
-                ->join(m_tani::getTableName("T"), "m_shiyos.Tani_ID", "T.Tani_ID")
-                ->join(m_seko_tanka::getTableName("ST"), "m_shiyos.Shiyo_ID", "ST.Shiyo_ID")
-                ->when($rq->filled("Koshu_ID"), function ($q) use ($rq) {
-                    return $q->where('K.Koshu_ID',  $rq->Koshu_ID);
-                })
-                ->when($rq->filled("Bui_ID"), function ($q) use ($rq) {
-                    return $q->where('B.Bui_ID',  $rq->Bui_ID);
-                })
-                ->when($rq->filled("Shiyo_Shubetsu_ID"), function ($q) use ($rq) {
-                    return $q->where('m_shiyos.Shiyo_Shubetsu_ID',  $rq->Shiyo_Shubetsu_ID);
-                })
-                ->when($rq->filled("Shiyo_Nm"), function ($q) use ($rq) {
-                    return $q->where('m_shiyos.Shiyo_Nm', 'LIKE',  "%{$rq->Shiyo_Nm}%");
-                });
-            $perPage = 10;
+        $listObj = m_shiyo::select(
+            m_shiyo::getTableName() . ".Shiyo_ID",
+            m_shiyo::getTableName() . ".Shiyo_Nm",
+            "SS.Shiyo_Shubetsu_Nm",
+            "B.Bui_NM",
+            "T.Tani_Nm",
+            "ST.M_Tanka_IPN",
+            "ST.Z_Tanka_IPN",
+            "ST.R_Tanka_IPN"
+        )
+            ->selectRaw("0 as AtariSuryo")
+            ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
+            ->join(m_koshu::getTableName("K"), m_shiyo::getTableName() . ".Koshu_ID", "K.Koshu_ID")
+            ->join(m_bui::getTableName("B"), m_shiyo::getTableName() . ".Bui_ID", "B.Bui_ID")
+            ->leftJoin(m_shiyo_shubetsu_kbn::getTableName("SS"), function ($join) {
+                $join->on(m_shiyo::getTableName() . ".Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID");
+                $join->on(m_shiyo::getTableName() . ".Koshu_ID", "SS.Koshu_ID");
+            })
+            ->join(m_tani::getTableName("T"), m_shiyo::getTableName() . ".Tani_ID", "T.Tani_ID")
+            ->join(m_seko_tanka::getTableName("ST"), m_shiyo::getTableName() . ".Shiyo_ID", "ST.Shiyo_ID")
+            ->when($rq->filled("Koshu_ID"), function ($q) use ($rq) {
+                return $q->where('K.Koshu_ID',  $rq->Koshu_ID);
+            })
+            ->when($rq->filled("Bui_ID"), function ($q) use ($rq) {
+                return $q->where('B.Bui_ID',  $rq->Bui_ID);
+            })
+            ->when($rq->filled("Shiyo_Shubetsu_ID"), function ($q) use ($rq) {
+                return $q->where(m_shiyo::getTableName() . '.Shiyo_Shubetsu_ID',  explode("_", $rq->Shiyo_Shubetsu_ID)[1]);
+            })
+            ->when($rq->filled("Shiyo_Nm"), function ($q) use ($rq) {
+                return $q->where(m_shiyo::getTableName() . '.Shiyo_Nm', 'LIKE',  "%{$rq->Shiyo_Nm}%");
+            })
+            ->orderBy(m_shiyo::getTableName() . ".Sort_No");
+        $perPage = 10;
+        $list = $listObj->paginate($perPage);
+        $lastPage = $list->lastPage();
+        if ($rq->page > $lastPage) {
+            // 更新周期での再描画で表示ページが存在しないページとなった場合、最終ページを表示するよう
+            Paginator::currentPageResolver(function () use ($lastPage) {
+                return $lastPage;
+            });
             $list = $listObj->paginate($perPage);
-            $lastPage = $list->lastPage();
-            if ($rq->page > $lastPage) {
-                // 更新周期での再描画で表示ページが存在しないページとなった場合、最終ページを表示するよう
-                Paginator::currentPageResolver(function () use ($lastPage) {
-                    return $lastPage;
-                });
-                $list = $listObj->paginate($perPage);
-            }
-            // dd($rq->Shiyo_Shubetsu_ID,$list->items());
-            return  [
-                "status" => true,
-                "data" => $list->items(),
-                "pagi" => $list->links("vendor.pagination.bootstrap-4")->toHtml(),
-            ];
         }
-        return [
-            "status" => false
+        // dd($rq->Shiyo_Shubetsu_ID,$list->items());
+        return  [
+            "status" => true,
+            "data" => $list->items(),
+            "pagi" => $list->links("vendor.pagination.bootstrap-4")->toHtml(),
         ];
     }
 
@@ -625,25 +624,22 @@ class InvoiceController extends Controller
     {
         // 種別
         $m_koshus = m_koshu::select("Koshu_ID", "Bui_Kbn_ID")
-            ->selectRaw("CONCAT(Koshu_Cd,' ',Koshu_Nm) as Koshu_Nm")->get();
+            ->selectRaw("CONCAT(Koshu_Cd,' ',Koshu_Nm) as Koshu_Nm")->orderBy("Sort_No")->get();
         $koshus =  $m_koshus->pluck("Koshu_Nm", "Koshu_ID")->toArray();
         $koshus_attr = $m_koshus->mapWithKeys(function ($item) {
             return [$item->Koshu_ID => ['class' => "a a" . $item->Bui_Kbn_ID, 'data-bui' =>  $item->Bui_Kbn_ID]];
         })->toArray();
 
         // 部位
-        $m_bui = m_bui::select("Bui_Kbn_ID", "Bui_Nm", "Bui_ID")->get();
+        $m_bui = m_bui::select("Bui_Kbn_ID", "Bui_Nm", "Bui_ID")->orderBy("Sort_No")->get();
         $buis = $m_bui->pluck("Bui_Nm", "Bui_ID")->toArray();
         $buis_attr = $m_bui->mapWithKeys(function ($item) {
             return [$item->Bui_ID => ['class' =>  "a a" . $item->Bui_Kbn_ID]];
         })->toArray();
 
         // 材質
-        // $m_shiyo = m_shiyo::select("SS.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_Nm")
-        //     ->selectRaw("CONCAT(Koshu_ID,'_',Bui_ID) as Koshu_ID_Bui_ID")
-        //     ->join(m_shiyo_shubetsu::getTableName("SS"), "SS.Shiyo_Shubetsu_ID", m_shiyo::getTableName() . ".Shiyo_Shubetsu_ID")
-        //     ->groupBy("Koshu_ID_Bui_ID", "SS.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_Nm")->get();
         $m_shiyo = m_shiyo_shubetsu_kbn::select("Koshu_ID", "Shiyo_Shubetsu_ID", "Shiyo_Shubetsu_Nm")
+            ->selectRaw("CONCAT(Koshu_ID,'_',Shiyo_Shubetsu_ID) AS Shiyo_Shubetsu_ID")
             ->get();
         $shiyo_shubetsus = $m_shiyo->pluck("Shiyo_Shubetsu_Nm", "Shiyo_Shubetsu_ID")->toArray();
         $shiyo_shubetsus_attr = $m_shiyo->mapWithKeys(function ($item) {
@@ -740,7 +736,7 @@ class InvoiceController extends Controller
             ],
             "SpecName3" => [
                 "name" => "仕様名3~",
-                "class" => "",
+                "class" => "wj-align-center",
                 "width" => 65
             ],
             "No" => [

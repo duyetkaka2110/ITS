@@ -106,7 +106,7 @@
     text-align: right !important;
 }
 
-#shiyo_selected .wj-cell.wj-header {
+#shiyo_selected .wj-colheaders .wj-cell.wj-header {
     background: #4de5d3;
 }
 
@@ -133,6 +133,10 @@
 
 #shiyo_selected .fa.cursor-point:hover {
     font-size: 110%;
+}
+
+#shiyo_selected .wj-rowheaders .wj-header {
+    cursor: move;
 }
 
 .wj-flexgrid .wj-grid-editor {

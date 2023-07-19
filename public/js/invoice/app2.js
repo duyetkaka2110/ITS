@@ -196,23 +196,19 @@ function init() {
         $(modal + " input[name=Note]").val(flex_selected["Note"])
         $(modal + " input[name=Type]").val(flex_selected["Koshu_ID"])
         $(modal + " input[name=PartName]").val(flex_selected["Bui_ID"])
-
+        dataSearch = [];
+        dataSearch.push({ name: "page", value: 1 })
+        dataSearch.push({ name: "Koshu_ID", value: flex_selected["Koshu_ID"] })
+        dataSearch.push({ name: "Bui_ID", value: flex_selected["Bui_ID"] })
+        dataSearch.push({ name: "Shiyo_Shubetsu_ID", value: flex_selected["Shiyo_Shubetsu_ID"] ? flex_selected["Koshu_ID"] + '_' + flex_selected["Shiyo_Shubetsu_ID"] : '' })
+        dataSearch.push({ name: "Shiyo_Nm", value: null })
+        dataSearch.push({ name: "Invoice_ID", value: flex_selected["id"] })
         $.ajax({
             type: ajaxMethod,
-            data: {
-                Invoice_ID: flex_selected["id"],
-                Koshu_ID: flex_selected["Koshu_ID"],
-                Bui_ID: flex_selected["Bui_ID"],
-                Shiyo_Shubetsu_ID: flex_selected["Shiyo_Shubetsu_ID"]
-            },
+            data: dataSearch,
             url: $("input[name=route-getMitsumoreDetail]").val(),
             success: function (res) {
                 if (res["status"]) {
-                    dataSearch = [];
-                    dataSearch.push({ name: "page", value: 1 })
-                    dataSearch.push({ name: "Koshu_ID", value: flex_selected["Koshu_ID"], tag: "a" + flex_selected["Bui_Kbn_ID"] })
-                    dataSearch.push({ name: "Bui_ID", value: flex_selected["Bui_ID"] })
-                    dataSearch.push({ name: "Shiyo_Shubetsu_ID", value: flex_selected["Shiyo_Shubetsu_ID"] })
                     shiyo_selected_flex.itemsSource = res["data"]
                     shiyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["dataShiyo"]["data"]);
                     $("#shiyoPage").html(res["dataShiyo"]["pagi"])
@@ -298,6 +294,8 @@ function init() {
             };
             if (key == 'AtariSuryo') {
                 temp["format"] = "n1";
+            }
+            if (key == "M_Tanka_IPN2") {
                 temp["aggregate"] = "Sum";
             }
             headerCol.push(temp)
@@ -312,7 +310,8 @@ function init() {
         autoGenerateColumns: false,
         selectionMode: 'Row',
         allowSorting: false,
-        headersVisibility: "Column",
+        allowDragging: wijmo.grid.AllowDragging.Both,
+        // headersVisibility: "Column",
         itemFormatter: function (panel, r, c, cell) {
             if (panel.cellType == wijmo.grid.CellType.Cell) {
                 if (c == 0) {
@@ -323,26 +322,23 @@ function init() {
                 if (c == 2) {
                     panel.rows[r].dataItem["Sort_No"] = r + 1;
                     cell.innerHTML = r + 1;
-
                 }
                 if (c == 8) {
                     dataItem = panel.rows[r].dataItem;
                     dataItem["M_Tanka_IPN2"] = dataItem["M_Tanka_IPN"] * getNumberData(dataItem["AtariSuryo"])
                     dataItem["Z_Tanka_IPN2"] = dataItem["Z_Tanka_IPN"] * getNumberData(dataItem["AtariSuryo"])
                     dataItem["R_Tanka_IPN2"] = dataItem["R_Tanka_IPN"] * getNumberData(dataItem["AtariSuryo"])
-                    if (r == 0) {
-                        first = true;
-                        total = 0;
-                    }
-                    total += dataItem["M_Tanka_IPN2"];
-                    if (r == panel.rows.length - 1 && first) {
-                        first = false;
-                        $('input[name="UnitPrice"]').val(numberFormat(total, "n0"))
-                        $('input[name="Amount"]').val(numberFormat(total * $('input[name="Quantity"]').val()))
-
-                    }
                 }
             }
+        },
+        updatedView: function (s, e) {
+            $.each(s.rows, function (r, value) {
+                s.rows[r].dataItem["Sort_No"] = r + 1;
+                // shiyo_selected_flex.itemsSource[r]["Sort_No"] = r + 1;
+            })
+            total = wijmo.getAggregate("Sum", shiyo_selected_flex.itemsSource, "M_Tanka_IPN2");
+            $('input[name="UnitPrice"]').val(numberFormat(total, "n0"))
+            $('input[name="Amount"]').val(numberFormat(total * $('input[name="Quantity"]').val()))
         },
         _cellEditEnding: (s, e) => {
             let col = s.columns[e.col];
@@ -391,7 +387,6 @@ function init() {
                 shiyo_selected_form.push({ name: "Shiyo_ID[]", value: value["Shiyo_ID"] });
                 shiyo_selected_form.push({ name: "AtariSuryo[]", value: value["AtariSuryo"] != undefined ? value["AtariSuryo"] : null });
                 shiyo_selected_form.push({ name: "Sort_No[]", value: value["Sort_No"] });
-                // .push({ name: "Sort_No[]", value: value["Sort_No"] });
             });
             $.ajax({
                 type: ajaxMethod,
@@ -405,9 +400,8 @@ function init() {
                             dataSelected = { first: flex.itemsSource.length - 1 };
                         $("#InvoiceModal").modal("hide")
                         setRowSelected(flex, dataSelected)
-
+                        console.info(flex)
                     }
-
                 }
             });
         }
@@ -510,41 +504,15 @@ function init() {
     })
     // 検索条件更新の時
     $(document).on("change", ".btn-search", function (e) {
-        var element = $(this).find('option:selected');
-        var myTag = element.attr("class");
-        var value = element.val();
         // 種別
         if (e.target.name == "Koshu_ID") {
-            dataSearch[1].value = value;
-            dataSearch[1].tag = myTag;
-            dataSearch[2].value = '';
-            if (dataSearch[3] != undefined) dataSearch[3].value = '';
-            if (dataSearch[4] != undefined) dataSearch[4].value = '';
-
-            // 選択した行をクレアします
-            shiyo_selected_flex.itemsSource = [];
-            shiyo_flex.itemsSource = [];
-            $("#shiyoPage").html("")
-
+            $("select[name=Bui_ID]").val('');
+            $("select[name=Shiyo_Shubetsu_ID]").val('');
+            $("input[name=Shiyo_Nm]").val('');
         }
-        // 部位
-        if (e.target.name == "Bui_ID") {
-            // 選択した行をクレアします
-            shiyo_selected_flex.itemsSource = [];
-            dataSearch[2].tag = myTag;
-
-            if (dataSearch[3] != undefined) $("select[name=Shiyo_Shubetsu_ID]").val('');
-            if (dataSearch[4] != undefined) $("input[name=Shiyo_Nm]").val('');
-            if (value != '')
-                shiyoAjax(shiyo_flex);
-        }
-        // 材質|仕様
-        if (e.target.name == "Shiyo_Shubetsu_ID" || e.target.name == "Shiyo_Nm") {
-            if ($("select[name=Koshu_ID]").val() && $("select[name=Bui_ID]").val()) {
-                shiyoAjax(shiyo_flex);
-            }
-        }
+        shiyoAjax(shiyo_flex);
     })
+
     // 工事仕様の選択画面閉じるのポップアップ表示
     $("#InvoiceModal .close").on("click", function () {
         dispConfirmModal("工事仕様の選択画面を閉じます。データ登録しません。よろしいですか？", "close");
@@ -570,26 +538,20 @@ function init() {
     });
     function shiyoAjax(shiyo_flex) {
         dataSearch = $(".form-shiyo").serializeArray();
-        if (dataSearch[1]["value"] && dataSearch[2]["value"]) {//&& dataSearch[3]["value"]
-            $.ajax({
-                type: ajaxMethod,
-                data: dataSearch,
-                url: $("input[name=route-getListShiyo]").val(),
-                success: function (res) {
-                    if (res["status"]) {
-                        console.info(res)
-                        shiyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["data"]);
-                        $("#shiyoPage").html(res["pagi"])
-                    } else {
-                        shiyo_flex.itemsSource = [];
-                        $("#shiyoPage").html("")
-                    }
+        $.ajax({
+            type: ajaxMethod,
+            data: dataSearch,
+            url: $("input[name=route-getListShiyo]").val(),
+            success: function (res) {
+                if (res["status"]) {
+                    shiyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["data"]);
+                    $("#shiyoPage").html(res["pagi"])
+                } else {
+                    shiyo_flex.itemsSource = [];
+                    $("#shiyoPage").html("")
                 }
-            });
-        } else {
-            shiyo_flex.itemsSource = [];
-            $("#shiyoPage").html("")
-        }
+            }
+        });
     }
     // 表示/非表示アイコン
     $(".btn-collapse").on("click", function () {
