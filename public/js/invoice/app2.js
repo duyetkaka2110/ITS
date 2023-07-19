@@ -395,12 +395,15 @@ function init() {
                 success: function (res) {
                     if (res["status"]) {
                         dataSelected = { first: flex.selectedItems[0]["DetailNo"] - 1 };
+                        scrollPosition = flex.scrollPosition;
                         flex.itemsSource = new wijmo.collections.ObservableArray($.parseJSON(res["data"]));
-                        if (btnClick == "btnSaveNew")
+                        if (btnClick == "btnSaveNew") {
                             dataSelected = { first: flex.itemsSource.length - 1 };
+                            scrollPosition.y = -flex.scrollSize.height;
+                        }
+                        flex.scrollPosition = scrollPosition;
                         $("#InvoiceModal").modal("hide")
                         setRowSelected(flex, dataSelected)
-                        console.info(flex)
                     }
                 }
             });
