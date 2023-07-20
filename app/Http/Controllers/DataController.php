@@ -22,10 +22,10 @@ class DataController extends Controller
 
     public function readAll()
     {
-        $this->_read($this->appPath . m_seko_tanka::getTableName() . $this->fileExe, m_seko_tanka::select("*"), m_seko_tanka::getTableName());
-        $this->_read($this->appPath . m_bui_kbn::getTableName() . $this->fileExe, m_bui_kbn::select("*"), m_bui_kbn::getTableName());
+        // $this->_read($this->appPath . m_seko_tanka::getTableName() . $this->fileExe, m_seko_tanka::select("*"), m_seko_tanka::getTableName());
+        // $this->_read($this->appPath . m_bui_kbn::getTableName() . $this->fileExe, m_bui_kbn::select("*"), m_bui_kbn::getTableName());
 
-        // $this->_read($this->appPath . m_shiyo::getTableName() . $this->fileExe, m_shiyo::select("*"), m_shiyo::getTableName());
+        $this->_read($this->appPath . m_shiyo::getTableName() . $this->fileExe, m_shiyo::select("*"), m_shiyo::getTableName());
 
         // $this->_read($this->appPath . m_zairyo::getTableName() . $this->fileExe, m_zairyo::select("*"), m_zairyo::getTableName());
         // $this->_read($this->appPath . m_tani::getTableName() . $this->fileExe, m_tani::select("*"), m_tani::getTableName());
@@ -75,7 +75,7 @@ class DataController extends Controller
      */
     private function _read($filename, $table, $tblName)
     {
-        echo "starting....";
+        echo "<br>starting....";
         $table->truncate();
         if ($tblName == Invoice::getTableName()) {
             invoice_shiyo::truncate();
