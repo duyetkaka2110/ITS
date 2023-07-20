@@ -15,4 +15,5 @@ class m_mitsumore extends Model
             return (new self())->getTable() . " AS " . $As;
         }
         return (new self())->getTable();
+    }
 }
