@@ -348,7 +348,7 @@ function init() {
                         e.cancel = true;
                         console.info('Please enter a positive amount');
                     } else {
-                        value = parseFloat(value).toFixed(1);
+                        value = wijmo.clamp(parseFloat(value).toFixed(1), 0, 100000);
                         s.activeEditor.value = value;
                         changedItem = shiyo_selected_flex.itemsSource[e.row];
                         changedItem["M_Tanka_IPN2"] = changedItem["M_Tanka_IPN"] * value;
