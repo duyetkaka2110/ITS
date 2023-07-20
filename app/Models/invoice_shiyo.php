@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class invoice_shiyo extends Model
 {
@@ -15,5 +16,9 @@ class invoice_shiyo extends Model
             return (new self())->getTable() . " AS " . $As;
         }
         return (new self())->getTable();
+    }
+    public function invoices(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class,"Invoice_ID","id");
     }
 }

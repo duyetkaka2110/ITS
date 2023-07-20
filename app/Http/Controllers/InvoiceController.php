@@ -11,7 +11,6 @@ use App\Models\m_seko_tanka;
 use App\Models\m_shiyo;
 use App\Models\m_shiyo_shubetsu;
 use App\Models\m_shiyo_shubetsu_kbn;
-use App\Models\m_zairyo;
 use App\Models\m_tani;
 use DB;
 use Form;
@@ -94,7 +93,7 @@ class InvoiceController extends Controller
         $id = $rq->id;
         if ($rq->btn == "btnSave") {
             Invoice::where("id", $id)->update($data);
-            invoice_shiyo::where("Invoice_ID", $id)->delete();
+            Invoice::find($id)->invoice_shiyos()->delete();
         } else {
             $data["AdQuoNo"] = $this->AdQuoNo;
             $data["DetailType"] = $this->DetailType;
@@ -216,13 +215,12 @@ class InvoiceController extends Controller
         $list = $listObj->paginate($perPage);
         $lastPage = $list->lastPage();
         if ($rq->page > $lastPage) {
-            // 更新周期での再描画で表示ページが存在しないページとなった場合、最終ページを表示するよう
+            // 表示ページが存在しないページとなった場合、最終ページを表示するよう
             Paginator::currentPageResolver(function () use ($lastPage) {
                 return $lastPage;
             });
             $list = $listObj->paginate($perPage);
         }
-        // dd($rq->Shiyo_Shubetsu_ID,$list->items());
         return  [
             "status" => true,
             "data" => $list->items(),
@@ -452,7 +450,7 @@ class InvoiceController extends Controller
             }
             $l["No"] = $no;
             Invoice::where("id", $dataSelected["id"][$k])->update($l);
-            invoice_shiyo::where("Invoice_ID", $dataSelected["id"][$k])->delete();
+            Invoice::find($dataSelected["id"][$k])->invoice_shiyos()->delete();
             invoice_shiyo::insert(invoice_shiyo::select("Shiyo_ID", "AtariSuryo", "Sort_No")
                 ->selectRaw($dataSelected["id"][$k] . " as Invoice_ID")->where("Invoice_ID", $dataCopy["id"][$k])->get()->toArray());
         }

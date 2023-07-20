@@ -334,7 +334,6 @@ function init() {
         updatedView: function (s, e) {
             $.each(s.rows, function (r, value) {
                 s.rows[r].dataItem["Sort_No"] = r + 1;
-                // shiyo_selected_flex.itemsSource[r]["Sort_No"] = r + 1;
             })
             total = wijmo.getAggregate("Sum", shiyo_selected_flex.itemsSource, "M_Tanka_IPN2");
             $('input[name="UnitPrice"]').val(numberFormat(total, "n0"))
@@ -412,8 +411,8 @@ function init() {
     function numberFormat(number, str = null) {
         return wijmo.Globalize.format(number, str ? str : "n0")
     }
-    function getNumberData($number) {
-        return $number ? $number : 0;
+    function getNumberData(number) {
+        return wijmo.isNumber(number) ? number : number.replace(/\,/g, '');
     }
     // 数量更新の時
     $('input[name="Quantity"]').on("change", function () {
@@ -546,6 +545,13 @@ function init() {
             type: ajaxMethod,
             data: dataSearch,
             url: $("input[name=route-getListShiyo]").val(),
+            beforeSend: function () {
+                $('.loading').addClass('d-none');
+                $(".shiyo-loading").removeClass("d-none");
+            },
+            complete: function () {
+                $('.shiyo-loading').addClass('d-none');
+            },
             success: function (res) {
                 if (res["status"]) {
                     shiyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["data"]);

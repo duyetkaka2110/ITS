@@ -36,7 +36,8 @@
 #grid.wj-flexgrid .wj-cell.wj-align-right {
     justify-content: flex-end;
 }
-#grid.wj-flexgrid .wj-cell.align-center-im{
+
+#grid.wj-flexgrid .wj-cell.align-center-im {
     justify-content: center !important;
 }
 
@@ -147,4 +148,20 @@
 
 .font-s-83 {
     font-size: 83%;
+}
+
+.shiyo-loading {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fdfdfd80;
+    z-index: 111111;
+}
+
+.shiyo-loading .spinner-border {
+    position: absolute;
+    top: 50%;
+    left: 50%;
 }

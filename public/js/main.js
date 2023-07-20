@@ -10,10 +10,11 @@ $.ajaxSetup({
     },
     error: function (jqXHR, textStatus, errorThrown) {
         console.log(jqXHR.status);
-        console.log(textStatus);
         console.info(jqXHR["responseText"]["message"]);
         if (jqXHR.status == 419) {
             location.reload();
+        }else{
+            dispMessageModal("予期せぬエラーが発生しました。システム管理者に連絡して下さい。");
         }
     }
 });
