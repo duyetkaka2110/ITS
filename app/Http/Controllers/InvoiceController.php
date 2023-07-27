@@ -12,11 +12,10 @@ use App\Models\m_shiyo;
 use App\Models\m_shiyo_shubetsu;
 use App\Models\m_shiyo_shubetsu_kbn;
 use App\Models\m_tani;
-use App\Models\m_zairyo;
-use App\Models\m_zairyo_shubetsu;
 use DB;
 use Form;
 use Illuminate\Pagination\Paginator;
+use App\Http\Controllers\ZairyoController;
 
 class InvoiceController extends Controller
 {
@@ -28,13 +27,17 @@ class InvoiceController extends Controller
      */
     public function index(Request $rq)
     {
-        $headerShiyo = $this->_getTableHeaderShiyo();
-        $headerZairyo = $this->_getTableHeaderZairyo();
-        $headerShiyoSelected = $this->_getTableHeaderShiyoSelected();
         $header = $this->_getTableHeader();
         $cmd = json_encode(config("const.cmd"));
         $list = $this->_getList();
         $tanis = m_tani::orderBy("Sort_No")->pluck("Tani_Nm", "Tani_ID")->toArray();
+
+        $headerShiyo = $this->_getTableHeaderShiyo();
+        $headerShiyoSelected = $this->_getTableHeaderShiyoSelected();
+
+        $zairyo = new ZairyoController();
+        $headerZairyo = $zairyo->getTableHeaderZairyo();
+
         return view("invoice.index2", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo"));
     }
 
@@ -153,9 +156,11 @@ class InvoiceController extends Controller
             invoice_shiyo::getTableName() . ".id",
             "S.Shiyo_ID",
             "S.Shiyo_Nm",
+            "S.Shiyo_Nm",
             "SS.Shiyo_Shubetsu_Nm",
             "B.Bui_NM",
             "T.Tani_Nm",
+            "T.Tani_ID",
             "ST.M_Tanka_IPN",
             "ST.Z_Tanka_IPN",
             "ST.R_Tanka_IPN",
@@ -187,6 +192,7 @@ class InvoiceController extends Controller
             "SS.Shiyo_Shubetsu_Nm",
             "B.Bui_NM",
             "T.Tani_Nm",
+            "T.Tani_ID",
             "ST.M_Tanka_IPN",
             "ST.Z_Tanka_IPN",
             "ST.R_Tanka_IPN"
@@ -231,51 +237,8 @@ class InvoiceController extends Controller
         ];
     }
 
-    
 
-    /**
-     * 仕様の構成の編集の材料画面の一覧取得
-     * param Request $rq
-     * return 配列/json
-     */
-    public function getListZairyo(Request $rq)
-    {
-        $listObj = m_zairyo::select(
-            m_zairyo::getTableName() . ".Zairyo_ID",
-            m_zairyo::getTableName() . ".Zairyo_Nm",
-            "ZS.Zairyo_Shubetsu_ID",
-            "ZS.Zairyo_Shubetsu_Nm",
-            "T.Tani_Nm"
-        )
-            ->selectRaw("0 as AtariSuryo")
-            ->join(m_zairyo_shubetsu::getTableName("ZS"), function ($join) {
-                $join->on(m_zairyo::getTableName() . ".Zairyo_Shubetsu_ID", "ZS.Zairyo_Shubetsu_ID");
-            })
-            ->leftJoin(m_tani::getTableName("T"), m_zairyo::getTableName() . ".Tani_ID", "T.Tani_ID")
-            ->join(m_seko_tanka::getTableName("ST"), m_shiyo::getTableName() . ".Shiyo_ID", "ST.Shiyo_ID")
-            ->when($rq->filled("Koshu_ID"), function ($q) use ($rq) {
-                return $q->where('K.Koshu_ID',  $rq->Koshu_ID);
-            })
-            ->when($rq->filled("Zairyo_Nm"), function ($q) use ($rq) {
-                return $q->where(m_zairyo::getTableName() . '.Zairyo_Nm', 'LIKE',  "%{$rq->Zairyo_Nm}%");
-            })
-            ->orderBy(m_shiyo::getTableName() . ".Sort_No");
-        $perPage = 10;
-        $list = $listObj->paginate($perPage);
-        $lastPage = $list->lastPage();
-        if ($rq->page > $lastPage) {
-            // 表示ページが存在しないページとなった場合、最終ページを表示するよう
-            Paginator::currentPageResolver(function () use ($lastPage) {
-                return $lastPage;
-            });
-            $list = $listObj->paginate($perPage);
-        }
-        return  [
-            "status" => true,
-            "data" => $list->items(),
-            "pagi" => $list->links("vendor.pagination.bootstrap-4")->toHtml(),
-        ];
-    }
+
 
 
     /**
@@ -741,42 +704,6 @@ class InvoiceController extends Controller
                 "class" => "wj-align-center",
                 "width" => "",
             ],
-        ]);
-    }
-
-    /**
-     * 仕様フォーマット取得
-     * return ヘーダ一覧
-     */
-    private function _getTableHeaderZairyo()
-    {
-        // 種別
-        $m_zairyo_shubetsu = m_zairyo_shubetsu::pluck("Zairyo_Shubetsu_Nm", "Zairyo_Shubetsu_ID")->toArray();
-
-        return json_encode([
-            "Zairyo_Shubetsu_Nm" => [
-                "name" => "材料種別",
-                "class" => "wj-align-left-im",
-                "width" => 250,
-                "line1" => Form::select('Zairyo_Shubetsu_ID', ["" => ""] + $m_zairyo_shubetsu, null, ["class" => "form-control p-1 btn-search-zairyo "])->toHtml()
-            ],
-            "Zairyo_Nm" => [
-                "name" => "材料名称",
-                "class" => "",
-                "width" => 300,
-                "line1" => "<input type='text' name='Zairyo_Nm' class='w-100 form-control pl-1 btn-search-zairyo' />"
-            ],
-            "Tani_Nm" => [
-                "name" => "単位",
-                "class" => "wj-align-center",
-                "width" => "",
-                "line1" => ""
-            ],
-            "M_Tanka_IPN" => [
-                "name" => "材料単価",
-                "class" => "wj-align-center",
-                "width" => 280,
-            ]
         ]);
     }
 

@@ -569,8 +569,29 @@ function init() {
     })
 
     // 仕様の構成の編集画面表示
-    $(document).on("click", ".btnShiyoEdit", function () {
-        $("#ShiyoEditModal").modal();
+    $(document).on("click", ".btnShiyoEdit", function (e) {
+        modal = "#ShiyoEditModal";
+        $(modal).modal();
+        shiyo_selected = shiyo_selected_flex.selectedItems[0];
+        $(modal + " input[name=Shiyo_Nm]").val(shiyo_selected_flex["Shiyo_Nm"])
+        // $(modal + " input[name=FirstName]").val(shiyo_selected_flex["FirstName"])
+        $(modal + " select[name=Tani_ID]").val(shiyo_selected_flex["Tani_ID"])
+        dataSearchZairyo = [];
+        dataSearchZairyo.push({ name: "page", value: 1 })
+        dataSearchZairyo.push({ name: "Shiyo_ID", value: shiyo_selected["Shiyo_ID"] })
+        // dataSearchZairyo.push({ name: "Bui_ID", value: flex_selected["Bui_ID"] })
+        // $.ajax({
+        //     type: ajaxMethod,
+        //     data: dataSearch,
+        //     url: $("input[name=route-getListZairyoSelected]").val(),
+        //     success: function (res) {
+        //         if (res["status"]) {
+        //             zairyo_selected_flex.itemsSource = res["data"]
+        //             zairyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["dataZairyo"]["data"]);
+        //             $("#zairyoPage").html(res["dataZairyo"]["pagi"])
+        //         }
+        //     }
+        // });
     })
 
     let dataSearchZairyo = [];
@@ -578,7 +599,6 @@ function init() {
     var headerLayoutDefinitionZairyo = [];
     getHeaderColZairyo(headerZairyo);
     function getHeaderColZairyo(headerZairyo) {
-        console.info(headerZairyo)
         // create the MultiRow
         // header row create
         $.each(headerZairyo, function (key, value) {
@@ -619,21 +639,8 @@ function init() {
         imeEnabled: true,
         updatedView: function () {
             // 検索条件保存
-            // if (dataSearch[1] != undefined) {
-            //     var tag = $("select[name=Koshu_ID] option[value='" + dataSearch[1].value + "']").attr("data-bui");
-            //     $("select[name=Koshu_ID]").val(dataSearch[1].value);
-            //     $("select[name=Bui_ID] option.a").hide();
-            //     $("select[name=Bui_ID] .a" + tag).show();
-            //     $("select[name=Shiyo_Shubetsu_ID] option.a").hide();
-            //     $("select[name=Shiyo_Shubetsu_ID] .a" + dataSearch[1].value).show();
-            // }
-            // if (dataSearch[2] != undefined) {
-            //     $("select[name=Bui_ID]").val(dataSearch[2].value);
-            //     if (dataSearch[1] != undefined) {
-            //     }
-            // }
-            // if (dataSearch[3] != undefined) $("select[name=Shiyo_Shubetsu_ID]").val(dataSearch[3].value);
-            // if (dataSearch[4] != undefined) $("input[name=Shiyo_Nm]").val(dataSearch[4].value);
+            if (dataSearchZairyo[1] != undefined) $("select[name=Zairyo_Shubetsu_ID]").val(dataSearchZairyo[1].value);
+            if (dataSearchZairyo[2] != undefined) $("input[name=Zairyo_Nm]").val(dataSearchZairyo[2].value);
 
         }
     });
@@ -643,16 +650,27 @@ function init() {
     zairyo_flex.columnHeaders.rows[2].cssClass = "header-red-normal"
 
     // 検索条件更新の時
-    $(document).on("change", "#zairyo .btn-search", function (e) {
+    $(document).on("change", "#zairyo .btn-search-zairyo", function (e) {
         $(".form-zairyo input[name=page]").val(1);
         zairyoAjax(zairyo_flex);
     })
 
+    // ページング
+    $(document).on("click", "#zairyoPage .page-link", function (e) {
+        e.preventDefault();
+        page = getQueryStringValue($(this).attr('href'), "page")
+        if (page) {
+            $(".form-zairyo input[name=page]").val(page);
+            zairyoAjax(zairyo_flex);
+        }
+    })
+
+    zairyoAjax(zairyo_flex);
     function zairyoAjax(zairyo_flex) {
-        dataSearch = $(".form-zairyo").serializeArray();
+        dataSearchZairyo = $(".form-zairyo").serializeArray();
         $.ajax({
             type: ajaxMethod,
-            data: dataSearch,
+            data: dataSearchZairyo,
             url: $("input[name=route-getListZairyo]").val(),
             beforeSend: function () {
                 $('.loading').addClass('d-none');

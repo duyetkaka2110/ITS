@@ -166,11 +166,9 @@
                             <span class="sr-only"></span>
                         </div>
                     </div>
-                    <div id="shiyo" class="wijmo-custom mt-2 wijmo-red">
-
-                    </div>
+                    <div id="shiyo" class="wijmo-custom mt-2 wijmo-red wijmo-height-250"></div>
+                    <div id="shiyoPage" class="mt-2 wijmo-height-250"></div>
                 </form>
-                <div id="shiyoPage" class="mt-2"></div>
             </div>
         </div>
     </div>
@@ -226,21 +224,21 @@
                         <div class="form-group row mb-1">
                             <label class="col-sm-2 col-form-label text-right">仕様名称</label>
                             <div class="col-sm-10 pl-0">
-                                <input type="text" class="form-control p-1 h-30  text-danger" name="ShiYo">
+                                <input type="text" class="form-control p-1 h-30" name="Shiyo_Nm">
                             </div>
                         </div>
 
                         <div class="form-group row mb-1">
                             <label class="col-sm-2 col-form-label text-right">メーカ名</label>
                             <div class="col-sm-10 pl-0">
-                                <input type="text" class="form-control p-1 h-30  text-danger" name="ShiYo">
+                                <input type="text" class="form-control p-1 h-30" name="ShiYo">
                             </div>
                         </div>
 
                         <div class="form-group row mb-1">
                             <label class="col-sm-2 col-form-label text-right">単位</label>
                             <div class="col-sm-10 pl-0">
-                                {!! Form::select('UnitOrg_ID_2', ["" => ""] + $tanis, null, ["class" => "form-control p-1 h-30 col-3 Unit"]) !!}
+                                {!! Form::select('Tani_ID', ["" => ""] + $tanis, null, ["class" => "form-control p-1 h-30 col-3 Unit"]) !!}
                             </div>
                         </div>
                         <div class="form-group row mb-1">
@@ -275,9 +273,9 @@
                                         <span class="sr-only"></span>
                                     </div>
                                 </div>
-                                <div id="zairyo" class="wijmo-red wijmo-custom"></div>
+                                <div id="zairyo" class="wijmo-red wijmo-custom wijmo-height-250"></div>
+                                <div id="zairyoPage" class="mt-2 wijmo-height-250"></div>
                             </form>
-                            <div id="zairyoPage" class="mt-2"></div>
                         </div>
                     </div>
                 </div>
@@ -289,4 +287,6 @@
 {{ Form::hidden('route-setMitsumoreShiyo', route('setMitsumoreShiyo')) }}
 {{ Form::hidden('route-getMitsumoreDetail', route('getMitsumoreDetail')) }}
 {{ Form::hidden('route-istore', route('i.store')) }}
+{{ Form::hidden('route-getListZairyo', route('getListZairyo')) }}
+{{ Form::hidden('route-getListZairyoSelected', route('getListZairyoSelected')) }}
 @endsection
