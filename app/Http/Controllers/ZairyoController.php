@@ -155,7 +155,7 @@ class ZairyoController extends Controller
                 "width" => "",
             ],
             "AtariSuryo" => [
-                "name" => "見積あたり数量",
+                "name" => "仕様あたり数量",
                 "class" => "wj-align-right form-control AtariSuryo",
                 "width" => 120,
             ],
