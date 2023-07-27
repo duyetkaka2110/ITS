@@ -20,14 +20,14 @@
 
 <body>
     <main class="">
-        @if(session('success'))
-        <div class="alert alert-success" role="alert">
+        <div class="alert alert-success dd-none" role="alert">
+            @if(session('success'))
             {{session('success')}}
+            <script>
+                $(".alert-success").show().delay(1500).fadeOut(100);
+            </script>
+            @endif
         </div>
-        <script>
-            $(".alert-success").show().delay(1500).fadeOut(100);
-        </script>
-        @endif
         @yield("content")
         <div class="clear-both"></div>
     </main>

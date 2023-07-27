@@ -20,12 +20,12 @@ return new class extends Migration
             $table->integer('Shiyo_ID')->nullable();
             $table->integer('Sort_No')->nullable();
             $table->integer('Zairyo_ID')->nullable()->index();
-            $table->float('Zairyo_Keisu',10,4)->nullable();
+            $table->float('Zairyo_Keisu', 10, 4)->nullable();
             $table->integer('Teisyaku')->nullable();
             $table->integer('Tani_ID')->nullable();
             $table->boolean('Konpo_Calc_Flg')->nullable();
             $table->string('Setsumei')->nullable();
-            $table->float('Zairyo_Keisu_Default',10,4)->nullable();
+            $table->float('Zairyo_Keisu_Default', 10, 4)->nullable();
             $table->integer('Teisyaku_Default')->nullable();
             $table->integer('Tani_ID_Default')->nullable();
             $table->boolean('Konpo_Calc_Flg_Default')->nullable();
@@ -36,6 +36,7 @@ return new class extends Migration
             $table->integer('Zairyo_Tanka_Ref_Col4')->nullable();
             $table->integer('Sort_No_Default')->nullable();
             $table->boolean('Default_Flg')->nullable();
+            $table->boolean('Old_Flg')->nullable();
             $table->boolean('Disable_Flg')->nullable();
             $table->boolean('Delete_Flg')->nullable();
             $table->date('UPDATE_DATE')->nullable();

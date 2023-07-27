@@ -16,6 +16,7 @@ use DB;
 use Form;
 use Illuminate\Pagination\Paginator;
 use App\Http\Controllers\ZairyoController;
+use App\Models\m_maker;
 
 class InvoiceController extends Controller
 {
@@ -37,8 +38,9 @@ class InvoiceController extends Controller
 
         $zairyo = new ZairyoController();
         $headerZairyo = $zairyo->getTableHeaderZairyo();
+        $headerZairyoSelected = $zairyo->getTableHeaderZairyoSelected();
 
-        return view("invoice.index2", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo"));
+        return view("invoice.index", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
     }
 
     /**
@@ -164,10 +166,13 @@ class InvoiceController extends Controller
             "ST.M_Tanka_IPN",
             "ST.Z_Tanka_IPN",
             "ST.R_Tanka_IPN",
+            "M.Maker_ID",
+            "M.Maker_Nm"
         )
             ->selectRaw("format(ifnull(AtariSuryo,0),1) as AtariSuryo")
             ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
             ->join(m_shiyo::getTableName("S"), "S.Shiyo_ID", invoice_shiyo::getTableName() . ".Shiyo_ID")
+            ->leftJoin(m_maker::getTableName("M"), "S.Maker_ID", "M.Maker_ID")
             ->leftJoin(m_shiyo_shubetsu::getTableName("SS"), "S.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
             ->join(m_bui::getTableName("B"), "S.Bui_ID", "B.Bui_ID")
             ->join(m_tani::getTableName("T"), "S.Tani_ID", "T.Tani_ID")
@@ -195,11 +200,14 @@ class InvoiceController extends Controller
             "T.Tani_ID",
             "ST.M_Tanka_IPN",
             "ST.Z_Tanka_IPN",
-            "ST.R_Tanka_IPN"
+            "ST.R_Tanka_IPN",
+            "M.Maker_ID",
+            "M.Maker_Nm"
         )
             ->selectRaw("0 as AtariSuryo")
             ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
             ->join(m_koshu::getTableName("K"), m_shiyo::getTableName() . ".Koshu_ID", "K.Koshu_ID")
+            ->leftJoin(m_maker::getTableName("M"), m_shiyo::getTableName() . ".Maker_ID", "M.Maker_ID")
             ->join(m_bui::getTableName("B"), m_shiyo::getTableName() . ".Bui_ID", "B.Bui_ID")
             ->leftJoin(m_shiyo_shubetsu_kbn::getTableName("SS"), function ($join) {
                 $join->on(m_shiyo::getTableName() . ".Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID");

@@ -28,8 +28,9 @@ Route::post("/invoice-action", "InvoiceController@action");
 Route::get("/getListShiyo", "InvoiceController@getListShiyo")->name("getListShiyo");
 Route::get('/setMitsumoreShiyo', "InvoiceController@setMitsumoreShiyo")->name("setMitsumoreShiyo");
 Route::get('/getMitsumoreDetail', "InvoiceController@getMitsumoreDetail")->name("getMitsumoreDetail");
-Route::get('/invoice-store', "InvoiceController@store")->name("i.store");
+Route::get('/invoiceStore', "InvoiceController@store")->name("i.store");
 
 
 Route::get("/getListZairyo", "ZairyoController@getListZairyo")->name("getListZairyo");
 Route::get("/getListZairyoSelected", "ZairyoController@getListZairyoSelected")->name("getListZairyoSelected");
+Route::get('/zairyoStore', "ZairyoController@store")->name("z.store");

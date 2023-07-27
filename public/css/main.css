@@ -227,11 +227,19 @@ body {
     background: #ffffffad;
 }
 
-.mg-loading .spinner-border{
+.mg-loading .spinner-border {
 
     position: absolute;
     top: 45%;
 }
-.cursor-point{
+
+.cursor-point {
     cursor: pointer;
+}
+
+.alert-success {
+    position: fixed;
+    z-index: 111111;
+    top: 60px;
+    right: 30px;
 }

@@ -13,7 +13,7 @@ $.ajaxSetup({
         console.info(jqXHR["responseText"]["message"]);
         if (jqXHR.status == 419) {
             location.reload();
-        }else{
+        } else {
             dispMessageModal("予期せぬエラーが発生しました。システム管理者に連絡して下さい。");
         }
     }
@@ -39,6 +39,12 @@ function dispConfirmModal(content, action) {
 function dispInvoiceModal(content) {
     $("#InvoiceModal .modal-body").html(content);
     $("#InvoiceModal").modal();
+}
+
+// 完了メッセージ表示
+function dispSuccessMsg(msg) {
+    $(".alert-success").html(msg);
+    $(".alert-success").fadeIn(100).delay(1500).fadeOut(100);
 }
 function getQueryStringValue(uri, key) {
     if (!uri) return false;

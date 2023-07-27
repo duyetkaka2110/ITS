@@ -14,7 +14,7 @@ use Config;
      */
     public static function getListMessage()
     {
-        $filename = storage_path(\config("getfile.FILE_MESSAGE"));
+        $filename = storage_path("message.txt");
         $contents = File::get($filename);
         $listMsg = array();
         $contents = explode("\n", $contents);
