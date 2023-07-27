@@ -315,7 +315,7 @@ function init() {
         itemFormatter: function (panel, r, c, cell) {
             if (panel.cellType == wijmo.grid.CellType.Cell) {
                 if (c == 0) {
-                    cell.innerHTML = '<a href=""  title="材料構成編集画面"><i class="fa fa-wrench cursor-point  pl-2 pr-2  " aria-hidden="true"></i></a>'
+                    cell.innerHTML = '<i title="材料構成編集画面" class="fa fa-wrench cursor-point btnShiyoEdit pl-2 pr-2  " aria-hidden="true"></i>'
                         + '<a href="" title="組物仕様編集画面"><i class="fa fa-file-text cursor-point btnd pl-2 pr-2"  aria-hidden="true"></i></a>'
                         + '<i class="fa fa-trash cursor-point btnDel  pl-2 pr-2 " title="行削除" aria-hidden="true"></i>';
                 }
@@ -436,14 +436,14 @@ function init() {
 
             layoutDefinition.push(
                 {
-                    colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"], dataMap: [1, 2, 3, 4], cells: [
+                    colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"], cells: [
                         { binding: key, header: value["name"], width: width, cssClass: value["class"] },
                     ]
                 });
             headerLayoutDefinition.push(
                 {
                     cells: [
-                        { colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"], dataMap: [1, 2, 3, 4] },//header line 1
+                        { colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"] },//header line 1
                         { binding: key, header: value["name"], align: 'center', width: width, cssClass: value["class"] }, // header line 2
                     ]
                 });
@@ -452,7 +452,7 @@ function init() {
     let shiyo_flex = new wijmo.grid.multirow.MultiRow('#shiyo', {
         layoutDefinition: layoutDefinition,
         headerLayoutDefinition: headerLayoutDefinition,
-        itemsSource: [],//new wijmo.collections.ObservableArray(shiyo),
+        itemsSource: [],
         alternatingRowStep: 0,
         formatItem: function (s, e) {
             /* show HTML in column headers */
@@ -505,7 +505,7 @@ function init() {
         }
     })
     // 検索条件更新の時
-    $(document).on("change", ".btn-search", function (e) {
+    $(document).on("change", "#shiyo .btn-search", function (e) {
         // 種別
         if (e.target.name == "Koshu_ID") {
             $("select[name=Bui_ID]").val('');
@@ -567,4 +567,109 @@ function init() {
     $(".btn-collapse").on("click", function () {
         $(this).find('i').toggleClass('fa-plus-square-o ');
     })
+
+    // 仕様の構成の編集画面表示
+    $(document).on("click", ".btnShiyoEdit", function () {
+        $("#ShiyoEditModal").modal();
+    })
+
+    let dataSearchZairyo = [];
+    var layoutDefinitionZairyo = [];
+    var headerLayoutDefinitionZairyo = [];
+    getHeaderColZairyo(headerZairyo);
+    function getHeaderColZairyo(headerZairyo) {
+        console.info(headerZairyo)
+        // create the MultiRow
+        // header row create
+        $.each(headerZairyo, function (key, value) {
+            width = value["width"] ? value["width"] : 100;
+
+            layoutDefinitionZairyo.push(
+                {
+                    colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"], cells: [
+                        { binding: key, header: value["name"], width: width, cssClass: value["class"] },
+                    ]
+                });
+            headerLayoutDefinitionZairyo.push(
+                {
+                    cells: [
+                        { colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"] },//header line 1
+                        { binding: key, header: value["name"], align: 'center', width: width, cssClass: value["class"] }, // header line 2
+                    ]
+                });
+
+        })
+    }
+    let zairyo_flex = new wijmo.grid.multirow.MultiRow('#zairyo', {
+        layoutDefinition: layoutDefinitionZairyo,
+        headerLayoutDefinition: headerLayoutDefinitionZairyo,
+        itemsSource: [],
+        alternatingRowStep: 0,
+        formatItem: function (s, e) {
+            /* show HTML in column headers */
+            if (e.panel == s.columnHeaders) {
+                e.cell.innerHTML = e.cell.textContent;
+            }
+        },
+        autoGenerateColumns: false,
+        isReadOnly: true,
+        selectionMode: 'Row',
+        allowSorting: false,
+        headersVisibility: "Column",
+        imeEnabled: true,
+        updatedView: function () {
+            // 検索条件保存
+            // if (dataSearch[1] != undefined) {
+            //     var tag = $("select[name=Koshu_ID] option[value='" + dataSearch[1].value + "']").attr("data-bui");
+            //     $("select[name=Koshu_ID]").val(dataSearch[1].value);
+            //     $("select[name=Bui_ID] option.a").hide();
+            //     $("select[name=Bui_ID] .a" + tag).show();
+            //     $("select[name=Shiyo_Shubetsu_ID] option.a").hide();
+            //     $("select[name=Shiyo_Shubetsu_ID] .a" + dataSearch[1].value).show();
+            // }
+            // if (dataSearch[2] != undefined) {
+            //     $("select[name=Bui_ID]").val(dataSearch[2].value);
+            //     if (dataSearch[1] != undefined) {
+            //     }
+            // }
+            // if (dataSearch[3] != undefined) $("select[name=Shiyo_Shubetsu_ID]").val(dataSearch[3].value);
+            // if (dataSearch[4] != undefined) $("input[name=Shiyo_Nm]").val(dataSearch[4].value);
+
+        }
+    });
+    headerRow1 = zairyo_flex.columnHeaders.rows[1];
+    headerRow1.height = 45;
+    headerRow1.cssClass = "header-red-bold"
+    zairyo_flex.columnHeaders.rows[2].cssClass = "header-red-normal"
+
+    // 検索条件更新の時
+    $(document).on("change", "#zairyo .btn-search", function (e) {
+        $(".form-zairyo input[name=page]").val(1);
+        zairyoAjax(zairyo_flex);
+    })
+
+    function zairyoAjax(zairyo_flex) {
+        dataSearch = $(".form-zairyo").serializeArray();
+        $.ajax({
+            type: ajaxMethod,
+            data: dataSearch,
+            url: $("input[name=route-getListZairyo]").val(),
+            beforeSend: function () {
+                $('.loading').addClass('d-none');
+                $(".zairyo-loading").removeClass("d-none");
+            },
+            complete: function () {
+                $('.zairyo-loading').addClass('d-none');
+            },
+            success: function (res) {
+                if (res["status"]) {
+                    zairyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["data"]);
+                    $("#zairyoPage").html(res["pagi"])
+                } else {
+                    zairyo_flex.itemsSource = [];
+                    $("#zairyoPage").html("")
+                }
+            }
+        });
+    }
 }

@@ -19,10 +19,8 @@
     var list = <?php echo $list ?>;
     var header = <?php echo $header ?>;
     var cmd = <?php echo $cmd ?>;
-    var shiyo = "";
-    <?php //echo $shiyo 
-    ?>;
     var headerShiyo = <?php echo $headerShiyo ?>;
+    var headerZairyo = <?php echo $headerZairyo ?>;
     var headerShiyoSelected = <?php echo $headerShiyoSelected ?>;
 </script>
 
@@ -46,7 +44,7 @@
                 location.reload();
             }, 2000);
         })
-
+        $("#ShiyoEditModal").modal()
     })
 </script>
 
@@ -168,12 +166,120 @@
                             <span class="sr-only"></span>
                         </div>
                     </div>
-                    <div id="shiyo" class="wijmo-custom mt-2">
+                    <div id="shiyo" class="wijmo-custom mt-2 wijmo-red">
 
                     </div>
                 </form>
+                <div id="shiyoPage" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 仕様の構成の編集画面ポップアップ -->
+<div class="modal fade bd-example-modal-lg" id="ShiyoEditModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content w-100">
+            <div class="modal-header bg-primary pt-2 pb-2">
+                <h6 class="modal-title text-white">仕様の構成の編集</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body pt-1">
+                <div class="mg-shiyo mg-title-top p-2 position-relative">
+                    <div class="mg-title position-absolute">
+                        <span>仕様 </span>
+                        <span class="cursor-point p-2 d-inline btn-collapse" title="表示/非表示" data-toggle="collapse" href="#mgShiyo" role="button" aria-expanded="true" aria-controls="collapseExample">
+                            <i class="fa fa-minus-square-o" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <style>
+                        .mg-title-top {
+                            border: 1px solid #bbb;
+                            border-radius: 3px;
+                            background: #a4d8ff;
+                            margin-top: 25px;
+                        }
 
-                <div id="shiyoPage" class="mt-2">
+                        .mg-zairyo.mg-title-top {
+                            background: #f5c0af;
+                        }
+
+                        .mg-title-top .mg-title {
+                            top: -11px;
+                            left: 20px;
+                            border: 1px solid;
+                            padding: 0px 10px;
+                            background: #9db2ff;
+                            border-radius: 3px;
+                        }
+
+                        #mgShiyo {}
+
+                        .mg-zairyo.mg-title-top .mg-title {
+                            background: #ff7e69;
+                        }
+                    </style>
+                    <div id="mgShiyo" class="collapse show">
+                        <div class="mt-3 pl-3"><span>A 軽鉄下地（天井）</span>＞<span>天井</span>＞</div>
+
+                        <div class="form-group row mb-1">
+                            <label class="col-sm-2 col-form-label text-right">仕様名称</label>
+                            <div class="col-sm-10 pl-0">
+                                <input type="text" class="form-control p-1 h-30  text-danger" name="ShiYo">
+                            </div>
+                        </div>
+
+                        <div class="form-group row mb-1">
+                            <label class="col-sm-2 col-form-label text-right">メーカ名</label>
+                            <div class="col-sm-10 pl-0">
+                                <input type="text" class="form-control p-1 h-30  text-danger" name="ShiYo">
+                            </div>
+                        </div>
+
+                        <div class="form-group row mb-1">
+                            <label class="col-sm-2 col-form-label text-right">単位</label>
+                            <div class="col-sm-10 pl-0">
+                                {!! Form::select('UnitOrg_ID_2', ["" => ""] + $tanis, null, ["class" => "form-control p-1 h-30 col-3 Unit"]) !!}
+                            </div>
+                        </div>
+                        <div class="form-group row mb-1">
+                            <label class="col-sm-2 col-form-label text-right">単価表</label>
+                            <div class="col-sm-10 pl-0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mg-zairyo mg-title-top p-2 position-relative">
+                    <div class="mg-title position-absolute">
+                        <span>材料</span>
+                        <span class="cursor-point p-2 d-inline btn-collapse" title="表示/非表示" data-toggle="collapse" href="#mgZairyo" role="button" aria-expanded="true" aria-controls="collapseExample">
+                            <i class="fa fa-minus-square-o" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <div id="mgZairyo" class="collapse show pl-3">
+                        <div class="mt-3">
+                            <div class="float-right">
+                                <button type="button" class="btn btn-primary">反映</button>
+                                <button type="button" class="btn btn-primary">一時保存</button>
+                                <button type="button" class="btn btn-primary">戻す</button>
+                            </div>
+                            <div class="">材料リスト</div>
+                            <div id="zairyo_selected"></div>
+
+                            <div class="mt-2">材料検索</div>
+                            <form class="form-zairyo position-relative">
+                                {{ Form::hidden("page",0)}}
+                                <div class="zairyo-loading d-none">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="sr-only"></span>
+                                    </div>
+                                </div>
+                                <div id="zairyo" class="wijmo-red wijmo-custom"></div>
+                            </form>
+                            <div id="zairyoPage" class="mt-2"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

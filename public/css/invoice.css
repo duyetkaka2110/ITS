@@ -76,11 +76,11 @@
     padding: 3px 10px;
 }
 
-#shiyo .wj-cell.wj-header.header-red-bold {
+.wijmo-red .wj-cell.wj-header.header-red-bold {
     background: #ff7e69;
 }
 
-#shiyo .wj-cell.wj-header.header-red-normal {
+.wijmo-red .wj-cell.wj-header.header-red-normal {
     background: #ffa99b;
 }
 
@@ -164,4 +164,8 @@
     position: absolute;
     top: 50%;
     left: 50%;
+}
+#zairyo.wj-flexgrid{
+	width: auto;
+	max-width: 100%;
 }
