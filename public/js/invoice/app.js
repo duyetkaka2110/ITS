@@ -299,7 +299,7 @@ function init() {
             if (key == 'AtariSuryo') {
                 temp["format"] = "n1";
                 if (flgZairyo) {
-                    temp["format"] = "n4";
+                    temp["format"] = "";
                 }
             }
             if (key == "M_Tanka_IPN2") {
@@ -432,6 +432,7 @@ function init() {
         shiyo_selected_flex.collectionView.refresh()
     })
     let dataSearch = [];
+    let dataSearch2 = [];
     var layoutDefinition = [];
     var headerLayoutDefinition = [];
     getHeaderColShiyo(headerShiyo);
@@ -456,6 +457,7 @@ function init() {
                 });
         })
     }
+    let formshiyo = ".form-shiyo";
     let shiyo_flex = new wijmo.grid.multirow.MultiRow('#shiyo', {
         layoutDefinition: layoutDefinition,
         headerLayoutDefinition: headerLayoutDefinition,
@@ -476,20 +478,20 @@ function init() {
         updatedView: function () {
             // 検索条件保存
             if (dataSearch[1] != undefined) {
-                var tag = $("select[name=Koshu_ID] option[value='" + dataSearch[1].value + "']").attr("data-bui");
-                $("select[name=Koshu_ID]").val(dataSearch[1].value);
-                $("select[name=Bui_ID] option.a").hide();
-                $("select[name=Bui_ID] .a" + tag).show();
-                $("select[name=Shiyo_Shubetsu_ID] option.a").hide();
-                $("select[name=Shiyo_Shubetsu_ID] .a" + dataSearch[1].value).show();
+                var tag = $(formshiyo + " select[name=Koshu_ID] option[value='" + dataSearch[1].value + "']").attr("data-bui");
+                $(formshiyo + " select[name=Koshu_ID]").val(dataSearch[1].value);
+                $(formshiyo + " select[name=Bui_ID] option.a").hide();
+                $(formshiyo + " select[name=Bui_ID] .a" + tag).show();
+                $(formshiyo + " select[name=Shiyo_Shubetsu_ID] option.a").hide();
+                $(formshiyo + " select[name=Shiyo_Shubetsu_ID] .a" + dataSearch[1].value).show();
             }
             if (dataSearch[2] != undefined) {
-                $("select[name=Bui_ID]").val(dataSearch[2].value);
+                $(formshiyo + " select[name=Bui_ID]").val(dataSearch[2].value);
                 if (dataSearch[1] != undefined) {
                 }
             }
-            if (dataSearch[3] != undefined) $("select[name=Shiyo_Shubetsu_ID]").val(dataSearch[3].value);
-            if (dataSearch[4] != undefined) $("input[name=Shiyo_Nm]").val(dataSearch[4].value);
+            if (dataSearch[3] != undefined) $(formshiyo + " select[name=Shiyo_Shubetsu_ID]").val(dataSearch[3].value);
+            if (dataSearch[4] != undefined) $(formshiyo + " input[name=Shiyo_Nm]").val(dataSearch[4].value);
 
         }
     });
@@ -515,11 +517,11 @@ function init() {
     $(document).on("change", "#shiyo .btn-search", function (e) {
         // 種別
         if (e.target.name == "Koshu_ID") {
-            $("select[name=Bui_ID]").val('');
-            $("select[name=Shiyo_Shubetsu_ID]").val('');
-            $("input[name=Shiyo_Nm]").val('');
+            $(formshiyo + " select[name=Bui_ID]").val('');
+            $(formshiyo + " select[name=Shiyo_Shubetsu_ID]").val('');
+            $(formshiyo + " input[name=Shiyo_Nm]").val('');
         }
-        $(".form-shiyo input[name=page]").val(1);
+        $(formshiyo + " input[name=page]").val(1);
         shiyoAjax(shiyo_flex);
     })
 
@@ -533,7 +535,7 @@ function init() {
         e.preventDefault();
         page = getQueryStringValue($(this).attr('href'), "page")
         if (page) {
-            $(".form-shiyo input[name=page]").val(page);
+            $(formshiyo + " input[name=page]").val(page);
             shiyoAjax(shiyo_flex);
         }
     })
@@ -547,17 +549,17 @@ function init() {
         }
     });
     function shiyoAjax(shiyo_flex) {
-        dataSearch = $(".form-shiyo").serializeArray();
+        dataSearch = $(formshiyo).serializeArray();
         $.ajax({
             type: ajaxMethod,
             data: dataSearch,
             url: $("input[name=route-getListShiyo]").val(),
             beforeSend: function () {
                 $('.loading').addClass('d-none');
-                $(".shiyo-loading").removeClass("d-none");
+                $(formshiyo + " .shiyo-loading").removeClass("d-none");
             },
             complete: function () {
-                $('.shiyo-loading').addClass('d-none');
+                $(formshiyo + " .shiyo-loading").addClass('d-none');
             },
             success: function (res) {
                 if (res["status"]) {
@@ -570,6 +572,8 @@ function init() {
             }
         });
     }
+
+
     // 表示/非表示アイコン
     $(".btn-collapse").on("click", function () {
         $(this).find('i').toggleClass('fa-plus-square-o ');
@@ -682,7 +686,7 @@ function init() {
         }
     })
 
-    // 工事仕様の選択画面
+    // 材料/仕様リスト画面
     var zairyo_selected_flex = new wijmo.grid.FlexGrid("#zairyo_selected", {
         itemsSource: new wijmo.collections.ObservableArray([]),
         columns: getheaderCol(headerZairyoSelected, true),
@@ -698,7 +702,6 @@ function init() {
                         cell.innerHTML = '<i class="fa fa-trash cursor-point btnDel  pl-2 pr-2 " title="行削除" aria-hidden="true"></i>';
                 }
                 if (c == 1) {
-                    panel.rows[r].dataItem["Sort_No"] = r + 1;
                     cell.innerHTML = r + 1;
                 }
             }
@@ -709,17 +712,29 @@ function init() {
                 if (value.dataItem["Old_Flg"] == 1) {
                     s.rows[r].isReadOnly = true;
                 }
+                if (value.dataItem["Zairyo_Shiyo_Type"] == "材料") {
+                    s.rows[r].format = "n4";
+                } else {
+                    s.rows[r].format = "n1";
+                }
             })
         },
         _cellEditEnding: (s, e) => {
             let col = s.columns[e.col];
             if (col.binding == 'AtariSuryo') {
+                let format = s.rows[e.row].format;
                 if (s.activeEditor) {
-                    let value = wijmo.changeType(s.activeEditor.value, wijmo.DataType.Number, col.format);
-                    if (isNaN(value) || !wijmo.isNumber(value)) {
+                    let value = wijmo.changeType(s.activeEditor.value, wijmo.DataType.Number, format);
+
+                    total = wijmo.getAggregate("Sum", zairyo_selected_flex.itemsSource, "AtariSuryo");
+                    let flagN1 = true;
+                    if (format == "n1" && value < 0) flagN1 = false;
+                    if (isNaN(value) || !wijmo.isNumber(value) || !flagN1) {
                         e.cancel = true;
-                        console.info('Please enter a positive amount');
+                        console.info('Please enter a positive ');
                     } else {
+
+
                         s.activeEditor.value = value;
                     }
                 } else {
@@ -741,6 +756,7 @@ function init() {
         if (ht.cellType == 1) {
             selectedItem = JSON.parse(JSON.stringify(zairyo_flex.itemsSource[ht.row]));
             zairyo_selected_flex.itemsSource.push(selectedItem);
+            console.info(zairyo_selected_flex.collectionView)
             zairyo_selected_flex.collectionView.refresh();
             zairyo_selected_flex.select(zairyo_selected_flex.itemsSource.length, -1)
             if (e.returnValue) {
@@ -766,10 +782,13 @@ function init() {
         zairyo_selected_form.push({ name: "btn", value: btnClick });
         zairyo_selected_form.push({ name: "Shiyo_ID", value: shiyo_selected_flex.selectedItems[0]["Shiyo_ID"] });
         $.each(zairyo_selected_flex.itemsSource, function (key, value) {
-            zairyo_selected_form.push({ name: "Zairyo_ID[]", value: value["Zairyo_ID"] });
+            zairyo_selected_form.push({ name: "Zairyo_Shiyo_Type[]", value: value["Zairyo_Shiyo_Type"] });
+            zairyo_selected_form.push({ name: "Zairyo_Shiyo_ID[]", value: value["Zairyo_Shiyo_ID"] });
             zairyo_selected_form.push({ name: "Old_Flg[]", value: value["Old_Flg"] });
             zairyo_selected_form.push({ name: "AtariSuryo[]", value: value["AtariSuryo"] != undefined ? value["AtariSuryo"] : null });
             zairyo_selected_form.push({ name: "Sort_No[]", value: value["Sort_No"] });
+            zairyo_selected_form.push({ name: "Shubetsu_ID[]", value: value["Shubetsu_ID"] });
+            zairyo_selected_form.push({ name: "Tani_ID[]", value: value["Tani_ID"] });
         });
         $.ajax({
             type: ajaxMethod,
@@ -777,7 +796,8 @@ function init() {
             url: $("input[name=route-zstore]").val(),
             success: function (res) {
                 if (res["status"]) {
-                    dispSuccessMsg(res["msg"]) 
+                    zairyo_selected_flex.itemsSource = res["data"]["data"];
+                    dispSuccessMsg(res["msg"])
                 } else {
                     dispMessageModal(res["msg"])
                 }
@@ -804,6 +824,134 @@ function init() {
                 } else {
                     zairyo_flex.itemsSource = [];
                     $("#zairyoPage").html("")
+                }
+            }
+        });
+    }
+
+    // 材料構成編集の仕様検索画面
+    let formshiyo2 = ".form-shiyo2";
+    let shiyo_flex2 = new wijmo.grid.multirow.MultiRow('#shiyo2', {
+        layoutDefinition: layoutDefinition,
+        headerLayoutDefinition: headerLayoutDefinition,
+        itemsSource: [],
+        alternatingRowStep: 0,
+        formatItem: function (s, e) {
+            /* show HTML in column headers */
+            if (e.panel == s.columnHeaders) {
+                e.cell.innerHTML = e.cell.textContent;
+            }
+        },
+        autoGenerateColumns: false,
+        isReadOnly: true,
+        selectionMode: 'Row',
+        allowSorting: false,
+        headersVisibility: "Column",
+        imeEnabled: true,
+        updatedView: function () {
+            // 検索条件保存
+            if (dataSearch2[1] != undefined) {
+                var tag = $(formshiyo2 + " select[name=Koshu_ID] option[value='" + dataSearch2[1].value + "']").attr("data-bui");
+                $(formshiyo2 + " select[name=Koshu_ID]").val(dataSearch2[1].value);
+                $(formshiyo2 + " select[name=Bui_ID] option.a").hide();
+                $(formshiyo2 + " select[name=Bui_ID] .a" + tag).show();
+                $(formshiyo2 + " select[name=Shiyo_Shubetsu_ID] option.a").hide();
+                $(formshiyo2 + " select[name=Shiyo_Shubetsu_ID] .a" + dataSearch2[1].value).show();
+            }
+            if (dataSearch2[2] != undefined) {
+                $(formshiyo2 + " select[name=Bui_ID]").val(dataSearch2[2].value);
+                if (dataSearch2[1] != undefined) {
+                }
+            }
+            if (dataSearch2[3] != undefined) $(formshiyo2 + " select[name=Shiyo_Shubetsu_ID]").val(dataSearch2[3].value);
+            if (dataSearch2[4] != undefined) $(formshiyo2 + " input[name=Shiyo_Nm]").val(dataSearch2[4].value);
+
+        }
+    });
+    headerRow1 = shiyo_flex2.columnHeaders.rows[1];
+    headerRow1.height = 45;
+    headerRow1.cssClass = "header-red-bold"
+    shiyo_flex2.columnHeaders.rows[2].cssClass = "header-red-normal"
+
+    // 赤画面行にクリック時,青画面に追加
+    shiyo_flex2.hostElement.addEventListener('dblclick', function (e) {
+        ht = shiyo_flex2.hitTest(e);
+        if (ht.cellType == 1) {
+            selectedItem = JSON.parse(JSON.stringify(shiyo_flex2.itemsSource[ht.row]));
+            var selectedItemNew = {
+                AtariSuryo: selectedItem.AtariSuryo,
+                Name: selectedItem.Shiyo_Nm,
+                Old_Flg: selectedItem.Old_Flg,
+                Sort_No: 0,
+                Tani_Nm: selectedItem.Tani_Nm,
+                Tani_ID: selectedItem.Tani_ID,
+                Zairyo_Shiyo_Type: selectedItem.Zairyo_Shiyo_Type,
+                Zairyo_Shiyo_ID: selectedItem.Shiyo_ID,
+                Shubetsu_Nm: selectedItem.Koshu_Nm,
+                Shubetsu_ID: selectedItem.Koshu_ID
+            }
+            zairyo_selected_flex.itemsSource.push(selectedItemNew);
+            zairyo_selected_flex.collectionView.refresh();
+            zairyo_selected_flex.select(zairyo_selected_flex.itemsSource.length, -1)
+            if (e.returnValue) {
+                e.preventDefault();
+            }
+        }
+    })
+    // 検索条件更新の時
+    $(document).on("change", "#shiyo2 .btn-search", function (e) {
+        // 種別
+        if (e.target.name == "Koshu_ID") {
+            $(formshiyo2 + " select[name=Bui_ID]").val('');
+            $(formshiyo2 + " select[name=Shiyo_Shubetsu_ID]").val('');
+            $(formshiyo2 + " input[name=Shiyo_Nm]").val('');
+        }
+        $(formshiyo2 + " input[name=page]").val(1);
+        shiyoAjax2(shiyo_flex2);
+    })
+
+    // ページング
+    $(document).on("click", "#shiyoPage2 .page-link", function (e) {
+        e.preventDefault();
+        page = getQueryStringValue($(this).attr('href'), "page")
+        if (page) {
+            $(formshiyo2 + " input[name=page]").val(page);
+            shiyoAjax2(shiyo_flex2);
+        }
+    })
+    $('.form-shiyo2').bind("keypress", function (e) {
+        if (e.keyCode == 13) {
+            if (e.target.name == "Shiyo_Nm") {
+                shiyoAjax2(shiyo_flex2);
+            }
+            e.preventDefault();
+            return false;
+        }
+    });
+    $("input[name=radioSearch]").on("change", function () {
+        $(".form-kosei").toggleClass("d-none");
+    })
+    function shiyoAjax2(shiyo_flex2) {
+        dataSearch2 = $(formshiyo2).serializeArray();
+        dataSearch2.push({ name: "Shiyo_ID", value: shiyo_selected_flex.selectedItems[0]["Shiyo_ID"] });
+        $.ajax({
+            type: ajaxMethod,
+            data: dataSearch2,
+            url: $("input[name=route-getListShiyo]").val(),
+            beforeSend: function () {
+                $('.loading').addClass('d-none');
+                $(formshiyo2 + " .shiyo-loading").removeClass("d-none");
+            },
+            complete: function () {
+                $(formshiyo2 + " .shiyo-loading").addClass('d-none');
+            },
+            success: function (res) {
+                if (res["status"]) {
+                    shiyo_flex2.itemsSource = new wijmo.collections.ObservableArray(res["data"]);
+                    $("#shiyoPage2").html(res["pagi"])
+                } else {
+                    shiyo_flex2.itemsSource = [];
+                    $("#shiyoPage2").html("")
                 }
             }
         });

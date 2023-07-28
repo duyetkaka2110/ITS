@@ -201,10 +201,13 @@ class InvoiceController extends Controller
             "ST.M_Tanka_IPN",
             "ST.Z_Tanka_IPN",
             "ST.R_Tanka_IPN",
+            "K.Koshu_ID",
             "M.Maker_ID",
             "M.Maker_Nm"
         )
+            ->selectRaw("'仕様' AS Zairyo_Shiyo_Type")
             ->selectRaw("0 as AtariSuryo")
+            ->selectRaw("0 as Old_Flg")
             ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
             ->join(m_koshu::getTableName("K"), m_shiyo::getTableName() . ".Koshu_ID", "K.Koshu_ID")
             ->leftJoin(m_maker::getTableName("M"), m_shiyo::getTableName() . ".Maker_ID", "M.Maker_ID")
@@ -226,6 +229,10 @@ class InvoiceController extends Controller
             })
             ->when($rq->filled("Shiyo_Nm"), function ($q) use ($rq) {
                 return $q->where(m_shiyo::getTableName() . '.Shiyo_Nm', 'LIKE',  "%{$rq->Shiyo_Nm}%");
+            })
+            ->when($rq->filled("Shiyo_ID"), function ($q) use ($rq) {
+                // 仕様の構成が循環参照
+                return $q->where(m_shiyo::getTableName() . '.Shiyo_ID', '!=',  $rq->Shiyo_ID);
             })
             ->orderBy(m_shiyo::getTableName() . ".Sort_No");
         $perPage = 10;

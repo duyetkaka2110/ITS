@@ -6,10 +6,13 @@ use Illuminate\Http\Request;
 use App\Models\m_zairyo;
 use App\Models\m_zairyo_shubetsu;
 use App\Models\m_tani;
+use App\Models\w_zairyo_kosei;
 use App\Models\m_zairyo_kosei;
 use Form;
 use DB;
 use App\GetMessage;
+use App\Models\m_koshu;
+use App\Models\m_shiyo;
 
 class ZairyoController extends Controller
 {
@@ -18,24 +21,28 @@ class ZairyoController extends Controller
         try {
             DB::beginTransaction();
             if ($rq->Shiyo_ID) {
-                m_zairyo_kosei::where("Shiyo_ID", $rq->Shiyo_ID)->delete();
+                w_zairyo_kosei::where("Shiyo_ID", $rq->Shiyo_ID)->delete();
                 $data = [];
-                foreach ($rq->Zairyo_ID as $k => $v) {
+                foreach ($rq->Zairyo_Shiyo_ID as $k => $v) {
                     $data[] = [
                         "Shiyo_ID" => $rq->Shiyo_ID,
-                        "Zairyo_ID" => $rq->Zairyo_ID[$k],
+                        "Zairyo_Shiyo_ID" => $rq->Zairyo_Shiyo_ID[$k],
+                        "Zairyo_Shiyo_Type" => $rq->Zairyo_Shiyo_Type[$k],
+                        "Shubetsu_ID" => $rq->Shubetsu_ID[$k],
                         "Old_Flg" => $rq->Old_Flg[$k],
-                        "Zairyo_Keisu" => $rq->AtariSuryo[$k],
+                        "AtariSuryo" => $rq->AtariSuryo[$k],
+                        "Tani_ID" => $rq->Tani_ID[$k],
                         "Sort_No" => $rq->Sort_No[$k],
                     ];
                 }
                 if ($data) {
-                    m_zairyo_kosei::insert($data);
+                    w_zairyo_kosei::insert($data);
                 }
             }
             DB::commit();
             return [
                 "status" => true,
+                "data" => $this->getListZairyoSelected($rq),
                 "msg" => str_replace("{p}", "反映", GetMessage::getMessageByID("error004"))
             ];
         } catch (Throwable $e) {
@@ -54,29 +61,57 @@ class ZairyoController extends Controller
      */
     public function getListZairyoSelected(Request $rq)
     {
-        if ($rq->Shiyo_ID) {
-            $list = m_zairyo_kosei::select(
-                m_zairyo_kosei::getTableName() . ".id",
-                m_zairyo_kosei::getTableName() . ".Shiyo_ID",
-                m_zairyo_kosei::getTableName() . ".Zairyo_ID",
-                m_zairyo_kosei::getTableName() . ".Zairyo_Keisu",
-                m_zairyo_kosei::getTableName() . ".Teisyaku",
-                m_zairyo_kosei::getTableName() . ".Old_Flg",
-                "ZS.Zairyo_Shubetsu_ID",
-                "ZS.Zairyo_Shubetsu_Nm",
-                "Z.Zairyo_Nm",
+        if ($rq->filled("Shiyo_ID")) {
+            $listZairyo =  w_zairyo_kosei::select(
+                w_zairyo_kosei::getTableName() . ".*",
+                "Z.Zairyo_Nm as Name",
+                "T.Tani_Nm",
+                "ZS.Zairyo_Shubetsu_Nm as Shubetsu_Nm",
+            )
+                ->join(m_zairyo::getTableName("Z"), "Z.Zairyo_ID", w_zairyo_kosei::getTableName() . ".Zairyo_Shiyo_ID")
+                ->join(m_zairyo_shubetsu::getTableName("ZS"), "Z.Zairyo_Shubetsu_ID", "ZS.Zairyo_Shubetsu_ID")
+                ->leftJoin(m_tani::getTableName("T"), "T.Tani_ID", w_zairyo_kosei::getTableName() . ".Tani_ID")
+                ->where(w_zairyo_kosei::getTableName() . '.Shiyo_ID',  $rq->Shiyo_ID)
+                ->where("Zairyo_Shiyo_Type", "材料");
+            $list =  w_zairyo_kosei::select(
+                w_zairyo_kosei::getTableName() . ".*",
+                "S.Shiyo_Nm as Name",
                 "T.Tani_Nm",
             )
-                ->selectRaw(m_zairyo_kosei::getTableName() . ".Zairyo_Keisu as AtariSuryo")
-                ->join(m_zairyo::getTableName("Z"), "Z.Zairyo_ID", m_zairyo_kosei::getTableName() . ".Zairyo_ID")
-                ->join(m_zairyo_shubetsu::getTableName("ZS"), function ($join) {
-                    $join->on("Z.Zairyo_Shubetsu_ID", "ZS.Zairyo_Shubetsu_ID");
-                })
-                ->leftJoin(m_tani::getTableName("T"), "Z.Tani_ID", "T.Tani_ID")
-                ->when($rq->filled("Shiyo_ID"), function ($q) use ($rq) {
-                    return $q->where(m_zairyo_kosei::getTableName() . '.Shiyo_ID',  $rq->Shiyo_ID);
-                })
-                ->orderBy(m_zairyo_kosei::getTableName() . ".Sort_No")->get()->toArray();
+                ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Shubetsu_Nm")
+                ->join(m_shiyo::getTableName("S"), "S.Shiyo_ID", w_zairyo_kosei::getTableName() . ".Zairyo_Shiyo_ID")
+                ->leftJoin(m_koshu::getTableName("K"), "K.Koshu_ID", w_zairyo_kosei::getTableName() . ".Shubetsu_ID")
+                ->leftJoin(m_tani::getTableName("T"), "T.Tani_ID", w_zairyo_kosei::getTableName() . ".Tani_ID")
+                ->where(w_zairyo_kosei::getTableName() . '.Shiyo_ID',  $rq->Shiyo_ID)
+                ->where("Zairyo_Shiyo_Type", "仕様")
+                ->union($listZairyo)
+                ->orderBy("Sort_No")
+                ->get()->toArray();
+            if (!$list) {
+                $list = m_zairyo_kosei::select(
+                    m_zairyo_kosei::getTableName() . ".id",
+                    m_zairyo_kosei::getTableName() . ".Shiyo_ID",
+                    m_zairyo_kosei::getTableName() . ".Zairyo_ID as Zairyo_Shiyo_ID",
+                    m_zairyo_kosei::getTableName() . ".Teisyaku",
+                    m_zairyo_kosei::getTableName() . ".Old_Flg",
+                    "ZS.Zairyo_Shubetsu_ID AS Shubetsu_ID",
+                    "ZS.Zairyo_Shubetsu_Nm as Shubetsu_Nm",
+                    "Z.Zairyo_Nm as Name",
+                    "T.Tani_ID",
+                    "T.Tani_Nm",
+                )
+                    ->selectRaw("'材料' AS Zairyo_Shiyo_Type")
+                    ->selectRaw(m_zairyo_kosei::getTableName() . ".Zairyo_Keisu as AtariSuryo")
+                    ->join(m_zairyo::getTableName("Z"), "Z.Zairyo_ID", m_zairyo_kosei::getTableName() . ".Zairyo_ID")
+                    ->join(m_zairyo_shubetsu::getTableName("ZS"), function ($join) {
+                        $join->on("Z.Zairyo_Shubetsu_ID", "ZS.Zairyo_Shubetsu_ID");
+                    })
+                    ->leftJoin(m_tani::getTableName("T"), "Z.Tani_ID", "T.Tani_ID")
+                    ->when($rq->filled("Shiyo_ID"), function ($q) use ($rq) {
+                        return $q->where(m_zairyo_kosei::getTableName() . '.Shiyo_ID',  $rq->Shiyo_ID);
+                    })
+                    ->orderBy(m_zairyo_kosei::getTableName() . ".Sort_No")->get()->toArray();
+            }
             return  [
                 "status" => true,
                 "data" => $list,
@@ -95,12 +130,14 @@ class ZairyoController extends Controller
     {
         $perPage = 10;
         $list = m_zairyo::select(
-            m_zairyo::getTableName() . ".Zairyo_ID",
-            m_zairyo::getTableName() . ".Zairyo_Nm",
-            "ZS.Zairyo_Shubetsu_ID",
-            "ZS.Zairyo_Shubetsu_Nm",
+            m_zairyo::getTableName() . ".Zairyo_ID as Zairyo_Shiyo_ID",
+            m_zairyo::getTableName() . ".Zairyo_Nm AS Name",
+            "ZS.Zairyo_Shubetsu_ID AS Shubetsu_ID",
+            "ZS.Zairyo_Shubetsu_Nm AS Shubetsu_Nm",
+            "T.Tani_ID",
             "T.Tani_Nm"
         )
+            ->selectRaw("'材料' AS Zairyo_Shiyo_Type")
             ->selectRaw("0 as AtariSuryo")
             ->selectRaw("0 as Old_Flg")
             ->join(m_zairyo_shubetsu::getTableName("ZS"), function ($join) {
@@ -139,23 +176,28 @@ class ZairyoController extends Controller
                 "class" => "wj-align-center",
                 "width" => 40,
             ],
-            "Zairyo_Shubetsu_Nm" => [
-                "name" => "材料種別",
+            "Zairyo_Shiyo_Type" => [
+                "name" => "材料/仕様",
+                "class" => "wj-align-center",
+                "width" => 100,
+            ],
+            "Shubetsu_Nm" => [
+                "name" => "種別",
                 "class" => "wj-align-left-im",
                 "width" => 150,
             ],
-            "Zairyo_Nm" => [
-                "name" => "材料名称",
+            "Name" => [
+                "name" => "仕様/材料名称",
                 "class" => "",
                 "width" => 300,
             ],
             "Tani_Nm" => [
                 "name" => "単位",
                 "class" => "wj-align-center",
-                "width" => "",
+                "width" => 60,
             ],
             "AtariSuryo" => [
-                "name" => "仕様あたり数量",
+                "name" => "あたり数量",
                 "class" => "wj-align-right form-control AtariSuryo",
                 "width" => 120,
             ],
@@ -176,13 +218,13 @@ class ZairyoController extends Controller
         $m_zairyo_shubetsu = m_zairyo_shubetsu::pluck("Zairyo_Shubetsu_Nm", "Zairyo_Shubetsu_ID")->toArray();
 
         return json_encode([
-            "Zairyo_Shubetsu_Nm" => [
+            "Shubetsu_Nm" => [
                 "name" => "材料種別",
                 "class" => "wj-align-left-im",
                 "width" => 250,
                 "line1" => Form::select('Zairyo_Shubetsu_ID', ["" => ""] + $m_zairyo_shubetsu, null, ["class" => "form-control p-1 btn-search-zairyo "])->toHtml()
             ],
-            "Zairyo_Nm" => [
+            "Name" => [
                 "name" => "材料名称",
                 "class" => "",
                 "width" => 300,

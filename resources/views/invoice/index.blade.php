@@ -196,21 +196,21 @@
                         <div class="form-group row mb-1">
                             <label class="col-sm-2 col-form-label text-right">仕様名称</label>
                             <div class="col-sm-10 pl-0">
-                                <input type="text" class="form-control p-1 h-30" name="Shiyo_Nm">
+                                <input type="text" class="form-control p-1 h-30" disabled name="Shiyo_Nm">
                             </div>
                         </div>
 
                         <div class="form-group row mb-1">
                             <label class="col-sm-2 col-form-label text-right">メーカ名</label>
                             <div class="col-sm-10 pl-0">
-                                <input type="text" class="form-control p-1 h-30" name="Maker_Nm">
+                                <input type="text" class="form-control p-1 h-30" disabled name="Maker_Nm">
                             </div>
                         </div>
 
                         <div class="form-group row mb-1">
                             <label class="col-sm-2 col-form-label text-right">単位</label>
                             <div class="col-sm-10 pl-0">
-                                {!! Form::select('Tani_ID', ["" => ""] + $tanis, null, ["class" => "form-control p-1 h-30 col-3 Unit"]) !!}
+                                {!! Form::select('Tani_ID', ["" => ""] + $tanis, null, ["class" => "form-control p-1 h-30 col-3 Unit"," disabled"]) !!}
                             </div>
                         </div>
                         <div class="form-group row mb-1">
@@ -231,15 +231,17 @@
                         <div class="mt-4 position-relative">
                             <div class="position-absolute mg-zairyo-button">
                                 <button type="button" class="btn btn-primary btnSaveZairyo">反映</button>
-                                <button type="button" class="btn btn-primary">一時保存</button>
                                 <button type="button" class="btn btn-primary btnZairyoRestore">戻す</button>
                             </div>
-                            <div class="">材料リスト</div>
+                            <div class="">材料/仕様リスト</div>
                             <div id="zairyo_selected" class="wijmo-custom wijmo-blue wijmo-height-220"></div>
 
-                            <div class="mt-2">材料検索</div>
-                            <form class="form-zairyo position-relative">
-                                {{ Form::hidden("page",0)}}
+                            <div class="mt-2">
+                                <label class="m-0 cursor-point"><input type="radio" checked name="radioSearch" value="form-zairyo"><span class="pl-1">材料検索</span></label>
+                                <label class="m-0 cursor-point"><input type="radio" class="ml-2" name="radioSearch" value="form-shiyo2"><span class="pl-1">仕様検索</span></label>
+                            </div>
+                            <form class="form-kosei form-zairyo position-relative">
+                                {{ Form::hidden("page",0)}} 
                                 <div class="zairyo-loading d-none">
                                     <div class="spinner-border text-primary" role="status">
                                         <span class="sr-only"></span>
@@ -247,6 +249,16 @@
                                 </div>
                                 <div id="zairyo" class="wijmo-red wijmo-custom wijmo-height-220"></div>
                                 <div id="zairyoPage" class="mt-2"></div>
+                            </form>
+                            <form class="form-kosei form-shiyo2 position-relative d-none">
+                                {{ Form::hidden("page",0)}}
+                                <div class="shiyo-loading d-none">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="sr-only"></span>
+                                    </div>
+                                </div>
+                                <div id="shiyo2" class="shiyo2 wijmo-custom wijmo-red wijmo-height-250"></div>
+                                <div id="shiyoPage2" class="shiyoPage2 mt-2"></div>
                             </form>
                         </div>
                     </div>

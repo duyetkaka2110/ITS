@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class m_seko_tanka extends Model
 {
     use HasFactory;
+    protected $hidden = ["created_at", "updated_at"];
     // string $As 短い名
     public static function getTableName(string $As = "")
     {
