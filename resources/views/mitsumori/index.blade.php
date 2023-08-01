@@ -8,7 +8,6 @@
 <!-- Wijmo styles and core (required) -->
 <script src="{{ URL::asset('js/wijmo.min.js') }}"></script>
 <script src="{{ URL::asset('js/wijmo.input.min.js') }}"></script>
-<script src="{{ URL::asset('js/wijmo.odata.min.js') }}"></script>
 <script src="{{ URL::asset('js/wijmo.grid.min.js') }}"></script>
 <script src="{{ URL::asset('js/wijmo.grid.multirow.min.js') }}"></script>
 <!-- apply your Wijmo licenseKey  (optional) -->
