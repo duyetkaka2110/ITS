@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use DB;
 use App\Models\t_mitsumori;
-use App\Models\invoice_shiyo;
+use App\Models\t_mitsumori_meisai;
 use App\Models\m_bui;
 use App\Models\m_koshu;
 use App\Models\m_shiyo;
@@ -69,7 +69,7 @@ class MitsumoriController extends Controller
                 // m_shiyoからt_shiyoへ反映する
                 t_shiyo::insert(m_shiyo::select("*")->whereIn("Shiyo_ID", $rq->Shiyo_ID)
                     ->whereNotIn("Shiyo_ID", t_shiyo::whereIn("Shiyo_ID", $rq->Shiyo_ID)->pluck("Shiyo_ID")->all())->get()->toArray());
-                
+
                 // m_seko_tankaからt_seko_tankaへ反映する
                 t_seko_tanka::insert(m_seko_tanka::select("*")->whereIn("Shiyo_ID", $rq->Shiyo_ID)
                     ->whereNotIn("Shiyo_ID", t_seko_tanka::whereIn("Shiyo_ID", $rq->Shiyo_ID)->pluck("Shiyo_ID")->all())->get()->toArray());
@@ -81,7 +81,7 @@ class MitsumoriController extends Controller
             }
             // DB更新
             for ($i = 1; $i <= $RowAdd; $i++) {
-                $this->upsertInvoiceShiyo($rq, $data, $dataIS);
+                $this->upsertMitsumoriShiyo($rq, $data, $dataIS);
             }
             DB::commit();
             return [
@@ -103,12 +103,12 @@ class MitsumoriController extends Controller
      * param array $data 見積詳細データ
      * param varray $dataIS　見積詳細＿仕様データ
      */
-    public function upsertInvoiceShiyo(Request $rq, array $data, array $dataIS)
+    public function upsertMitsumoriShiyo(Request $rq, array $data, array $dataIS)
     {
         $id = $rq->id;
         if ($rq->btn == "btnSave") {
             t_mitsumori::where("id", $id)->update($data);
-            t_mitsumori::find($id)->invoice_shiyos()->delete();
+            t_mitsumori::find($id)->meisais()->delete();
         } else {
             $data["AdQuoNo"] = $this->AdQuoNo;
             $data["DetailType"] = $this->DetailType;
@@ -119,7 +119,7 @@ class MitsumoriController extends Controller
             $dataIS = array_map(function ($arr) use ($id) {
                 return $arr + ['Invoice_ID' => $id];
             }, $dataIS);
-            invoice_shiyo::insert($dataIS);
+            t_mitsumori_meisai::insert($dataIS);
         }
     }
 
@@ -208,21 +208,10 @@ class MitsumoriController extends Controller
         if ($jsonFLag) return $list->toJson();
         return $list;
     }
+
     private function _getRawSortNo(int $number)
     {
-        return DB::raw("(SELECT ISs.Invoice_ID, ISs.Sort_No, ISs.Shiyo_ID, S.Shiyo_Nm FROM invoice_shiyos AS ISs LEFT JOIN m_shiyos AS S ON S.Shiyo_ID = ISs.Shiyo_ID WHERE ISs.Sort_No = $number ) as A$number");
-    }
-
-    /**
-     * 見積明細画面
-     */
-    public function index2()
-    {
-        $header = $this->_getTableHeader();
-        $list = json_encode(t_mitsumori::select(array_keys(json_decode($header, true)))->take(1)->get());
-        $headerkey = (array_keys(json_decode($header, true)));
-        $headername = (($header));
-        return view("invoice.javascript", compact("headerkey", "headername", "list"));
+        return DB::raw("(SELECT ISs.Invoice_ID, ISs.Sort_No, ISs.Shiyo_ID, S.Shiyo_Nm FROM " . t_mitsumori_meisai::getTableName("ISs") . "  LEFT JOIN " . m_shiyo::getTableName("S") . " ON S.Shiyo_ID = ISs.Shiyo_ID WHERE ISs.Sort_No = $number ) as A$number");
     }
 
     /**
@@ -377,8 +366,8 @@ class MitsumoriController extends Controller
             }
             $l["No"] = $no;
             t_mitsumori::where("id", $dataSelected["id"][$k])->update($l);
-            t_mitsumori::find($dataSelected["id"][$k])->invoice_shiyos()->delete();
-            invoice_shiyo::insert(invoice_shiyo::select("Shiyo_ID", "AtariSuryo", "Sort_No")
+            t_mitsumori::find($dataSelected["id"][$k])->meisais()->delete();
+            t_mitsumori_meisai::insert(t_mitsumori_meisai::select("Shiyo_ID", "AtariSuryo", "Sort_No")
                 ->selectRaw($dataSelected["id"][$k] . " as Invoice_ID")->where("Invoice_ID", $dataCopy["id"][$k])->get()->toArray());
         }
 
@@ -410,7 +399,7 @@ class MitsumoriController extends Controller
             }
             $l["No"] = $no;
             $id = t_mitsumori::insertGetId($l);
-            invoice_shiyo::insert(invoice_shiyo::select("Shiyo_ID", "AtariSuryo", "Sort_No")
+            t_mitsumori_meisai::insert(t_mitsumori_meisai::select("Shiyo_ID", "AtariSuryo", "Sort_No")
                 ->selectRaw($id . " as Invoice_ID")->where("Invoice_ID", $dataCopy["id"][$k])->get()->toArray());
         }
         $data["NoUpdate"] = ' - ' . $dataSelected["firstNo"] - $no - 1;
@@ -451,7 +440,7 @@ class MitsumoriController extends Controller
     {
         // 行削除
         t_mitsumori::whereIn("id", $dataSelected["id"])->delete();
-        invoice_shiyo::whereIn("Invoice_ID", $dataSelected["id"])->delete();
+        t_mitsumori_meisai::whereIn("Invoice_ID", $dataSelected["id"])->delete();
         $data["DetailNoUpdate"] = ' - ' . $dataSelected["count"];
         $data["NoUpdate"] = ' - ' . (end($dataSelected["No"]) ? end($dataSelected["No"]) : 0) - ($dataSelected["prevItemNo"] ? $dataSelected["prevItemNo"] : 0);
         return $data;

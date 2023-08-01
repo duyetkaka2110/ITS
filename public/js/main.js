@@ -36,9 +36,9 @@ function dispConfirmModal(content, action) {
     $("#ConfirmModal").modal();
 }
 // 見積ポップアップ表示
-function dispInvoiceModal(content) {
-    $("#InvoiceModal .modal-body").html(content);
-    $("#InvoiceModal").modal();
+function dispMitsumoriModal(content) {
+    $("#MitsumoriModal .modal-body").html(content);
+    $("#MitsumoriModal").modal();
 }
 
 // 完了メッセージ表示

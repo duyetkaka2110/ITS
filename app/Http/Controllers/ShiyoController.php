@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\invoice_shiyo;
+use App\Models\t_mitsumori_meisai;
 use App\Models\m_shiyo_shubetsu;
 use App\Models\m_tani;
 use App\Models\m_maker;
@@ -27,8 +27,8 @@ class ShiyoController extends Controller
     public function getListShiyoSelected(int $Invoice_ID)
     {
 
-        $data = invoice_shiyo::select(
-            invoice_shiyo::getTableName() . ".id",
+        $data = t_mitsumori_meisai::select(
+            t_mitsumori_meisai::getTableName() . ".id",
             "S.Shiyo_ID",
             "S.Shiyo_Nm",
             "S.Shiyo_Nm",
@@ -45,19 +45,19 @@ class ShiyoController extends Controller
             ->selectRaw("format(ifnull(AtariSuryo,0),1) as AtariSuryo")
             ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
             // 反映
-            ->join(t_shiyo::getTableName("S"), "S.Shiyo_ID", invoice_shiyo::getTableName() . ".Shiyo_ID")
+            ->join(t_shiyo::getTableName("S"), "S.Shiyo_ID", t_mitsumori_meisai::getTableName() . ".Shiyo_ID")
             ->leftJoin(m_maker::getTableName("M"), "S.Maker_ID", "M.Maker_ID")
             ->leftJoin(m_shiyo_shubetsu::getTableName("SS"), "S.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
             ->join(m_bui::getTableName("B"), "S.Bui_ID", "B.Bui_ID")
             ->join(m_tani::getTableName("T"), "S.Tani_ID", "T.Tani_ID")
             ->join(m_koshu::getTableName("K"), "S.Koshu_ID", "K.Koshu_ID")
             ->join(t_seko_tanka::getTableName("ST"), "S.Shiyo_ID", "ST.Shiyo_ID")
-            ->where(invoice_shiyo::getTableName() . ".Invoice_ID", $Invoice_ID)
-            ->orderBy(invoice_shiyo::getTableName() . ".Sort_No")
+            ->where(t_mitsumori_meisai::getTableName() . ".Invoice_ID", $Invoice_ID)
+            ->orderBy(t_mitsumori_meisai::getTableName() . ".Sort_No")
             ->get()->toArray();
         if (!$data) {
-            $data = invoice_shiyo::select(
-                invoice_shiyo::getTableName() . ".id",
+            $data = t_mitsumori_meisai::select(
+                t_mitsumori_meisai::getTableName() . ".id",
                 "S.Shiyo_ID",
                 "S.Shiyo_Nm",
                 "S.Shiyo_Nm",
@@ -74,15 +74,15 @@ class ShiyoController extends Controller
                 ->selectRaw("format(ifnull(AtariSuryo,0),1) as AtariSuryo")
                 ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
                 // マスタ
-                ->join(m_shiyo::getTableName("S"), "S.Shiyo_ID", invoice_shiyo::getTableName() . ".Shiyo_ID")
+                ->join(m_shiyo::getTableName("S"), "S.Shiyo_ID", t_mitsumori_meisai::getTableName() . ".Shiyo_ID")
                 ->leftJoin(m_maker::getTableName("M"), "S.Maker_ID", "M.Maker_ID")
                 ->leftJoin(m_shiyo_shubetsu::getTableName("SS"), "S.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
                 ->join(m_bui::getTableName("B"), "S.Bui_ID", "B.Bui_ID")
                 ->join(m_tani::getTableName("T"), "S.Tani_ID", "T.Tani_ID")
                 ->join(m_koshu::getTableName("K"), "S.Koshu_ID", "K.Koshu_ID")
                 ->join(m_seko_tanka::getTableName("ST"), "S.Shiyo_ID", "ST.Shiyo_ID")
-                ->where(invoice_shiyo::getTableName() . ".Invoice_ID", $Invoice_ID)
-                ->orderBy(invoice_shiyo::getTableName() . ".Sort_No")
+                ->where(t_mitsumori_meisai::getTableName() . ".Invoice_ID", $Invoice_ID)
+                ->orderBy(t_mitsumori_meisai::getTableName() . ".Sort_No")
                 ->get()->toArray();
         }
         return $data;

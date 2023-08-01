@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\t_mitsumori;
-use App\Models\invoice_shiyo;
+use App\Models\t_mitsumori_meisai;
 use App\Models\m_shiyo;
 use App\Models\m_zairyo;
 use App\Models\m_tani;
@@ -74,7 +74,7 @@ class DataController extends Controller
     /**
      * 見積詳細ファイルから読込し、DBに追加する
      */
-    public function readCsvInvoice()
+    public function readCsvMitsumori()
     {
         $this->_read($this->appPath . t_mitsumori::getTableName() . $this->fileExe, t_mitsumori::select("*"), t_mitsumori::getTableName());
     }
@@ -87,7 +87,7 @@ class DataController extends Controller
         echo "<br>starting....";
         $table->truncate();
         if ($tblName == t_mitsumori::getTableName()) {
-            invoice_shiyo::truncate();
+            t_mitsumori_meisai::truncate();
         }
         $filePath = storage_path($filename);
         $file = fopen($filePath, 'r');
@@ -126,14 +126,14 @@ class DataController extends Controller
 
             if ($tblName == t_mitsumori::getTableName()) {
                 if (isset($temp["SpecName1"])) {
-                    invoice_shiyo::insert([
+                    t_mitsumori_meisai::insert([
                         "Shiyo_ID" => m_shiyo::where("Shiyo_Nm", $temp["SpecName1"])->value("Shiyo_ID"),
                         "Invoice_ID" => $id,
                         "Sort_No" => 1
                     ]);
                 }
                 if (isset($temp["SpecName2"])) {
-                    invoice_shiyo::insert([
+                    t_mitsumori_meisai::insert([
                         "Shiyo_ID" => m_shiyo::where("Shiyo_Nm", $temp["SpecName2"])->value("Shiyo_ID"),
                         "Invoice_ID" => $id,
                         "Sort_No" => 2

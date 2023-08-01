@@ -154,7 +154,7 @@ function init() {
                         dataSelected: dataSelected,
                         dataNoChange: getNextHaveNo(flex, row),// 選択一覧の下、No更新のidを取得
                     },
-                    url: $(".route-invoice-action").val(),
+                    url: $(".route-mitsumore-action").val(),
                     success: function (res) {
                         if (!res["status"]) {
                             // エラー表示
@@ -172,7 +172,7 @@ function init() {
         } else {
             // 工事仕様の選択画面閉じる
             if (action == "close") {
-                $("#InvoiceModal").modal("hide")
+                $("#MitsumoriModal").modal("hide")
             }
             // 仕様の構成の編集画面閉じる
             if (action == "closeEdit") {
@@ -187,7 +187,7 @@ function init() {
             e.preventDefault();
         }
         flex_selected = flex.selectedItems[0];
-        modal = "#InvoiceModal";
+        modal = "#MitsumoriModal";
         $(modal + " input[name=id]").val(flex_selected["id"])
         $(modal + " input[name=DetailNo]").val("No." + flex_selected["DetailNo"])
         $(modal + " input[name=FirstName]").val(flex_selected["FirstName"])
@@ -410,7 +410,7 @@ function init() {
                             scrollPosition.y = -flex.scrollSize.height;
                         }
                         flex.scrollPosition = scrollPosition;
-                        $("#InvoiceModal").modal("hide")
+                        $("#MitsumoriModal").modal("hide")
                         setRowSelected(flex, dataSelected)
                     }
                 }
@@ -528,7 +528,7 @@ function init() {
     })
 
     // 工事仕様の選択画面閉じるのポップアップ表示
-    $("#InvoiceModal .close").on("click", function () {
+    $("#MitsumoriModal .close").on("click", function () {
         dispConfirmModal("編集中のデータはまだ保存していません。<br>編集中の内容を破棄し、見積明細画面に戻りますか？", "close");
     })
 

@@ -13,9 +13,9 @@ class t_mitsumori extends Model
     protected $hidden = ["created_at", "updated_at"];
 
 
-    public function invoice_shiyos(): HasMany
+    public function meisais(): HasMany
     {
-        return $this->hasMany(invoice_shiyo::class, "Invoice_ID", "id");
+        return $this->hasMany(t_mitsumori_meisai::class, "Invoice_ID", "id");
     }
     // string $As 短い名
     public static function getTableName(string $As = "")

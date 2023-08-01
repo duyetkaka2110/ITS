@@ -125,7 +125,7 @@
     display: block;
 }
 
-#InvoiceModal .close {
+#MitsumoriModal .close {
     padding: 7px;
     top: 9px;
     position: relative;

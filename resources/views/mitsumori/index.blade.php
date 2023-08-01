@@ -25,7 +25,7 @@
     var headerZairyoSelected = <?php echo $headerZairyoSelected ?>;
 </script>
 
-<script src="{{ URL::asset('js/mitsumori/app.js') }}" type="text/javascript"></script>
+<script src="{{ URL::asset('js/mitsumori.js') }}" type="text/javascript"></script>
 <script>
     $(document).ready(function() {
         $(".btn-secondary").on("click", function() {
@@ -38,7 +38,7 @@
         $(".reset").on("click", function() {
             $.ajax({
                 type: "get",
-                url: "/readCsvInvoice",
+                url: "/readCsvMitsumori",
                 success: function(res) {}
             });
             setTimeout(function() {
@@ -57,12 +57,12 @@
 </div>
 <button class="reload w-17em" style="height: 100px;">画面再表示</button>
 <button class="reset w-17em" style="height: 100px;">データリセット</button>
-<input type="hidden" class="route-invoice-action" value="{{ route('invoice.action') }}" />
+<input type="hidden" class="route-mitsumore-action" value="{{ route('mitsumore.action') }}" />
 
 @endsection
 @section('modal')
 <!-- 編集ポップアップ -->
-<div class="modal fade bd-example-modal-lg" id="InvoiceModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
+<div class="modal fade bd-example-modal-lg" id="MitsumoriModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content w-100">
             <div class="modal-header bg-primary pt-2 pb-2">
@@ -270,7 +270,7 @@
 {{ Form::hidden('route-getListShiyo', route('getListShiyo')) }}
 {{ Form::hidden('route-setMitsumoreShiyo', route('setMitsumoreShiyo')) }}
 {{ Form::hidden('route-getMitsumoreMeisai', route('getMitsumoreMeisai')) }}
-{{ Form::hidden('route-istore', route('i.store')) }}
+{{ Form::hidden('route-istore', route('m.store')) }}
 {{ Form::hidden('route-getListZairyo', route('getListZairyo')) }}
 {{ Form::hidden('route-getListZairyoSelected', route('getListZairyoSelected')) }}
 {{ Form::hidden('route-zstore', route('z.store')) }}

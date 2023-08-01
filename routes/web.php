@@ -15,20 +15,19 @@ use Illuminate\Support\Facades\Route;
 
 // データ追加
 Route::get("/readAll", "DataController@readAll")->name("readAll");
-Route::get("/readCsvInvoice", "DataController@readCsvInvoice")->name("readCsvInvoice");
+Route::get("/readCsvMitsumori", "DataController@readCsvMitsumori")->name("readCsvMitsumori");
 Route::get("/readCsvShiyo", "DataController@readCsvShiyo")->name("readCsvShiyo");
 Route::get("/readCsvZairyo", "DataController@readCsvZairyo")->name("readCsvZairyo");
 Route::get("/readCsvTani", "DataController@readCsvTani")->name("readCsvTani");
 
 Route::get("/", "MitsumoriController@index")->name("home");
-Route::get("/2", "MitsumoriController@index2")->name("javascript");
-Route::get("/invoice-action", "MitsumoriController@action")->name("invoice.action");
-Route::post("/invoice-action", "MitsumoriController@action");
+Route::get("/mitsumore-action", "MitsumoriController@action")->name("mitsumore.action");
+Route::post("/mitsumore-action", "MitsumoriController@action");
 
 Route::get("/getListShiyo", "ShiyoController@getListShiyo")->name("getListShiyo");
 Route::get('/setMitsumoreShiyo', "MitsumoriController@setMitsumoreShiyo")->name("setMitsumoreShiyo");
 Route::get('/getMitsumoreMeisai', "MitsumoriController@getMitsumoreMeisai")->name("getMitsumoreMeisai");
-Route::get('/invoiceStore', "MitsumoriController@store")->name("i.store");
+Route::get('/mitsumoreStore', "MitsumoriController@store")->name("m.store");
 
 
 Route::get("/getListZairyo", "ZairyoController@getListZairyo")->name("getListZairyo");
