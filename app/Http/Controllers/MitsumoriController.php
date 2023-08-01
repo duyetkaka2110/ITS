@@ -3,22 +3,21 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Invoice;
+use DB;
+use App\Models\t_mitsumori;
 use App\Models\invoice_shiyo;
 use App\Models\m_bui;
 use App\Models\m_koshu;
-use App\Models\m_seko_tanka;
 use App\Models\m_shiyo;
 use App\Models\m_shiyo_shubetsu;
-use App\Models\m_shiyo_shubetsu_kbn;
 use App\Models\m_tani;
-use DB;
-use Form;
-use Illuminate\Pagination\Paginator;
+use App\Models\m_seko_tanka;
+use App\Models\t_seko_tanka;
+use App\Models\t_shiyo;
+use App\Http\Controllers\ShiyoController;
 use App\Http\Controllers\ZairyoController;
-use App\Models\m_maker;
 
-class InvoiceController extends Controller
+class MitsumoriController extends Controller
 {
     protected $AdQuoNo = 3;
     protected $DetailType = 1;
@@ -33,14 +32,15 @@ class InvoiceController extends Controller
         $list = $this->_getList();
         $tanis = m_tani::orderBy("Sort_No")->pluck("Tani_Nm", "Tani_ID")->toArray();
 
-        $headerShiyo = $this->_getTableHeaderShiyo();
-        $headerShiyoSelected = $this->_getTableHeaderShiyoSelected();
+        $shiyo = new ShiyoController();
+        $headerShiyo = $shiyo->getTableHeaderShiyo();
+        $headerShiyoSelected = $shiyo->getTableHeaderShiyoSelected();
 
         $zairyo = new ZairyoController();
         $headerZairyo = $zairyo->getTableHeaderZairyo();
         $headerZairyoSelected = $zairyo->getTableHeaderZairyoSelected();
 
-        return view("invoice.index", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
+        return view("mitsumori.index", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
     }
 
     /**
@@ -66,6 +66,13 @@ class InvoiceController extends Controller
                         "Sort_No" => $rq->Sort_No[$k]
                     ];
                 }
+                // m_shiyoからt_shiyoへ反映する
+                t_shiyo::insert(m_shiyo::select("*")->whereIn("Shiyo_ID", $rq->Shiyo_ID)
+                    ->whereNotIn("Shiyo_ID", t_shiyo::whereIn("Shiyo_ID", $rq->Shiyo_ID)->pluck("Shiyo_ID")->all())->get()->toArray());
+                
+                // m_seko_tankaからt_seko_tankaへ反映する
+                t_seko_tanka::insert(m_seko_tanka::select("*")->whereIn("Shiyo_ID", $rq->Shiyo_ID)
+                    ->whereNotIn("Shiyo_ID", t_seko_tanka::whereIn("Shiyo_ID", $rq->Shiyo_ID)->pluck("Shiyo_ID")->all())->get()->toArray());
             }
             $RowAdd = 1; // 選択行に登録の時
             if ($rq->btn == "btnSaveNew") {
@@ -100,13 +107,13 @@ class InvoiceController extends Controller
     {
         $id = $rq->id;
         if ($rq->btn == "btnSave") {
-            Invoice::where("id", $id)->update($data);
-            Invoice::find($id)->invoice_shiyos()->delete();
+            t_mitsumori::where("id", $id)->update($data);
+            t_mitsumori::find($id)->invoice_shiyos()->delete();
         } else {
             $data["AdQuoNo"] = $this->AdQuoNo;
             $data["DetailType"] = $this->DetailType;
-            $data["DetailNo"] = Invoice::max("DetailNo") + 1;
-            $id = Invoice::insertGetId($data);
+            $data["DetailNo"] = t_mitsumori::max("DetailNo") + 1;
+            $id = t_mitsumori::insertGetId($data);
         }
         if ($dataIS) {
             $dataIS = array_map(function ($arr) use ($id) {
@@ -133,128 +140,20 @@ class InvoiceController extends Controller
      * param Request $rq
      * return 配列
      */
-    public function getMitsumoreDetail(Request $rq)
+    public function getMitsumoreMeisai(Request $rq)
     {
+        $shiyo = new ShiyoController;
         if ($rq->filled("Invoice_ID")) {
             return [
                 "status" => true,
-                "data" => $this->getListShiyoSelected($rq->Invoice_ID),
-                "dataShiyo" => $this->getListShiyo($rq)
+                "data" => $shiyo->getListShiyoSelected($rq->Invoice_ID),
+                "dataShiyo" => $shiyo->getListShiyo($rq)
             ];
         }
         return [
             "status" => false
         ];
     }
-
-    /**
-     * 工事仕様の選択の緑画面の一覧取得
-     * param int $Invoice_ID 見積詳細ID
-     * return 配列
-     */
-    public function getListShiyoSelected(int $Invoice_ID)
-    {
-        $data = invoice_shiyo::select(
-            invoice_shiyo::getTableName() . ".id",
-            "S.Shiyo_ID",
-            "S.Shiyo_Nm",
-            "S.Shiyo_Nm",
-            "SS.Shiyo_Shubetsu_Nm",
-            "B.Bui_NM",
-            "T.Tani_Nm",
-            "T.Tani_ID",
-            "ST.M_Tanka_IPN",
-            "ST.Z_Tanka_IPN",
-            "ST.R_Tanka_IPN",
-            "M.Maker_ID",
-            "M.Maker_Nm"
-        )
-            ->selectRaw("format(ifnull(AtariSuryo,0),1) as AtariSuryo")
-            ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
-            ->join(m_shiyo::getTableName("S"), "S.Shiyo_ID", invoice_shiyo::getTableName() . ".Shiyo_ID")
-            ->leftJoin(m_maker::getTableName("M"), "S.Maker_ID", "M.Maker_ID")
-            ->leftJoin(m_shiyo_shubetsu::getTableName("SS"), "S.Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID")
-            ->join(m_bui::getTableName("B"), "S.Bui_ID", "B.Bui_ID")
-            ->join(m_tani::getTableName("T"), "S.Tani_ID", "T.Tani_ID")
-            ->join(m_koshu::getTableName("K"), "S.Koshu_ID", "K.Koshu_ID")
-            ->join(m_seko_tanka::getTableName("ST"), "S.Shiyo_ID", "ST.Shiyo_ID")
-            ->where(invoice_shiyo::getTableName() . ".Invoice_ID", $Invoice_ID)
-            ->orderBy(invoice_shiyo::getTableName() . ".Sort_No")
-            ->get()->toArray();
-        return $data;
-    }
-
-    /**
-     * 工事仕様の選択の赤画面の一覧取得
-     * param Request $rq
-     * return 配列/json
-     */
-    public function getListShiyo(Request $rq)
-    {
-        $listObj = m_shiyo::select(
-            m_shiyo::getTableName() . ".Shiyo_ID",
-            m_shiyo::getTableName() . ".Shiyo_Nm",
-            "SS.Shiyo_Shubetsu_Nm",
-            "B.Bui_NM",
-            "T.Tani_Nm",
-            "T.Tani_ID",
-            "ST.M_Tanka_IPN",
-            "ST.Z_Tanka_IPN",
-            "ST.R_Tanka_IPN",
-            "K.Koshu_ID",
-            "M.Maker_ID",
-            "M.Maker_Nm"
-        )
-            ->selectRaw("'仕様' AS Zairyo_Shiyo_Type")
-            ->selectRaw("0 as AtariSuryo")
-            ->selectRaw("0 as Old_Flg")
-            ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
-            ->join(m_koshu::getTableName("K"), m_shiyo::getTableName() . ".Koshu_ID", "K.Koshu_ID")
-            ->leftJoin(m_maker::getTableName("M"), m_shiyo::getTableName() . ".Maker_ID", "M.Maker_ID")
-            ->join(m_bui::getTableName("B"), m_shiyo::getTableName() . ".Bui_ID", "B.Bui_ID")
-            ->leftJoin(m_shiyo_shubetsu_kbn::getTableName("SS"), function ($join) {
-                $join->on(m_shiyo::getTableName() . ".Shiyo_Shubetsu_ID", "SS.Shiyo_Shubetsu_ID");
-                $join->on(m_shiyo::getTableName() . ".Koshu_ID", "SS.Koshu_ID");
-            })
-            ->join(m_tani::getTableName("T"), m_shiyo::getTableName() . ".Tani_ID", "T.Tani_ID")
-            ->join(m_seko_tanka::getTableName("ST"), m_shiyo::getTableName() . ".Shiyo_ID", "ST.Shiyo_ID")
-            ->when($rq->filled("Koshu_ID"), function ($q) use ($rq) {
-                return $q->where('K.Koshu_ID',  $rq->Koshu_ID);
-            })
-            ->when($rq->filled("Bui_ID"), function ($q) use ($rq) {
-                return $q->where('B.Bui_ID',  $rq->Bui_ID);
-            })
-            ->when($rq->filled("Shiyo_Shubetsu_ID"), function ($q) use ($rq) {
-                return $q->where(m_shiyo::getTableName() . '.Shiyo_Shubetsu_ID',  explode("_", $rq->Shiyo_Shubetsu_ID)[1]);
-            })
-            ->when($rq->filled("Shiyo_Nm"), function ($q) use ($rq) {
-                return $q->where(m_shiyo::getTableName() . '.Shiyo_Nm', 'LIKE',  "%{$rq->Shiyo_Nm}%");
-            })
-            ->when($rq->filled("Shiyo_ID"), function ($q) use ($rq) {
-                // 仕様の構成が循環参照
-                return $q->where(m_shiyo::getTableName() . '.Shiyo_ID', '!=',  $rq->Shiyo_ID);
-            })
-            ->orderBy(m_shiyo::getTableName() . ".Sort_No");
-        $perPage = 10;
-        $list = $listObj->paginate($perPage);
-        $lastPage = $list->lastPage();
-        if ($rq->page > $lastPage) {
-            // 表示ページが存在しないページとなった場合、最終ページを表示するよう
-            Paginator::currentPageResolver(function () use ($lastPage) {
-                return $lastPage;
-            });
-            $list = $listObj->paginate($perPage);
-        }
-        return  [
-            "status" => true,
-            "data" => $list->items(),
-            "pagi" => $list->links("vendor.pagination.bootstrap-4")->toHtml(),
-        ];
-    }
-
-
-
-
 
     /**
      * 見積明細一覧取得
@@ -265,10 +164,10 @@ class InvoiceController extends Controller
      */
     private function _getList(array $whereInId = [], bool $jsonFLag = true, string $column = "")
     {
-        $list =  Invoice::select("*");
+        $list =  t_mitsumori::select("*");
         if (!$whereInId) {
-            $list =  Invoice::select(
-                Invoice::getTableName() . ".*",
+            $list =  t_mitsumori::select(
+                t_mitsumori::getTableName() . ".*",
                 "S.Koshu_ID",
                 "S.Bui_ID",
                 "B.Bui_Nm",
@@ -284,22 +183,22 @@ class InvoiceController extends Controller
                                 ELSE ''
                         END AS SpecName3")
                 ->selectRaw("CASE WHEN No != 0 THEN No END AS No")
-                ->leftJoin($this->_getRawSortNo(1), "A1.Invoice_ID", Invoice::getTableName() . ".id")
-                ->leftJoin($this->_getRawSortNo(2), "A2.Invoice_ID",  Invoice::getTableName() . ".id")
-                ->leftJoin($this->_getRawSortNo(3), "A3.Invoice_ID",  Invoice::getTableName() . ".id")
+                ->leftJoin($this->_getRawSortNo(1), "A1.Invoice_ID", t_mitsumori::getTableName() . ".id")
+                ->leftJoin($this->_getRawSortNo(2), "A2.Invoice_ID",  t_mitsumori::getTableName() . ".id")
+                ->leftJoin($this->_getRawSortNo(3), "A3.Invoice_ID",  t_mitsumori::getTableName() . ".id")
                 ->leftJoin(m_shiyo::getTableName("S"), "S.Shiyo_ID", "A1.Shiyo_ID")
                 ->leftJoin(m_koshu::getTableName("K"), "K.Koshu_ID",  "S.Koshu_ID")
                 ->leftJoin(m_bui::getTableName("B"), "B.Bui_ID", "S.Bui_ID")
                 ->leftJoin(m_shiyo_shubetsu::getTableName("SK"), "SK.Shiyo_Shubetsu_ID", "S.Shiyo_Shubetsu_ID");
         }
-        $list = $list->where(Invoice::getTableName() . ".AdQuoNo", $this->AdQuoNo)
-            ->where(Invoice::getTableName() . ".DetailType", $this->DetailType)
+        $list = $list->where(t_mitsumori::getTableName() . ".AdQuoNo", $this->AdQuoNo)
+            ->where(t_mitsumori::getTableName() . ".DetailType", $this->DetailType)
             ->when($whereInId, function ($query, $whereInId) {
-                return $query->whereIn(Invoice::getTableName() . ".id", $whereInId);
+                return $query->whereIn(t_mitsumori::getTableName() . ".id", $whereInId);
             })
             ->when($column == "", function ($query) {
-                return $query->orderBy(Invoice::getTableName() . ".DetailNo") // 明細No
-                    ->orderBy(Invoice::getTableName() . ".No") // No
+                return $query->orderBy(t_mitsumori::getTableName() . ".DetailNo") // 明細No
+                    ->orderBy(t_mitsumori::getTableName() . ".No") // No
                     ->get();
             })
             ->when($column, function ($query, $column) {
@@ -320,7 +219,7 @@ class InvoiceController extends Controller
     public function index2()
     {
         $header = $this->_getTableHeader();
-        $list = json_encode(Invoice::select(array_keys(json_decode($header, true)))->take(1)->get());
+        $list = json_encode(t_mitsumori::select(array_keys(json_decode($header, true)))->take(1)->get());
         $headerkey = (array_keys(json_decode($header, true)));
         $headername = (($header));
         return view("invoice.javascript", compact("headerkey", "headername", "list"));
@@ -370,16 +269,16 @@ class InvoiceController extends Controller
 
             // 明細No:再設定
             if ($data["DetailNoUpdate"]) {
-                Invoice::where('DetailNo', '>=', $dataSelected["DetailNo"][0])
+                t_mitsumori::where('DetailNo', '>=', $dataSelected["DetailNo"][0])
                     ->update(['DetailNo' => DB::Raw("DetailNo" . $data["DetailNoUpdate"])]);
             }
             // 7列目の「No」更新
             if ($dataNoChange && $data["NoUpdate"]) {
-                Invoice::whereIn('id', $dataNoChange)
+                t_mitsumori::whereIn('id', $dataNoChange)
                     ->update(['No' => DB::Raw("No" . $data["NoUpdate"])]);
             }
             if ($data["dataNew"]) {
-                Invoice::insert($data["dataNew"]);
+                t_mitsumori::insert($data["dataNew"]);
             }
             // 小計再設定
             $this->_resetTotal();
@@ -402,7 +301,7 @@ class InvoiceController extends Controller
      */
     private function _resetTotal()
     {
-        $list = Invoice::select("id", "DetailNo", "Amount", "AdQuoNo", "DetailType")
+        $list = t_mitsumori::select("id", "DetailNo", "Amount", "AdQuoNo", "DetailType")
             ->where("AdQuoNo", $this->AdQuoNo)
             ->where("DetailType", $this->DetailType)
             ->where("FirstName", config("const.cmd.cmdTotal.text"))
@@ -414,7 +313,7 @@ class InvoiceController extends Controller
                 $list[$k]["Amount"] =    $this->_getSum("Amount", $preDetailNo, $l["DetailNo"] - 1);
                 $preDetailNo = $l["DetailNo"] + 1;
             }
-            Invoice::upsert($list, "id");
+            t_mitsumori::upsert($list, "id");
         }
     }
 
@@ -427,7 +326,7 @@ class InvoiceController extends Controller
      */
     private function _getSum(string $key, int $DetailNoStart, int $DetailNoENd)
     {
-        return Invoice::where("AdQuoNo", $this->AdQuoNo)
+        return t_mitsumori::where("AdQuoNo", $this->AdQuoNo)
             ->where("DetailType", $this->DetailType)
             ->whereBetween('DetailNo', [$DetailNoStart, $DetailNoENd])
             ->sum($key);
@@ -477,8 +376,8 @@ class InvoiceController extends Controller
                 $no = 0;
             }
             $l["No"] = $no;
-            Invoice::where("id", $dataSelected["id"][$k])->update($l);
-            Invoice::find($dataSelected["id"][$k])->invoice_shiyos()->delete();
+            t_mitsumori::where("id", $dataSelected["id"][$k])->update($l);
+            t_mitsumori::find($dataSelected["id"][$k])->invoice_shiyos()->delete();
             invoice_shiyo::insert(invoice_shiyo::select("Shiyo_ID", "AtariSuryo", "Sort_No")
                 ->selectRaw($dataSelected["id"][$k] . " as Invoice_ID")->where("Invoice_ID", $dataCopy["id"][$k])->get()->toArray());
         }
@@ -510,7 +409,7 @@ class InvoiceController extends Controller
                 $no = 0;
             }
             $l["No"] = $no;
-            $id = Invoice::insertGetId($l);
+            $id = t_mitsumori::insertGetId($l);
             invoice_shiyo::insert(invoice_shiyo::select("Shiyo_ID", "AtariSuryo", "Sort_No")
                 ->selectRaw($id . " as Invoice_ID")->where("Invoice_ID", $dataCopy["id"][$k])->get()->toArray());
         }
@@ -551,175 +450,11 @@ class InvoiceController extends Controller
     private function _setDel($data, $dataSelected)
     {
         // 行削除
-        Invoice::whereIn("id", $dataSelected["id"])->delete();
+        t_mitsumori::whereIn("id", $dataSelected["id"])->delete();
         invoice_shiyo::whereIn("Invoice_ID", $dataSelected["id"])->delete();
         $data["DetailNoUpdate"] = ' - ' . $dataSelected["count"];
         $data["NoUpdate"] = ' - ' . (end($dataSelected["No"]) ? end($dataSelected["No"]) : 0) - ($dataSelected["prevItemNo"] ? $dataSelected["prevItemNo"] : 0);
         return $data;
-    }
-
-    /**
-     * 仕様選択した行フォーマット取得
-     * return ヘーダ一覧
-     */
-    private function _getTableHeaderShiyoSelected()
-    {
-        return json_encode([
-            "button" => [
-                "name" => " ",
-                "class" => "wj-align-center",
-                "width" => 100,
-            ],
-            "note" => [
-                "name" => " ",
-                "class" => "",
-                "width" => 30,
-            ],
-            "row" => [
-                "name" => " ",
-                "class" => "wj-align-center",
-                "width" => 30,
-            ],
-            "Koshu_Nm" => [
-                "name" => "種別",
-                "class" => "wj-align-left-im",
-                "width" => 100,
-            ],
-            "Bui_NM" => [
-                "name" => "部位",
-                "class" => "align-items-baseline",
-                "width" => 80,
-            ],
-            "Shiyo_Shubetsu_Nm" => [
-                "name" => "材質",
-                "class" => "",
-                "width" => 80,
-            ],
-            "Shiyo_Nm" => [
-                "name" => "仕様",
-                "class" => "",
-                "width" => 200,
-            ],
-            "Tani_Nm" => [
-                "name" => "単位",
-                "class" => "wj-align-center",
-                "width" => 50,
-            ],
-            "AtariSuryo" => [
-                "name" => "見積あたり数量",
-                "class" => "wj-align-right form-control AtariSuryo",
-                "width" => 120,
-            ],
-            "M_Tanka_IPN2" => [
-                "name" => "見積単価",
-                "class" => "wj-align-center",
-                "width" => 80,
-            ],
-            "Z_Tanka_IPN2" => [
-                "name" => "材料単価",
-                "class" => "wj-align-center",
-                "width" => 80,
-            ],
-            "R_Tanka_IPN2" => [
-                "name" => "労務単価",
-                "class" => "wj-align-center",
-                "width" => 80,
-            ],
-            "a" => [
-                "name" => "揚重費",
-                "class" => "",
-                "width" => 80,
-            ],
-            "b" => [
-                "name" => "現場経費",
-                "class" => "",
-                "width" => 80,
-            ],
-            "c" => [
-                "name" => "利益率",
-                "class" => "",
-                "width" => 80,
-            ],
-        ]);
-    }
-
-    /**
-     * 仕様フォーマット取得
-     * return ヘーダ一覧
-     */
-    private function _getTableHeaderShiyo()
-    {
-        // 種別
-        $m_koshus = m_koshu::select("Koshu_ID", "Bui_Kbn_ID")
-            ->selectRaw("CONCAT(Koshu_Cd,' ',Koshu_Nm) as Koshu_Nm")->orderBy("Sort_No")->get();
-        $koshus =  $m_koshus->pluck("Koshu_Nm", "Koshu_ID")->toArray();
-        $koshus_attr = $m_koshus->mapWithKeys(function ($item) {
-            return [$item->Koshu_ID => ['class' => "a a" . $item->Bui_Kbn_ID, 'data-bui' =>  $item->Bui_Kbn_ID]];
-        })->toArray();
-
-        // 部位
-        $m_bui = m_bui::select("Bui_Kbn_ID", "Bui_Nm", "Bui_ID")->orderBy("Sort_No")->get();
-        $buis = $m_bui->pluck("Bui_Nm", "Bui_ID")->toArray();
-        $buis_attr = $m_bui->mapWithKeys(function ($item) {
-            return [$item->Bui_ID => ['class' =>  "a a" . $item->Bui_Kbn_ID]];
-        })->toArray();
-
-        // 材質
-        $m_shiyo = m_shiyo_shubetsu_kbn::select("Koshu_ID", "Shiyo_Shubetsu_ID", "Shiyo_Shubetsu_Nm")
-            ->selectRaw("CONCAT(Koshu_ID,'_',Shiyo_Shubetsu_ID) AS Shiyo_Shubetsu_ID")
-            ->get();
-        $shiyo_shubetsus = $m_shiyo->pluck("Shiyo_Shubetsu_Nm", "Shiyo_Shubetsu_ID")->toArray();
-        $shiyo_shubetsus_attr = $m_shiyo->mapWithKeys(function ($item) {
-            return [$item->Shiyo_Shubetsu_ID => ['class' =>  "a a" . $item->Koshu_ID]];
-        })->toArray();
-
-        return json_encode([
-            "Koshu_Nm" => [
-                "name" => "種別",
-                "class" => "wj-align-left-im",
-                "width" => 160,
-                "line1" => Form::select('Koshu_ID', ["" => ""] + $koshus, null, ["class" => "form-control p-1 btn-search "], $koshus_attr)->toHtml()
-            ],
-            "Bui_NM" => [
-                "name" => "部位",
-                "class" => "align-items-baseline",
-                "width" => 140,
-                "line1" => Form::select('Bui_ID', ["" => ""] + $buis, null, ["class" => "form-control p-1 btn-search"], $buis_attr)->toHtml()
-            ],
-            "Shiyo_Shubetsu_Nm" => [
-                "name" => "材質",
-                "class" => "",
-                "width" => 120,
-                "line1" => Form::select('Shiyo_Shubetsu_ID', ["" => ""] + $shiyo_shubetsus, null, ["class" => "form-control p-1 btn-search"], $shiyo_shubetsus_attr)->toHtml()
-            ],
-            "Shiyo_Nm" => [
-                "name" => "仕様",
-                "class" => "",
-                "width" => 378,
-                "line1" => "<input type='text' name='Shiyo_Nm' class='w-100 form-control pl-1 btn-search' />"
-            ],
-            "Tani_Nm" => [
-                "name" => "単位",
-                "class" => "wj-align-center",
-                "width" => 50,
-                "line1" => ""
-            ],
-            "M_Tanka_IPN" => [
-                "name" => "見積単価",
-                "class" => "wj-align-center",
-                "width" => "",
-            ],
-            "Z_Tanka_IPN" => [
-                "name" => "材料単価",
-                "class" => "wj-align-center",
-                "width" => "",
-            ],
-            "R_Tanka_IPN" => [
-                "name" => "労務単価",
-                "class" => "wj-align-center",
-                "width" => "",
-            ],
-        ]);
     }
 
     /**

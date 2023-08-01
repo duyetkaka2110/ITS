@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Invoice;
+use App\Models\t_mitsumori;
 use App\Models\invoice_shiyo;
 use App\Models\m_shiyo;
 use App\Models\m_zairyo;
@@ -33,9 +33,9 @@ class DataController extends Controller
         // $this->_read($this->appPath . m_zairyo::getTableName() . $this->fileExe, m_zairyo::select("*"), m_zairyo::getTableName());
         // $this->_read($this->appPath . m_tani::getTableName() . $this->fileExe, m_tani::select("*"), m_tani::getTableName());
 
-        // $this->_read($this->appPath . Invoice::getTableName() . $this->fileExe, Invoice::select("*"), Invoice::getTableName());
+        // $this->_read($this->appPath . t_mitsumori::getTableName() . $this->fileExe, t_mitsumori::select("*"), t_mitsumori::getTableName());
         // $this->_read($this->appPath . m_bui::getTableName() . $this->fileExe, m_bui::select("*"), m_bui::getTableName());
-        $this->_read($this->appPath . m_koshu::getTableName() . $this->fileExe, m_koshu::select("*"), m_koshu::getTableName());
+        // $this->_read($this->appPath . m_koshu::getTableName() . $this->fileExe, m_koshu::select("*"), m_koshu::getTableName());
 
         // $this->_read($this->appPath . m_zairyo_shubetsu::getTableName() . $this->fileExe, m_zairyo_shubetsu::select("*"), m_zairyo_shubetsu::getTableName());
         // $this->_read($this->appPath . m_shiyo_shubetsu::getTableName() . $this->fileExe, m_shiyo_shubetsu::select("*"), m_shiyo_shubetsu::getTableName());
@@ -43,7 +43,8 @@ class DataController extends Controller
 
         // $this->_read($this->appPath . m_zairyo_kosei::getTableName() . $this->fileExe, m_zairyo_kosei::select("*"), m_zairyo_kosei::getTableName());
 
-        // $this->_read($this->appPath . m_zairyo_value::getTableName() . $this->fileExe, m_zairyo_value::select("*"), m_zairyo_value::getTableName());
+        $this->_read($this->appPath . m_zairyo_value::getTableName() . $this->fileExe, m_zairyo_value::select("*"), m_zairyo_value::getTableName());
+       
         // $this->_read($this->appPath . m_maker::getTableName() . $this->fileExe, m_maker::select("*"), m_maker::getTableName());
     }
 
@@ -75,7 +76,7 @@ class DataController extends Controller
      */
     public function readCsvInvoice()
     {
-        $this->_read($this->appPath . Invoice::getTableName() . $this->fileExe, Invoice::select("*"), Invoice::getTableName());
+        $this->_read($this->appPath . t_mitsumori::getTableName() . $this->fileExe, t_mitsumori::select("*"), t_mitsumori::getTableName());
     }
 
     /**
@@ -85,7 +86,7 @@ class DataController extends Controller
     {
         echo "<br>starting....";
         $table->truncate();
-        if ($tblName == Invoice::getTableName()) {
+        if ($tblName == t_mitsumori::getTableName()) {
             invoice_shiyo::truncate();
         }
         $filePath = storage_path($filename);
@@ -100,13 +101,13 @@ class DataController extends Controller
                 if ($r == '') {
                     unset($temp[$k]);
                 } else {
-                    if ($tblName == Invoice::getTableName())
+                    if ($tblName == t_mitsumori::getTableName())
                         $temp[$k] = str_replace(",", "", strval($temp[$k]));
                 }
             }
             if (isset($temp["UPDATE_DATE"]))
                 $temp["UPDATE_DATE"] = \Carbon\Carbon::parse($temp["UPDATE_DATE"])->format("Y-m-d");
-            if ($tblName == Invoice::getTableName()) {
+            if ($tblName == t_mitsumori::getTableName()) {
                 if (isset($temp["Unit"])) $temp["Unit_ID"] = m_tani::where("Tani_Nm", $temp["Unit"])->value("Tani_ID");
                 if (isset($temp["UnitOrg"])) $temp["UnitOrg_ID"] = m_tani::where("Tani_Nm", $temp["UnitOrg"])->value("Tani_ID");
                 if (isset($temp["Type"])) {
@@ -123,7 +124,7 @@ class DataController extends Controller
             }
             $id = $table->insertGetId($temp);
 
-            if ($tblName == Invoice::getTableName()) {
+            if ($tblName == t_mitsumori::getTableName()) {
                 if (isset($temp["SpecName1"])) {
                     invoice_shiyo::insert([
                         "Shiyo_ID" => m_shiyo::where("Shiyo_Nm", $temp["SpecName1"])->value("Shiyo_ID"),

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    protected $table = 'w_zairyo_koseis';
+    protected $table = 't_zairyo_koseis';
     /**
      * Run the migrations.
      */

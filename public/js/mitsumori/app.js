@@ -206,11 +206,15 @@ function init() {
         dataSearch.push({ name: "Bui_ID", value: flex_selected["Bui_ID"] })
         dataSearch.push({ name: "Shiyo_Shubetsu_ID", value: flex_selected["Shiyo_Shubetsu_ID"] ? flex_selected["Koshu_ID"] + '_' + flex_selected["Shiyo_Shubetsu_ID"] : '' })
         dataSearch.push({ name: "Shiyo_Nm", value: null })
-        dataSearch.push({ name: "Invoice_ID", value: flex_selected["id"] })
+        dataSearch.push({ name: "Invoice_ID", value: flex_selected["id"] });
+        shiyo_selected_ajax()
+        $(modal).modal();
+    })
+    function shiyo_selected_ajax() {
         $.ajax({
             type: ajaxMethod,
             data: dataSearch,
-            url: $("input[name=route-getMitsumoreDetail]").val(),
+            url: $("input[name=route-getMitsumoreMeisai]").val(),
             success: function (res) {
                 if (res["status"]) {
                     shiyo_selected_flex.itemsSource = res["data"]
@@ -219,9 +223,7 @@ function init() {
                 }
             }
         });
-        $(modal).modal();
-    })
-
+    }
     const sortOnKey = (key, string, desc) => {
         const caseInsensitive = string && string === "CI";
         return (a, b) => {
@@ -694,7 +696,6 @@ function init() {
         selectionMode: 'Row',
         allowSorting: false,
         allowDragging: wijmo.grid.AllowDragging.Both,
-        // headersVisibility: "Column",
         itemFormatter: function (panel, r, c, cell) {
             if (panel.cellType == wijmo.grid.CellType.Cell) {
                 if (c == 0) {
@@ -726,16 +727,19 @@ function init() {
                 if (s.activeEditor) {
                     let value = wijmo.changeType(s.activeEditor.value, wijmo.DataType.Number, format);
 
-                    total = wijmo.getAggregate("Sum", zairyo_selected_flex.itemsSource, "AtariSuryo");
-                    let flagN1 = true;
-                    if (format == "n1" && value < 0) flagN1 = false;
-                    if (isNaN(value) || !wijmo.isNumber(value) || !flagN1) {
+                    let flag = true;
+                    if (format == "n1" && value < 0) flag = false;
+                    if (isNaN(value) || !wijmo.isNumber(value) || !flag) {
                         e.cancel = true;
                         console.info('Please enter a positive ');
                     } else {
-
-
-                        s.activeEditor.value = value;
+                        // マイナス数量になったらエラー
+                        if (checkNegative(s.itemsSource, s.rows[e.row].dataItem["Zairyo_Shiyo_ID"], s.rows[e.row].dataItem["Sort_No"], value)) {
+                            s.activeEditor.value = value;
+                        } else {
+                            e.cancel = true;
+                            dispMessageModal("マイナス数量になりました。再入力をお願い致します。")
+                        }
                     }
                 } else {
                     value = 0;
@@ -756,7 +760,6 @@ function init() {
         if (ht.cellType == 1) {
             selectedItem = JSON.parse(JSON.stringify(zairyo_flex.itemsSource[ht.row]));
             zairyo_selected_flex.itemsSource.push(selectedItem);
-            console.info(zairyo_selected_flex.collectionView)
             zairyo_selected_flex.collectionView.refresh();
             zairyo_selected_flex.select(zairyo_selected_flex.itemsSource.length, -1)
             if (e.returnValue) {
@@ -764,6 +767,22 @@ function init() {
             }
         }
     })
+
+    // マイナス数量になったらエラー
+    function checkNegative(source, Zairyo_Shiyo_ID, Sort_No, value) {
+        subtotal = 0;
+        $.each(source, function (index, val) {
+            if (val["Zairyo_Shiyo_ID"] == Zairyo_Shiyo_ID) {
+                if (val["Sort_No"] == Sort_No) {
+                    subtotal += value;
+                } else {
+                    subtotal += val["AtariSuryo"];
+                }
+            }
+        });
+        return subtotal < 0 ? false : true;
+    }
+
     // 削除ボタンをクリック時
     $(document).on("click", "#zairyo_selected .btnDel", function (e) {
         let viewSelected = zairyo_selected_flex.collectionView;
@@ -797,6 +816,7 @@ function init() {
             success: function (res) {
                 if (res["status"]) {
                     zairyo_selected_flex.itemsSource = res["data"]["data"];
+                    shiyo_selected_ajax() ;
                     dispSuccessMsg(res["msg"])
                 } else {
                     dispMessageModal(res["msg"])

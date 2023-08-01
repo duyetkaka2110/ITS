@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class m_zairyo_value extends Model
+class t_seko_tanka extends Model
 {
     use HasFactory;
-
+    
     protected $hidden = ["created_at", "updated_at"];
 
     // string $As 短い名

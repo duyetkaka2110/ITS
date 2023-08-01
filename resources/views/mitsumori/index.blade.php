@@ -2,7 +2,7 @@
 @section("title","見積詳細")
 @section("css")
 <link href="{{ URL::asset('css/wijmo.min.css') }}" rel="stylesheet" />
-<link href="{{ URL::asset('css/invoice.css') }}" rel="stylesheet" />
+<link href="{{ URL::asset('css/mitsumori.css') }}" rel="stylesheet" />
 @endsection
 @section("js")
 <!-- Wijmo styles and core (required) -->
@@ -25,7 +25,7 @@
     var headerZairyoSelected = <?php echo $headerZairyoSelected ?>;
 </script>
 
-<script src="{{ URL::asset('js/invoice/app.js') }}" type="text/javascript"></script>
+<script src="{{ URL::asset('js/mitsumori/app.js') }}" type="text/javascript"></script>
 <script>
     $(document).ready(function() {
         $(".btn-secondary").on("click", function() {
@@ -269,7 +269,7 @@
 </div>
 {{ Form::hidden('route-getListShiyo', route('getListShiyo')) }}
 {{ Form::hidden('route-setMitsumoreShiyo', route('setMitsumoreShiyo')) }}
-{{ Form::hidden('route-getMitsumoreDetail', route('getMitsumoreDetail')) }}
+{{ Form::hidden('route-getMitsumoreMeisai', route('getMitsumoreMeisai')) }}
 {{ Form::hidden('route-istore', route('i.store')) }}
 {{ Form::hidden('route-getListZairyo', route('getListZairyo')) }}
 {{ Form::hidden('route-getListZairyoSelected', route('getListZairyoSelected')) }}

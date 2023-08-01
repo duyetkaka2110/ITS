@@ -6,13 +6,15 @@ use Illuminate\Http\Request;
 use App\Models\m_zairyo;
 use App\Models\m_zairyo_shubetsu;
 use App\Models\m_tani;
-use App\Models\w_zairyo_kosei;
+use App\Models\t_zairyo_kosei;
 use App\Models\m_zairyo_kosei;
 use Form;
 use DB;
 use App\GetMessage;
 use App\Models\m_koshu;
 use App\Models\m_shiyo;
+use App\Models\m_zairyo_value;
+use App\Models\t_seko_tanka;
 
 class ZairyoController extends Controller
 {
@@ -21,7 +23,7 @@ class ZairyoController extends Controller
         try {
             DB::beginTransaction();
             if ($rq->Shiyo_ID) {
-                w_zairyo_kosei::where("Shiyo_ID", $rq->Shiyo_ID)->delete();
+                t_zairyo_kosei::where("Shiyo_ID", $rq->Shiyo_ID)->delete();
                 $data = [];
                 foreach ($rq->Zairyo_Shiyo_ID as $k => $v) {
                     $data[] = [
@@ -36,8 +38,17 @@ class ZairyoController extends Controller
                     ];
                 }
                 if ($data) {
-                    w_zairyo_kosei::insert($data);
+                    t_zairyo_kosei::insert($data);
                 }
+                // 材料単価更新
+                $Z_Tanka_IPN = t_zairyo_kosei::selectRaw("SUM(" . t_zairyo_kosei::getTableName() . ".AtariSuryo*ZV.Tanka) as sum")
+                    ->join(m_zairyo_value::getTableName("ZV"), function ($join) {
+                        $join->on("ZV.Zairyo_ID", t_zairyo_kosei::getTableName() . ".Zairyo_Shiyo_ID");
+                        $join->where("ZV.Tanka_Kbn_ID", 501);
+                        $join->where("ZV.Unavailable_Flg", 0);
+                    })->where(t_zairyo_kosei::getTableName() . ".Shiyo_ID", $rq->Shiyo_ID)->groupBy(t_zairyo_kosei::getTableName() . ".Shiyo_ID")->value("sum");
+                t_seko_tanka::where("Shiyo_ID", $rq->Shiyo_ID)
+                    ->update(["Z_Tanka_IPN" => ceil($Z_Tanka_IPN)]);
             }
             DB::commit();
             return [
@@ -62,27 +73,34 @@ class ZairyoController extends Controller
     public function getListZairyoSelected(Request $rq)
     {
         if ($rq->filled("Shiyo_ID")) {
-            $listZairyo =  w_zairyo_kosei::select(
-                w_zairyo_kosei::getTableName() . ".*",
+            $listZairyo =  t_zairyo_kosei::select(
+                t_zairyo_kosei::getTableName() . ".*",
                 "Z.Zairyo_Nm as Name",
                 "T.Tani_Nm",
                 "ZS.Zairyo_Shubetsu_Nm as Shubetsu_Nm",
+                "ZV.Tanka"
             )
-                ->join(m_zairyo::getTableName("Z"), "Z.Zairyo_ID", w_zairyo_kosei::getTableName() . ".Zairyo_Shiyo_ID")
+                ->join(m_zairyo::getTableName("Z"), "Z.Zairyo_ID", t_zairyo_kosei::getTableName() . ".Zairyo_Shiyo_ID")
                 ->join(m_zairyo_shubetsu::getTableName("ZS"), "Z.Zairyo_Shubetsu_ID", "ZS.Zairyo_Shubetsu_ID")
-                ->leftJoin(m_tani::getTableName("T"), "T.Tani_ID", w_zairyo_kosei::getTableName() . ".Tani_ID")
-                ->where(w_zairyo_kosei::getTableName() . '.Shiyo_ID',  $rq->Shiyo_ID)
+                ->leftJoin(m_tani::getTableName("T"), "T.Tani_ID", t_zairyo_kosei::getTableName() . ".Tani_ID")
+                ->leftJoin(m_zairyo_value::getTableName("ZV"), function ($join) {
+                    $join->on("ZV.Zairyo_ID", "Z.Zairyo_ID");
+                    $join->where("ZV.Tanka_Kbn_ID", 501);
+                    $join->where("ZV.Unavailable_Flg", 0);
+                })
+                ->where(t_zairyo_kosei::getTableName() . '.Shiyo_ID',  $rq->Shiyo_ID)
                 ->where("Zairyo_Shiyo_Type", "材料");
-            $list =  w_zairyo_kosei::select(
-                w_zairyo_kosei::getTableName() . ".*",
+            $list =  t_zairyo_kosei::select(
+                t_zairyo_kosei::getTableName() . ".*",
                 "S.Shiyo_Nm as Name",
                 "T.Tani_Nm",
             )
                 ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Shubetsu_Nm")
-                ->join(m_shiyo::getTableName("S"), "S.Shiyo_ID", w_zairyo_kosei::getTableName() . ".Zairyo_Shiyo_ID")
-                ->leftJoin(m_koshu::getTableName("K"), "K.Koshu_ID", w_zairyo_kosei::getTableName() . ".Shubetsu_ID")
-                ->leftJoin(m_tani::getTableName("T"), "T.Tani_ID", w_zairyo_kosei::getTableName() . ".Tani_ID")
-                ->where(w_zairyo_kosei::getTableName() . '.Shiyo_ID',  $rq->Shiyo_ID)
+                ->selectRaw("'' as Tanka")
+                ->join(m_shiyo::getTableName("S"), "S.Shiyo_ID", t_zairyo_kosei::getTableName() . ".Zairyo_Shiyo_ID")
+                ->leftJoin(m_koshu::getTableName("K"), "K.Koshu_ID", t_zairyo_kosei::getTableName() . ".Shubetsu_ID")
+                ->leftJoin(m_tani::getTableName("T"), "T.Tani_ID", t_zairyo_kosei::getTableName() . ".Tani_ID")
+                ->where(t_zairyo_kosei::getTableName() . '.Shiyo_ID',  $rq->Shiyo_ID)
                 ->where("Zairyo_Shiyo_Type", "仕様")
                 ->union($listZairyo)
                 ->orderBy("Sort_No")
@@ -99,6 +117,7 @@ class ZairyoController extends Controller
                     "Z.Zairyo_Nm as Name",
                     "T.Tani_ID",
                     "T.Tani_Nm",
+                    "ZV.Tanka"
                 )
                     ->selectRaw("'材料' AS Zairyo_Shiyo_Type")
                     ->selectRaw(m_zairyo_kosei::getTableName() . ".Zairyo_Keisu as AtariSuryo")
@@ -107,6 +126,11 @@ class ZairyoController extends Controller
                         $join->on("Z.Zairyo_Shubetsu_ID", "ZS.Zairyo_Shubetsu_ID");
                     })
                     ->leftJoin(m_tani::getTableName("T"), "Z.Tani_ID", "T.Tani_ID")
+                    ->leftJoin(m_zairyo_value::getTableName("ZV"), function ($join) {
+                        $join->on("ZV.Zairyo_ID", "Z.Zairyo_ID");
+                        $join->where("ZV.Tanka_Kbn_ID", 501);
+                        $join->where("ZV.Unavailable_Flg", 0);
+                    })
                     ->when($rq->filled("Shiyo_ID"), function ($q) use ($rq) {
                         return $q->where(m_zairyo_kosei::getTableName() . '.Shiyo_ID',  $rq->Shiyo_ID);
                     })
@@ -135,7 +159,8 @@ class ZairyoController extends Controller
             "ZS.Zairyo_Shubetsu_ID AS Shubetsu_ID",
             "ZS.Zairyo_Shubetsu_Nm AS Shubetsu_Nm",
             "T.Tani_ID",
-            "T.Tani_Nm"
+            "T.Tani_Nm",
+            "ZV.Tanka"
         )
             ->selectRaw("'材料' AS Zairyo_Shiyo_Type")
             ->selectRaw("0 as AtariSuryo")
@@ -144,7 +169,11 @@ class ZairyoController extends Controller
                 $join->on(m_zairyo::getTableName() . ".Zairyo_Shubetsu_ID", "ZS.Zairyo_Shubetsu_ID");
             })
             ->leftJoin(m_tani::getTableName("T"), m_zairyo::getTableName() . ".Tani_ID", "T.Tani_ID")
-            // ->join(m_zairyo_value::getTableName("ST"), m_zairyo::getTableName() . ".Shiyo_ID", "ST.Shiyo_ID")
+            ->leftJoin(m_zairyo_value::getTableName("ZV"), function ($join) {
+                $join->on("ZV.Zairyo_ID", m_zairyo::getTableName() . ".Zairyo_ID");
+                $join->where("Tanka_Kbn_ID", 501);
+                $join->where("ZV.Unavailable_Flg", 0);
+            })
             ->when($rq->filled("Zairyo_Shubetsu_ID"), function ($q) use ($rq) {
                 return $q->where('ZS.Zairyo_Shubetsu_ID',  $rq->Zairyo_Shubetsu_ID);
             })
@@ -201,7 +230,7 @@ class ZairyoController extends Controller
                 "class" => "wj-align-right form-control AtariSuryo",
                 "width" => 120,
             ],
-            "M_Tanka_IPN" => [
+            "Tanka" => [
                 "name" => "材料単価",
                 "class" => "wj-align-center",
                 "width" => 200,
@@ -236,7 +265,7 @@ class ZairyoController extends Controller
                 "width" => "",
                 "line1" => ""
             ],
-            "M_Tanka_IPN" => [
+            "Tanka" => [
                 "name" => "材料単価",
                 "class" => "wj-align-center",
                 "width" => 280,

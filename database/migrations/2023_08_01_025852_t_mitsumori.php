@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    protected $table = 'invoices';
+    protected $table = 't_mitsumoris';
     /**
      * Run the migrations.
      */
