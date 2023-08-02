@@ -207,9 +207,12 @@ function init() {
         dataSearch.push({ name: "Shiyo_Shubetsu_ID", value: flex_selected["Shiyo_Shubetsu_ID"] ? flex_selected["Koshu_ID"] + '_' + flex_selected["Shiyo_Shubetsu_ID"] : '' })
         dataSearch.push({ name: "Shiyo_Nm", value: null })
         dataSearch.push({ name: "Invoice_ID", value: flex_selected["id"] });
+        // check form has changed
+        form_shiyo = getFormSelected();
         shiyo_selected_ajax()
         $(modal).modal();
     })
+    var form_shiyo_flex;
     function shiyo_selected_ajax() {
         $.ajax({
             type: ajaxMethod,
@@ -220,6 +223,7 @@ function init() {
                     shiyo_selected_flex.itemsSource = res["data"]
                     shiyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["dataShiyo"]["data"]);
                     $("#shiyoPage").html(res["dataShiyo"]["pagi"])
+                    form_shiyo_flex = JSON.stringify(shiyo_selected_flex.itemsSource);
                 }
             }
         });
@@ -526,12 +530,24 @@ function init() {
         $(formshiyo + " input[name=page]").val(1);
         shiyoAjax(shiyo_flex);
     })
-
+    var form_shiyo = [];
+    var form_shiyo_changed_flag = false;
+    var formSelected = $(".form-selected");
     // 工事仕様の選択画面閉じるのポップアップ表示
     $("#MitsumoriModal .close").on("click", function () {
-        dispConfirmModal("編集中のデータはまだ保存していません。<br>編集中の内容を破棄し、見積明細画面に戻りますか？", "close");
+        if (form_shiyo !== getFormSelected() || form_shiyo_flex !== JSON.stringify(shiyo_selected_flex.itemsSource)) {
+            dispConfirmModal("編集中のデータはまだ保存していません。<br>編集中の内容を破棄し、見積明細画面に戻りますか？", "close");
+        } else {
+            $("#MitsumoriModal").modal("hide");
+        }
     })
 
+    function getFormSelected() {
+        let form = formSelected.serializeArray();
+        delete form[10];
+        delete form[11];
+        return JSON.stringify(form);
+    }
     // ページング
     $(document).on("click", "#shiyoPage .page-link", function (e) {
         e.preventDefault();
@@ -601,6 +617,7 @@ function init() {
         ajaxZairyoSelected(shiyo_selected_flex.selectedItems[0]["Shiyo_ID"])
     });
 
+    var form_zairyo_selected_flex;
     // 材料リストデータ取得
     function ajaxZairyoSelected(Shiyo_ID) {
         $.ajax({
@@ -612,6 +629,7 @@ function init() {
                     zairyo_selected_flex.itemsSource = res["data"];
                     zairyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["dataZairyo"]["data"]);
                     $("#zairyoPage").html(res["dataZairyo"]["pagi"])
+                    form_zairyo_selected_flex = JSON.stringify(zairyo_selected_flex.itemsSource)
                 }
             }
         });
@@ -792,7 +810,11 @@ function init() {
 
     // 仕様の構成の編集画面閉じるのポップアップ表示
     $("#ShiyoEditModal .close").on("click", function () {
-        dispConfirmModal("編集中のデータはまだ保存していません。<br>編集中の内容を破棄し、工事仕様の選択に戻りますか？", "closeEdit");
+        if (form_zairyo_selected_flex !== JSON.stringify(zairyo_selected_flex.itemsSource)) {
+            dispConfirmModal("編集中のデータはまだ保存していません。<br>編集中の内容を破棄し、工事仕様の選択に戻りますか？", "closeEdit");
+        } else {
+            $("#ShiyoEditModal").modal("hide")
+        }
     })
 
     $(".btnSaveZairyo").on("click", function () {
@@ -816,7 +838,8 @@ function init() {
             success: function (res) {
                 if (res["status"]) {
                     zairyo_selected_flex.itemsSource = res["data"]["data"];
-                    shiyo_selected_ajax() ;
+                    form_zairyo_selected_flex = JSON.stringify(zairyo_selected_flex.itemsSource)
+                    shiyo_selected_ajax();
                     dispSuccessMsg(res["msg"])
                 } else {
                     dispMessageModal(res["msg"])

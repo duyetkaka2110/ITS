@@ -40,10 +40,14 @@ class ShiyoController extends Controller
             "ST.Z_Tanka_IPN",
             "ST.R_Tanka_IPN",
             "M.Maker_ID",
-            "M.Maker_Nm"
+            "M.Maker_Nm",
+            t_mitsumori_meisai::getTableName() . ".Sort_No"
         )
             ->selectRaw("format(ifnull(AtariSuryo,0),1) as AtariSuryo")
             ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
+            ->selectRaw("(format(ifnull(AtariSuryo,0),1) *ST.M_Tanka_IPN) as M_Tanka_IPN2")
+            ->selectRaw("(format(ifnull(AtariSuryo,0),1) *ST.Z_Tanka_IPN) as Z_Tanka_IPN2")
+            ->selectRaw("(format(ifnull(AtariSuryo,0),1) *ST.R_Tanka_IPN) as R_Tanka_IPN2")
             // 反映
             ->join(t_shiyo::getTableName("S"), "S.Shiyo_ID", t_mitsumori_meisai::getTableName() . ".Shiyo_ID")
             ->leftJoin(m_maker::getTableName("M"), "S.Maker_ID", "M.Maker_ID")

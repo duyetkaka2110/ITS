@@ -21,6 +21,8 @@
 
 #grid.wj-flexgrid {
     height: 750px;
+    max-width: 100%;
+    width: auto;
 }
 
 .wijmo-height-220.wj-flexgrid {

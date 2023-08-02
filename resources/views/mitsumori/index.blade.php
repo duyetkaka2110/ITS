@@ -54,8 +54,8 @@
 <div class="container-fluid">
     <div id="grid" class="has-ctx-menu"></div>
 </div>
-<button class="reload w-17em" style="height: 100px;">画面再表示</button>
-<button class="reset w-17em" style="height: 100px;">データリセット</button>
+<button class="reload w-13em" style="height: 40px;">画面再表示</button>
+<button class="reset w-13em" style="height: 40px;">データリセット</button>
 <input type="hidden" class="route-mitsumore-action" value="{{ route('mitsumore.action') }}" />
 
 @endsection
