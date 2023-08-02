@@ -129,7 +129,7 @@
                             <div class="form-group row mb-1">
                                 <label class="col-sm-2 col-form-label text-right">数量</label>
                                 <div class="col-sm-10 pl-0">
-                                    <input type="number" class="form-control p-1 h-30 col-3 d-inline text-right" min=0 max=100000 name="Quantity">
+                                    <input type="number" class="form-control p-1 h-30 col-3 d-inline text-right" min=0 max=100000 step="0.1" name="Quantity">
                                     <span class="ml-2 pr-1">単価</span>
                                     <div class="input-group align-bottom pl-0 col-3 mt-1 d-inline-flex">
                                         <input type="text" class="form-control p-1 h-30  d-inline text-right" name="UnitPrice" readonly>
