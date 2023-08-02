@@ -2,6 +2,9 @@
 document.readyState === 'complete' ? init() : window.onload = init;
 function init() {
     $("#grid").css("height", window.innerHeight - 50);
+    $( window ).on( "resize", function() {
+        $("#grid").css("height", window.innerHeight - 50);
+      } );
     var ajaxMethod = "get";
     var datacopy = null;
     // create Grid table
