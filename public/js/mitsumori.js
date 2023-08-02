@@ -1,4 +1,3 @@
-
 document.readyState === 'complete' ? init() : window.onload = init;
 function init() {
     $("#grid").css("height", window.innerHeight - 50);
@@ -548,6 +547,7 @@ function init() {
 
     function getFormSelected() {
         let form = formSelected.serializeArray();
+        delete form[0];
         delete form[10];
         delete form[11];
         return JSON.stringify(form);
