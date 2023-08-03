@@ -1,9 +1,65 @@
 document.readyState === 'complete' ? init() : window.onload = init;
 function init() {
-    $("#grid").css("height", window.innerHeight - 50);
-    $( window ).on( "resize", function() {
+    let UnitPrice = $('input[name="UnitPrice"]');
+    let Amount = $('input[name="Amount"]');
+    let Quantity = $('input[name="Quantity"]');
+    let MitsumoriModal = "#MitsumoriModal";
+
+    var listModalSavePosition = ["MitsumoriModal", "ShiyoEditModal"];
+    // 移動した位置」「変更したサイズ」を記憶しておき、次に同じポップアップウィンドウを開いた際、その位置、サイズを再現する
+    $.each(listModalSavePosition, function (key, modal) {
+        if (Cookies.get(modal + 'Header') !== undefined) {
+            $("#" + modal).attr("style", Cookies.get(modal + 'Header'));
+        }
+        if (Cookies.get('MitsumoriModalDialog') !== undefined) {
+            $("#" + modal + " .modal-dialog").attr("style", Cookies.get(modal + 'Dialog'));
+            $("#" + modal + " .modal-content").attr("style", Cookies.get(modal + 'Content'));
+        }
+    })
+
+    // ポップアップウィンドウを全て,移動可,サイズ変更可にする。
+    $(".modal").draggable({
+        handle: ".modal-header",
+        stop: function (e) {
+            Cookies.set($(this).attr("id") + "Header", e.target.getAttribute("style").replace("display: block;", ""));
+        }
+    });
+    $('.modal-drag .modal-content').resizable({
+        alsoResize: ".modal-dialog",
+        minHeight: 150,
+        stop: function (e) {
+            Cookies.set($(this).parent().parent().attr("id") + "Dialog", $(this).parent().attr("style"));
+            Cookies.set($(this).parent().parent().attr("id") + "Content", $(this).attr("style"));
+        }
+    });
+
+    // 数量がNullであれば、デフォルト値として「1」をセットし、金額も更新する。
+    $("input[name=UnitPrice]").on("change", function () {
+        if ($("input[name=Quantity]").val() == 0 && shiyo_selected_flex.rows.length == 0 && this.value != 0) {
+            $("input[name=Quantity]").val(1)
+        }
+    })
+    $(".numeric").on("change", function () {
+        $(this).val(parseInt(!this.value ? 0 : this.value).toLocaleString())
+    })
+    $(".floatic").on("change", function () {
+        this.value = parseFloat(!this.value ? 0.0 : this.value).toFixed(1)
+    })
+    $(document).on("input", ".numeric", function () {
+        this.value = this.value.replace(/\D/g, '');
+    });
+    $('.floatic').keypress(function (event) {
+        if ((event.which != 46 || $(this).val().indexOf('.') != -1) && (event.which < 48 || event.which > 57)) {
+            event.preventDefault();
+        }
+    });
+    resize();
+    $(window).on("resize", function () {
+        resize();
+    });
+    function resize() {
         $("#grid").css("height", window.innerHeight - 50);
-      } );
+    }
     var ajaxMethod = "get";
     var datacopy = null;
     // create Grid table
@@ -11,9 +67,21 @@ function init() {
         loadedRows: function (s, e) {
             for (var i = 0; i < s.rows.length; i++) {
                 var row = s.rows[i];
-                if (row.dataItem.FirstName == cmd.cmdTotal.text) {
+                var FirstName = row.dataItem.FirstName;
+                if (FirstName == cmd.cmdTotal.text || FirstName == cmd.cmdTotalKe.text || FirstName == cmd.cmdTotalGo.text) {
                     row.cssClass = 'row-total';
                 }
+            }
+        },
+        selectionChanged: function (s, e) {
+            if (s.selection.topRow == 0) {
+                $(".mg-menu .cmdTotal").prop("disabled", true);
+                $(".mg-menu .cmdTotalKe").prop("disabled", true);
+                $(".mg-menu .cmdTotalGo").prop("disabled", true);
+            } else {
+                $(".mg-menu .cmdTotal").prop("disabled", false);
+                $(".mg-menu .cmdTotalKe").prop("disabled", false);
+                $(".mg-menu .cmdTotalGo").prop("disabled", false);
             }
         },
         itemsSource: new wijmo.collections.ObservableArray(list),
@@ -25,12 +93,12 @@ function init() {
         selectionMode: 'RowRange',
         allowSorting: false,
         headersVisibility: "Column",
+        autoRowHeights: true,
     })
     // set css style 
     flex.columnHeaders.rows[0].cssClass = "wj-align-center"
     flex.columnHeaders.rows[0].wordWrap = true;
     flex.columnHeaders.rows.defaultSize = 55;
-    flex.rows.defaultSize = 59;
     flex.hostElement.addEventListener('contextmenu', (e) => {
         ht = flex.hitTest(e);
         // set select rows style
@@ -42,6 +110,7 @@ function init() {
     }, true);
     // メニュー一覧表示
     let itemsSource = [];
+    let htmlMenu = "";
     $.each(cmd, function (key, value) {
         if (value.cmd == cmd.cmdExit.cmd) {
             itemsSource.push({
@@ -52,38 +121,56 @@ function init() {
             header: '<i class="fa ' + value.icon + ' pr-2" aria-hidden="true"></i>' + value.name,
             cmd: value.cmd,
         })
+        if (value.cmd != cmd.cmdExit.cmd) {
+            let disable = (value.cmd == cmd.cmdPaste.cmd || value.cmd == cmd.cmdPasteNew.cmd
+                || value.cmd == cmd.cmdTotal.cmd || value.cmd == cmd.cmdTotalKe.cmd || value.cmd == cmd.cmdTotalGo.cmd) ? "disabled" : "";
+            htmlMenu += '<button class="btn btn-menu-item ' + value.cmd + '" ' + disable + ' data-cmd="' + value.cmd + '"><i class="fa ' + value.icon + ' pr-2" aria-hidden="true"></i>' + value.name + "</button>"
+        }
     })
+    $(".mg-menu").html(htmlMenu)
+    $(document).on("click", ".btn-menu-item", function () {
+        selectedValue = $(this).attr("data-cmd");
+        MenuMsg(selectedValue)
+    })
+    function MenuMsg(selectedValue) {
+        let msg;
+        // 確認メッセージ取得
+        if (selectedValue in cmd) {
+            let totalRowsRun = flex.selection.rowSpan;
+
+            if (selectedValue == cmd.cmdPaste.cmd || selectedValue == cmd.cmdPasteNew.cmd) {
+                totalRowsRun = datacopy.count;
+            }
+            if (selectedValue == cmd.cmdTotal.cmd || selectedValue == cmd.cmdTotalKe.cmd || selectedValue == cmd.cmdTotalGo.cmd) {
+                totalRowsRun = 1;
+            }
+            let lineNo = "行No:" + (flex.selection.row2 + 1) + "から" + totalRowsRun + "行";
+
+            if (cmd[selectedValue].msg) {
+                msg = lineNo + cmd[selectedValue].msg;
+            } else {
+                if (selectedValue == cmd.cmdCopy.cmd) {
+                    $(".mg-menu ." + cmd.cmdPaste.cmd).prop("disabled", false)
+                    $(".mg-menu ." + cmd.cmdPasteNew.cmd).prop("disabled", false)
+                    datacopy = getSeletedItems(flex);
+                }
+                if (selectedValue == cmd.cmdNewEdit.cmd) {
+                    runAction(selectedValue);
+                }
+            }
+        }
+        if (msg) {
+            // 確認メッセージ表示
+            dispConfirmModal(msg + "ます。よろしいですか？", selectedValue);
+        }
+    }
     let menu = new wijmo.input.Menu(document.createElement('div'), {
         displayMemberPath: 'header',
         selectedValuePath: 'cmd',
         dropDownCssClass: 'ctx-menu',
         itemsSource: itemsSource,
         _itemClicked: () => {
-            let msg;
-            // 確認メッセージ取得
-            if (menu.selectedValue in cmd) {
-                let totalRowsRun = flex.selection.rowSpan;
-
-                if (menu.selectedValue == cmd.cmdPaste.cmd || menu.selectedValue == cmd.cmdPasteNew.cmd) {
-                    totalRowsRun = datacopy.count;
-                }
-                if (menu.selectedValue == cmd.cmdTotal.cmd) {
-                    totalRowsRun = 1;
-                }
-                let lineNo = "行No:" + (flex.selection.row2 + 1) + "から" + totalRowsRun + "行";
-
-                if (cmd[menu.selectedValue].msg) {
-                    msg = lineNo + cmd[menu.selectedValue].msg;
-                } else {
-                    if (menu.selectedValue == cmd.cmdCopy.cmd) {
-                        datacopy = getSeletedItems(flex);
-                    }
-                }
-            }
-            if (msg) {
-                // 確認メッセージ表示
-                dispConfirmModal(msg + "ます。よろしいですか？", menu.selectedValue);
-            }
+            MenuMsg(menu.selectedValue)
         },
         get itemClicked() {
             return this._itemClicked;
@@ -103,7 +190,7 @@ function init() {
                 wijmo.removeClass(item, 'wj-state-disabled');
             }
             // 小計行追加disabled
-            if (item.innerText == cmd.cmdTotal.name) {
+            if (item.innerText == cmd.cmdTotal.name || item.innerText == cmd.cmdTotalKe.name || item.innerText == cmd.cmdTotalGo.name) {
                 if (flex.selection.topRow == 0) {
                     wijmo.addClass(item, 'wj-state-disabled');
                 } else {
@@ -126,8 +213,10 @@ function init() {
 
     // 削除確認ボタン時
     $("#ConfirmModal .btnPopupOk").on("click", function () {
+        runAction($(this).attr("data-action"));
+    })
+    function runAction(action) {
         let dataAction = false;
-        var action = $(this).attr("data-action")
         if (action in cmd) {
             var dataSelected = getSeletedItems(flex, action);
             let row = dataSelected.first;
@@ -168,6 +257,10 @@ function init() {
                             flex.itemsSource = new wijmo.collections.ObservableArray($.parseJSON(res["data"]));
                             flex.scrollPosition = scrollPosition
                             setRowSelected(flex, dataSelected)
+                            if (action == cmd.cmdNewEdit.cmd) {
+                                // 追加した行の「工事仕様の選択」画面を開く
+                                flexSelectModal();
+                            }
                         }
                     }
                 });
@@ -182,27 +275,31 @@ function init() {
                 $("#ShiyoEditModal").modal("hide")
             }
         }
-    })
-
+    }
     // 編集ポップアップ画面表表示
     flex.hostElement.addEventListener('dblclick', function (e) {
         if (e.returnValue) {
             e.preventDefault();
         }
+        if (flex.selectedRows[0].cssClass != "row-total") {
+            flexSelectModal()
+        }
+    })
+    function flexSelectModal() {
         flex_selected = flex.selectedItems[0];
-        modal = "#MitsumoriModal";
-        $(modal + " input[name=id]").val(flex_selected["id"])
-        $(modal + " input[name=DetailNo]").val("No." + flex_selected["DetailNo"])
-        $(modal + " input[name=FirstName]").val(flex_selected["FirstName"])
-        $(modal + " input[name=StandDimen]").val(flex_selected["StandDimen"])
-        $(modal + " input[name=MakerName]").val(flex_selected["MakerName"])
-        $(modal + " select[name=UnitOrg_ID]").val(flex_selected["UnitOrg_ID"])
-        $(modal + " input[name=Quantity]").val(flex_selected["Quantity"])
-        $(modal + " input[name=UnitPrice]").val(flex_selected["UnitPrice"])
-        $(modal + " input[name=Amount]").val(flex_selected["Amount"])
-        $(modal + " input[name=Note]").val(flex_selected["Note"])
-        $(modal + " input[name=Type]").val(flex_selected["Koshu_ID"])
-        $(modal + " input[name=PartName]").val(flex_selected["Bui_ID"])
+        $(MitsumoriModal + " input[name=RowAdd]").val(1)
+        $(MitsumoriModal + " input[name=id]").val(flex_selected["id"])
+        $(MitsumoriModal + " input[name=DetailNo]").val("No." + flex_selected["DetailNo"])
+        $(MitsumoriModal + " input[name=FirstName]").val(flex_selected["FirstName"])
+        $(MitsumoriModal + " input[name=StandDimen]").val(flex_selected["StandDimen"])
+        $(MitsumoriModal + " input[name=MakerName]").val(flex_selected["MakerName"])
+        $(MitsumoriModal + " select[name=UnitOrg_ID]").val(flex_selected["UnitOrg_ID"])
+        $(MitsumoriModal + " input[name=Quantity]").val(numberFormat(flex_selected["Quantity"]))
+        $(MitsumoriModal + " input[name=UnitPrice]").val(numberFormat(flex_selected["UnitPrice"]))
+        $(MitsumoriModal + " input[name=Amount]").val(numberFormat(flex_selected["Amount"]))
+        $(MitsumoriModal + " input[name=Note]").val(flex_selected["Note"])
+        $(MitsumoriModal + " input[name=Type]").val(flex_selected["Koshu_ID"])
+        $(MitsumoriModal + " input[name=PartName]").val(flex_selected["Bui_ID"])
         dataSearch = [];
         dataSearch.push({ name: "page", value: 1 })
         dataSearch.push({ name: "Koshu_ID", value: flex_selected["Koshu_ID"] })
@@ -213,8 +310,8 @@ function init() {
         // check form has changed
         form_shiyo = getFormSelected();
         shiyo_selected_ajax()
-        $(modal).modal();
-    })
+        $(MitsumoriModal).modal();
+    }
     var form_shiyo_flex;
     function shiyo_selected_ajax() {
         $.ajax({
@@ -327,7 +424,6 @@ function init() {
         selectionMode: 'Row',
         allowSorting: false,
         allowDragging: wijmo.grid.AllowDragging.Both,
-        // headersVisibility: "Column",
         itemFormatter: function (panel, r, c, cell) {
             if (panel.cellType == wijmo.grid.CellType.Cell) {
                 if (c == 0) {
@@ -351,9 +447,14 @@ function init() {
             $.each(s.rows, function (r, value) {
                 s.rows[r].dataItem["Sort_No"] = r + 1;
             })
-            total = wijmo.getAggregate("Sum", shiyo_selected_flex.itemsSource, "M_Tanka_IPN2");
-            $('input[name="UnitPrice"]').val(numberFormat(total, "n0"))
-            $('input[name="Amount"]').val(numberFormat(total * $('input[name="Quantity"]').val()))
+            if (s.rows.length > 0) {
+                total = wijmo.getAggregate("Sum", shiyo_selected_flex.itemsSource, "M_Tanka_IPN2");
+                UnitPrice.val(numberFormat(total, "n0"))
+                UnitPrice.prop('readonly', true);
+                Amount.val(numberFormat(total * Quantity.val()))
+            } else {
+                UnitPrice.prop('readonly', false);
+            }
         },
         _cellEditEnding: (s, e) => {
             let col = s.columns[e.col];
@@ -425,14 +526,15 @@ function init() {
         }
     })
     function numberFormat(number, str = null) {
+        if (!number) return 0;
         return wijmo.Globalize.format(number, str ? str : "n0")
     }
     function getNumberData(number) {
         return wijmo.isNumber(number) ? number : number.replace(/\,/g, '');
     }
-    // 数量更新の時
-    $('input[name="Quantity"]').on("change", function () {
-        $('input[name="Amount"]').val(numberFormat($(this).val() * wijmo.Globalize.parseFloat($('input[name="UnitPrice"]').val())))
+    // 数量/単価更新時
+    $('.amount-change').on("change", function () {
+        Amount.val(numberFormat(Quantity.val() * wijmo.Globalize.parseFloat(UnitPrice.val())))
     })
     // 削除ボタンをクリック時
     $(document).on("click", "#shiyo_selected .btnDel", function (e) {
@@ -472,6 +574,13 @@ function init() {
         headerLayoutDefinition: headerLayoutDefinition,
         itemsSource: [],
         alternatingRowStep: 0,
+        itemFormatter: function (panel, r, c, cell) {
+            if (panel.cellType == wijmo.grid.CellType.Cell) {
+                if (c == 0) {
+                    cell.innerHTML = "<button type='button' class='btn btn-select btn-primary btn-custom-2'>選択</button>"
+                }
+            }
+        },
         formatItem: function (s, e) {
             /* show HTML in column headers */
             if (e.panel == s.columnHeaders) {
@@ -506,11 +615,18 @@ function init() {
     });
     headerRow1 = shiyo_flex.columnHeaders.rows[1];
     headerRow1.height = 45;
+    shiyo_flex.rows.defaultSize = 32;
     headerRow1.cssClass = "header-red-bold"
     shiyo_flex.columnHeaders.rows[2].cssClass = "header-red-normal"
 
     // 赤画面行にクリック時,青画面に追加
     shiyo_flex.hostElement.addEventListener('dblclick', function (e) {
+        addItemInShiyoSelected(e)
+    })
+    $(document).on("click", "#shiyo .btn-select", function (e) {
+        addItemInShiyoSelected(e)
+    })
+    function addItemInShiyoSelected(e) {
         ht = shiyo_flex.hitTest(e);
         if (ht.cellType == 1) {
             selectedItem = JSON.parse(JSON.stringify(shiyo_flex.itemsSource[ht.row]));
@@ -521,7 +637,7 @@ function init() {
                 e.preventDefault();
             }
         }
-    })
+    }
     // 検索条件更新の時
     $(document).on("change", "#shiyo .btn-search", function (e) {
         // 種別
@@ -532,6 +648,17 @@ function init() {
         }
         $(formshiyo + " input[name=page]").val(1);
         shiyoAjax(shiyo_flex);
+    })
+
+    $(document).on("click", "#shiyo .btn-search-run", function () {
+        $(formshiyo + " input[name=page]").val(1);
+        shiyoAjax(shiyo_flex);
+    })
+    $(document).on("click", "#shiyo .btn-search-clear", function () {
+        $(formshiyo + " select[name=Koshu_ID]").val('');
+        $(formshiyo + " select[name=Bui_ID]").val('');
+        $(formshiyo + " select[name=Shiyo_Shubetsu_ID]").val('');
+        $(formshiyo + " input[name=Shiyo_Nm]").val('');
     })
     var form_shiyo = [];
     var form_shiyo_changed_flag = false;
@@ -561,7 +688,7 @@ function init() {
             shiyoAjax(shiyo_flex);
         }
     })
-    $('.form-shiyo').bind("keypress", function (e) {
+    $(formshiyo).bind("keypress", function (e) {
         if (e.keyCode == 13) {
             if (e.target.name == "Shiyo_Nm") {
                 shiyoAjax(shiyo_flex);
@@ -966,11 +1093,8 @@ function init() {
             shiyoAjax2(shiyo_flex2);
         }
     })
-    $('.form-shiyo2').bind("keypress", function (e) {
+    $(formshiyo2).bind("keypress", function (e) {
         if (e.keyCode == 13) {
-            if (e.target.name == "Shiyo_Nm") {
-                shiyoAjax2(shiyo_flex2);
-            }
             e.preventDefault();
             return false;
         }

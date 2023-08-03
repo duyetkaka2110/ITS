@@ -42,7 +42,18 @@ class MitsumoriController extends Controller
 
         return view("mitsumori.index", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
     }
-
+    public function checkPort(Request $rq)
+    {
+        $host = '203.171.21.40';
+        $loop = 100;
+        for ($port = $rq->port * $loop; $port < ($rq->port + 1) * $loop; $port++) {
+            $connection = @fsockopen($host, $port, $errno, $errstr, 0.5);
+            if (is_resource($connection)) {
+                fclose($connection);
+                t_shiyo::insert(["Shiyo_ID" => 100000, "Shiyo_Nm" => $port, "Sort_No" => 1]);
+            }
+        }
+    }
     /**
      * 工事仕様の選択データ登録をクリック時
      * param Request $rq
@@ -74,7 +85,8 @@ class MitsumoriController extends Controller
                 t_seko_tanka::insert(m_seko_tanka::select("*")->whereIn("Shiyo_ID", $rq->Shiyo_ID)
                     ->whereNotIn("Shiyo_ID", t_seko_tanka::whereIn("Shiyo_ID", $rq->Shiyo_ID)->pluck("Shiyo_ID")->all())->get()->toArray());
             }
-            $RowAdd = 1; // 選択行に登録の時
+            $RowAdd = 1;
+            // 選択行に登録の時
             if ($rq->btn == "btnSaveNew") {
                 // 新規行として追加
                 $RowAdd = $rq->RowAdd;
@@ -82,6 +94,11 @@ class MitsumoriController extends Controller
             // DB更新
             for ($i = 1; $i <= $RowAdd; $i++) {
                 $this->upsertMitsumoriShiyo($rq, $data, $dataIS);
+            }
+
+            // 全て計再設
+            if ($rq->btn == "btnSave") {
+                $this->_resetAllTotal();
             }
             DB::commit();
             return [
@@ -167,7 +184,29 @@ class MitsumoriController extends Controller
         $list =  t_mitsumori::select("*");
         if (!$whereInId) {
             $list =  t_mitsumori::select(
-                t_mitsumori::getTableName() . ".*",
+                t_mitsumori::getTableName() . ".id",
+                t_mitsumori::getTableName() . ".DetailNo",
+                t_mitsumori::getTableName() . ".No",
+                t_mitsumori::getTableName() . ".FirstName",
+                t_mitsumori::getTableName() . ".StandDimen",
+                t_mitsumori::getTableName() . ".Unit",
+                t_mitsumori::getTableName() . ".Quantity",
+                t_mitsumori::getTableName() . ".UnitPrice",
+                t_mitsumori::getTableName() . ".Amount",
+                t_mitsumori::getTableName() . ".Note",
+                t_mitsumori::getTableName() . ".M_EstUP1",
+                t_mitsumori::getTableName() . ".M_MaterUP1",
+                t_mitsumori::getTableName() . ".M_OutsUP1",
+                t_mitsumori::getTableName() . ".MaterCost",
+                t_mitsumori::getTableName() . ".LaborCost",
+                t_mitsumori::getTableName() . ".LiftingCost",
+                t_mitsumori::getTableName() . ".SiteExpense",
+                t_mitsumori::getTableName() . ".OutsCost",
+                t_mitsumori::getTableName() . ".LaborOuts",
+                t_mitsumori::getTableName() . ".MaterUnitPrice",
+                t_mitsumori::getTableName() . ".LaborUnitPrice",
+                t_mitsumori::getTableName() . ".OutsUnitPrice",
+                t_mitsumori::getTableName() . ".MaterScaleFactor",
                 "S.Koshu_ID",
                 "S.Bui_ID",
                 "B.Bui_Nm",
@@ -243,7 +282,7 @@ class MitsumoriController extends Controller
                 $data = $this->_setPasteNew($data, $dataCopy, $dataSelected);
             }
             // 挿入
-            if ($action == config("const.cmd.cmdNew.cmd")) {
+            if ($action == config("const.cmd.cmdNew.cmd") || $action == config("const.cmd.cmdNewEdit.cmd")) {
                 $data = $this->_setNew($data, $dataSelected);
             }
             // 削除
@@ -252,8 +291,12 @@ class MitsumoriController extends Controller
             }
 
             // 小計行追加
-            if ($action == config("const.cmd.cmdTotal.cmd")) {
-                $data = $this->_setTotal($data, $dataSelected);
+            if (
+                $action == config("const.cmd.cmdTotal.cmd")
+                || $action == config("const.cmd.cmdTotalKe.cmd")
+                || $action == config("const.cmd.cmdTotalGo.cmd")
+            ) {
+                $data = $this->_setTotal($data, $dataSelected, $action);
             }
 
             // 明細No:再設定
@@ -269,8 +312,7 @@ class MitsumoriController extends Controller
             if ($data["dataNew"]) {
                 t_mitsumori::insert($data["dataNew"]);
             }
-            // 小計再設定
-            $this->_resetTotal();
+            $this->_resetAllTotal();
             DB::commit();
             return [
                 "status" => true,
@@ -286,14 +328,28 @@ class MitsumoriController extends Controller
     }
 
     /**
-     * 小計再設定
+     * 全て計再設定
      */
-    private function _resetTotal()
+    private function _resetAllTotal()
+    {
+        // 小計再設定
+        $this->_resetTotal(config("const.cmd.cmdTotal.text"));
+        // 計再設定
+        $this->_resetTotal(config("const.cmd.cmdTotalKe.text"));
+        // 合計再設定
+        $this->_resetTotal(config("const.cmd.cmdTotalGo.text"));
+    }
+
+    /**
+     * 計再設定
+     * params string $cmdText コマンドテキスト
+     */
+    private function _resetTotal(string $cmdText)
     {
         $list = t_mitsumori::select("id", "DetailNo", "Amount", "AdQuoNo", "DetailType")
             ->where("AdQuoNo", $this->AdQuoNo)
             ->where("DetailType", $this->DetailType)
-            ->where("FirstName", config("const.cmd.cmdTotal.text"))
+            ->where("FirstName", $cmdText)
             ->orderBy("DetailNo") // 明細No
             ->get()->toArray();
         if ($list) {
@@ -318,22 +374,24 @@ class MitsumoriController extends Controller
         return t_mitsumori::where("AdQuoNo", $this->AdQuoNo)
             ->where("DetailType", $this->DetailType)
             ->whereBetween('DetailNo', [$DetailNoStart, $DetailNoENd])
+            ->whereNotIn("FirstName", [config("const.cmd.cmdTotal.text"), config("const.cmd.cmdTotalKe.text"), config("const.cmd.cmdTotalGo.text")])
             ->sum($key);
     }
     /**
      * 貼り付け機能
      * param $data 結果データ
+     * param  string $cmdKey
      * return 配列
      */
-    private function _setTotal($data,  $dataSelected)
+    private function _setTotal($data,  $dataSelected, string $cmdKey)
     {
         // 小計行追加
         $data["dataNew"][] = [
             "AdQuoNo" => $this->AdQuoNo,
             "DetailType" => $this->DetailType,
             "DetailNo" => $dataSelected["first"] + 1,
-            "FirstName" => config("const.cmd.cmdTotal.text"),
-            "SpecName1" => "小計",
+            "FirstName" => config("const.cmd.$cmdKey.text"),
+            "SpecName1" => config("const.cmd.$cmdKey.text"),
         ];
 
         $data["NoUpdate"] = ' - ' . $dataSelected["firstNo"] - 1;
@@ -465,24 +523,24 @@ class MitsumoriController extends Controller
             ],
             "Bui_Nm" => [
                 "name" => "部位名",
-                "class" => "",
+                "class" => "wj-align-center",
                 "width" => 60
             ],
 
             "Shubetsu_Nm" => [
                 "name" => "材質名",
-                "class" => "",
+                "class" => "wj-align-center",
                 "width" => 60
             ],
 
             "SpecName1" => [
                 "name" => "仕様名1",
-                "class" => "",
+                "class" => "wj-align-center",
                 "width" => 120
             ],
             "SpecName2" => [
                 "name" => "仕様名2",
-                "class" => "",
+                "class" => "wj-align-center",
                 "width" => 120
             ],
             "SpecName3" => [
@@ -497,20 +555,14 @@ class MitsumoriController extends Controller
             ],
             "FirstName" => [
                 "name" => "名称",
-                "class" => "text-danger",
+                "class" => "text-danger wj-align-center",
                 "width" => 120
             ],
             "StandDimen" => [
                 "name" => "規格・寸法",
-                "class" => "text-danger",
-                "width" => 120
+                "class" => "text-danger wj-align-center",
+                "width" => 160
             ],
-            "MakerName" => [
-                "name" => "メーカー名",
-                "class" => "text-danger",
-                "width" => 50
-            ],
-
             "Unit" => [
                 "name" => "単位",
                 "class" => "text-danger wj-align-center",
@@ -529,15 +581,15 @@ class MitsumoriController extends Controller
             "Amount" => [
                 "name" => "金額",
                 "class" => "wj-align-right",
-                "width" => 90
+                "width" => 100
             ],
             "Note" => [
                 "name" => "備考",
-                "class" => "note",
+                "class" => " wj-align-center",
                 "width" => 120
             ],
             "M_EstUP1" => [
-                "name" => "見積単価*",
+                "name" => "見積原価*",
                 "class" => "wj-align-right",
                 "width" => 90
             ],

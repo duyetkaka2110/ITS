@@ -1,5 +1,6 @@
 body {
     font-size: 14px;
+    font-family: inherit;
 }
 
 .w-1em {
@@ -200,7 +201,7 @@ body {
 }
 
 .btn-custom {
-    padding: 2px 10px;
+    padding: 6px 10px 2px
 }
 
 .modal-dialog-centered {
@@ -228,7 +229,6 @@ body {
 }
 
 .mg-loading .spinner-border {
-
     position: absolute;
     top: 45%;
 }
@@ -242,4 +242,25 @@ body {
     z-index: 111111;
     top: 60px;
     right: 30px;
+}
+
+.overflow-y-scroll {
+    overflow-y: scroll;
+}
+
+.modal-drag {
+    overflow-y: hidden !important;
+}
+
+.modal-drag .modal-header {
+    cursor: move;
+}
+
+.modal-drag .modal-body {
+    overflow-y: scroll;
+}
+
+.btn-custom-2 {
+    padding: 3px 5px 0;
+    font-size: 85%;
 }

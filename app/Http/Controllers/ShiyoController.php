@@ -43,11 +43,11 @@ class ShiyoController extends Controller
             "M.Maker_Nm",
             t_mitsumori_meisai::getTableName() . ".Sort_No"
         )
-            ->selectRaw("format(ifnull(AtariSuryo,0),1) as AtariSuryo")
+            ->selectRaw("format(ifnull(AtariSuryo,1),1) as AtariSuryo")
             ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
-            ->selectRaw("(format(ifnull(AtariSuryo,0),1) *ST.M_Tanka_IPN) as M_Tanka_IPN2")
-            ->selectRaw("(format(ifnull(AtariSuryo,0),1) *ST.Z_Tanka_IPN) as Z_Tanka_IPN2")
-            ->selectRaw("(format(ifnull(AtariSuryo,0),1) *ST.R_Tanka_IPN) as R_Tanka_IPN2")
+            ->selectRaw("(format(ifnull(AtariSuryo,1),1) *ST.M_Tanka_IPN) as M_Tanka_IPN2")
+            ->selectRaw("(format(ifnull(AtariSuryo,1),1) *ST.Z_Tanka_IPN) as Z_Tanka_IPN2")
+            ->selectRaw("(format(ifnull(AtariSuryo,1),1) *ST.R_Tanka_IPN) as R_Tanka_IPN2")
             // 反映
             ->join(t_shiyo::getTableName("S"), "S.Shiyo_ID", t_mitsumori_meisai::getTableName() . ".Shiyo_ID")
             ->leftJoin(m_maker::getTableName("M"), "S.Maker_ID", "M.Maker_ID")
@@ -75,7 +75,7 @@ class ShiyoController extends Controller
                 "M.Maker_ID",
                 "M.Maker_Nm"
             )
-                ->selectRaw("format(ifnull(AtariSuryo,0),1) as AtariSuryo")
+                ->selectRaw("format(ifnull(AtariSuryo,1),1) as AtariSuryo")
                 ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
                 // マスタ
                 ->join(m_shiyo::getTableName("S"), "S.Shiyo_ID", t_mitsumori_meisai::getTableName() . ".Shiyo_ID")
@@ -111,7 +111,7 @@ class ShiyoController extends Controller
             "M.Maker_Nm"
         )
             ->selectRaw("'仕様' AS Zairyo_Shiyo_Type")
-            ->selectRaw("0 as AtariSuryo")
+            ->selectRaw("1 as AtariSuryo")
             ->selectRaw("0 as Old_Flg")
             ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Koshu_Nm")
             ->selectRaw("CASE WHEN tST.M_Tanka_IPN IS NULL 
@@ -183,7 +183,7 @@ class ShiyoController extends Controller
             "row" => [
                 "name" => " ",
                 "class" => "wj-align-center",
-                "width" => 30,
+                "width" => 40,
             ],
             "Koshu_Nm" => [
                 "name" => "種別",
@@ -201,7 +201,7 @@ class ShiyoController extends Controller
                 "width" => 80,
             ],
             "Shiyo_Nm" => [
-                "name" => "仕様",
+                "name" => "工事仕様",
                 "class" => "",
                 "width" => 200,
             ],
@@ -279,6 +279,12 @@ class ShiyoController extends Controller
         })->toArray();
 
         return json_encode([
+            "select" => [
+                "name" => " ",
+                "class" => "wj-align-left-im",
+                "width" => 50,
+                "line1" => ""
+            ],
             "Koshu_Nm" => [
                 "name" => "種別",
                 "class" => "wj-align-left-im",
@@ -298,7 +304,7 @@ class ShiyoController extends Controller
                 "line1" => Form::select('Shiyo_Shubetsu_ID', ["" => ""] + $shiyo_shubetsus, null, ["class" => "form-control p-1 btn-search"], $shiyo_shubetsus_attr)->toHtml()
             ],
             "Shiyo_Nm" => [
-                "name" => "仕様",
+                "name" => "工事仕様",
                 "class" => "",
                 "width" => 378,
                 "line1" => "<input type='text' name='Shiyo_Nm' class='w-100 form-control pl-1 btn-search' />"
@@ -306,13 +312,14 @@ class ShiyoController extends Controller
             "Tani_Nm" => [
                 "name" => "単位",
                 "class" => "wj-align-center",
-                "width" => 50,
-                "line1" => ""
+                "width" => 67,
+                "line1" => "<button type='button' class='btn btn-search-run btn-primary'>検索</button>"
             ],
             "M_Tanka_IPN" => [
                 "name" => "見積単価",
                 "class" => "wj-align-center",
                 "width" => "",
+                "line1" => "<button type='button' class='btn btn-search-clear btn-primary'>クリア</button>"
             ],
             "Z_Tanka_IPN" => [
                 "name" => "材料単価",

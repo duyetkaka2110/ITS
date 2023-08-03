@@ -2,6 +2,13 @@
 return [
     // xlsxのコマンド
     "cmd" => [
+        // 新規行追加
+        "cmdNewEdit" => [
+            "cmd" => "cmdNewEdit",
+            "name" => "新規行追加",
+            "icon" => "fa-keyboard-o",
+            "msg" => ""
+        ],
         // コピー
         "cmdCopy" => [
             "cmd" => "cmdCopy",
@@ -43,7 +50,23 @@ return [
             "name" => "小計行追加",
             "icon" => "fa-calculator",
             "msg" => "を小計し",
-            "text" => "（内部）"
+            "text" => "小計"
+        ],
+        // 計行追加
+        "cmdTotalKe" => [
+            "cmd" => "cmdTotalKe",
+            "name" => "計行追加",
+            "icon" => "fa-calculator",
+            "msg" => "を計し",
+            "text" => "計"
+        ],
+        // 合計行追加
+        "cmdTotalGo" => [
+            "cmd" => "cmdTotalGo",
+            "name" => "合計行追加",
+            "icon" => "fa-calculator",
+            "msg" => "を合計し",
+            "text" => "合計"
         ],
         // 閉じる
         "cmdExit" => [

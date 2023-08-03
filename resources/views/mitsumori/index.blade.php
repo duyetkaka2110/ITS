@@ -1,10 +1,13 @@
 @extends('layouts.layout')
 @section("title","見積詳細")
 @section("css")
+<link href="{{ URL::asset('css/jquery-ui.css') }}" rel="stylesheet" />
 <link href="{{ URL::asset('css/wijmo.min.css') }}" rel="stylesheet" />
 <link href="{{ URL::asset('css/mitsumori.css') }}" rel="stylesheet" />
 @endsection
 @section("js")
+<script src="{{ URL::asset('js/js.cookie.min.js') }}"></script>
+<script src="{{ URL::asset('js/jquery-ui.min.js') }}"></script>
 <!-- Wijmo styles and core (required) -->
 <script src="{{ URL::asset('js/wijmo.min.js') }}"></script>
 <script src="{{ URL::asset('js/wijmo.input.min.js') }}"></script>
@@ -44,7 +47,7 @@
                 location.reload();
             }, 2000);
         })
-        // $("#ShiyoEditModal").modal()
+        // $("#MitsumoriModal").modal()
     })
 </script>
 
@@ -52,6 +55,7 @@
 @section('content')
 <div class="page"></div>
 <div class="container-fluid">
+    <div class="mg-menu"></div>
     <div id="grid" class="has-ctx-menu"></div>
 </div>
 <button class="reload w-13em" style="height: 40px;">画面再表示</button>
@@ -61,11 +65,11 @@
 @endsection
 @section('modal')
 <!-- 編集ポップアップ -->
-<div class="modal fade bd-example-modal-lg" id="MitsumoriModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
+<div class="modal fade modal-drag bd-example-modal-lg" id="MitsumoriModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content w-100">
             <div class="modal-header bg-primary pt-2 pb-2">
-                <h6 class="modal-title text-white">工事仕様の選択</h6>
+                <h6 class="modal-title text-white">工事仕様選択</h6>
                 <button type="button" class="close text-white ">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -129,18 +133,17 @@
                             <div class="form-group row mb-1">
                                 <label class="col-sm-2 col-form-label text-right">数量</label>
                                 <div class="col-sm-10 pl-0">
-                                    <input type="number" class="form-control p-1 h-30 col-3 d-inline text-right" min=0 max=100000 step="0.1" name="Quantity">
+                                    <input type="url" title="数量" class="form-control p-1 h-30 col-3 d-inline text-right imeoff amount-change floatic"  inputmode="number" name="Quantity">
                                     <span class="ml-2 pr-1">単価</span>
                                     <div class="input-group align-bottom pl-0 col-3 mt-1 d-inline-flex">
-                                        <input type="text" class="form-control p-1 h-30  d-inline text-right" name="UnitPrice" readonly>
+                                        <input type="url" title="単価"  class="form-control p-1 h-30  d-inline text-right imeoff numeric amount-change" inputmode="number" name="UnitPrice"  >
                                         <div class="input-group-append">
                                             <span class="input-group-text p-1 font-s-83">円</span>
                                         </div>
                                     </div>
                                     <span class="ml-2 pr-1">金額</span>
-
                                     <div class="input-group align-bottom pl-0 col-3 mt-1 d-inline-flex">
-                                        <input type="text" class="form-control p-1 h-30  d-inline text-right" name="Amount" readonly>
+                                        <input type="text" title="金額" class="form-control p-1 h-30  d-inline text-right" name="Amount" readonly>
                                         <div class="input-group-append">
                                             <span class="input-group-text p-1 font-s-83">円</span>
                                         </div>
@@ -172,7 +175,7 @@
     </div>
 </div>
 <!-- 仕様の構成の編集画面ポップアップ -->
-<div class="modal fade bd-example-modal-lg" id="ShiyoEditModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
+<div class="modal fade modal-drag  bd-example-modal-lg " id="ShiyoEditModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content w-100">
             <div class="modal-header bg-primary pt-2 pb-2">

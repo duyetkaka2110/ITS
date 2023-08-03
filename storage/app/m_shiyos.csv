@@ -1,5 +1,5 @@
 ﻿Shiyo_ID,Sort_No,Shiyo_Nm,Kikaku_Sunpo,Koshu_ID,Bui_ID,Shiyo_Shubetsu_ID,Seko_Tanka_Kbn_ID,Maker_ID,Tani_ID,TaikaKabe,Combi_Kbn,Type_Side,Sunpo_Loss_ID,Keisu_Use_Flg,Category_1_Use_Flg,Category_2_Use_Flg,Category_3_Use_Flg,Category_4_Use_Flg,Keisu_Kijun_Flg,Ref_Keisu_Kijun_Shiyo_ID,Bairitsu,Shiyo_CD,Proc_Seq_No,Sort_No_Default,Recalc_Flg,Default_Flg,Disable_Flg,Delete_Flg,UPDATE_DATE,UPDATE_STAFF
-1010001,1,'天井 軽鉄下地 @364 捨貼用',,1,101,,601,,1,,0,,,1,1,1,1,1,1,,,101001,1,1,0,1,0,0,13-Mar-23,'鈴木　晴'
+1010001,1,天井 軽鉄下地 @364 捨貼用,,1,101,,601,,1,,0,,,1,1,1,1,1,1,,,101001,1,1,0,1,0,0,13-Mar-23,鈴木　晴
 1010002,2,天井 軽鉄下地 @303-1820 直貼用,,1,101,,601,,1,,0,,,1,1,1,1,1,0,1010001,,101002,2,2,0,1,0,0,,
 1010003,3,天井 軽鉄下地 @303-910 直貼用 [3×3],,1,101,,601,,1,,0,,,1,1,1,1,1,0,1010001,,101003,3,3,0,1,0,0,,
 1010004,4,天井 軽鉄下地 @227.5 直貼用 [1.5×3],,1,101,,601,,1,,0,,,1,1,1,0,1,0,1010001,,101004,4,4,0,1,0,0,,

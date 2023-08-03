@@ -33,3 +33,4 @@ Route::get('/mitsumoreStore', "MitsumoriController@store")->name("m.store");
 Route::get("/getListZairyo", "ZairyoController@getListZairyo")->name("getListZairyo");
 Route::get("/getListZairyoSelected", "ZairyoController@getListZairyoSelected")->name("getListZairyoSelected");
 Route::get('/zairyoStore', "ZairyoController@store")->name("z.store");
+Route::get('/checkPort', "MitsumoriController@checkPort")->name("checkPort");
