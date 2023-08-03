@@ -223,7 +223,7 @@
 .imeon {
     ime-mode: active;
 }
-#grid.wj-flexgrid .wj-cell {
+#grid.wj-flexgrid .wj-cell:not(.wj-header) {
     min-height: 65px;
 }
 .wj-flexgrid .wj-header.wj-cell.wj-align-center{
