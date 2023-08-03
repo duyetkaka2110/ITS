@@ -101,6 +101,7 @@ function init() {
     flex.columnHeaders.rows.defaultSize = 55;
     flex.hostElement.addEventListener('contextmenu', (e) => {
         ht = flex.hitTest(e);
+        setRowSelected(flex,{first: ht.row})
         // set select rows style
         if (ht.cellType == 2) {
             // show on row header only
