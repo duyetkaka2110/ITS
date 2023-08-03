@@ -58,7 +58,7 @@ function init() {
         resize();
     });
     function resize() {
-        $("#grid").css("height", window.innerHeight - 50);
+        $("#grid").css("height", window.innerHeight - 90);
     }
     var ajaxMethod = "get";
     var datacopy = null;
