@@ -65,10 +65,10 @@
 @endsection
 @section('modal')
 <!-- 編集ポップアップ -->
-<div class="modal fade modal-drag bd-example-modal-lg" id="MitsumoriModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+<div class="modal fade modal-drag bd-example-modal-lg " id="MitsumoriModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-MitsumoriModal modal-lg" role="document">
         <div class="modal-content w-100">
-            <div class="modal-header bg-primary pt-2 pb-2">
+            <div class="modal-header modal-header-MitsumoriModal bg-primary pt-2 pb-2">
                 <h6 class="modal-title text-white">工事仕様選択</h6>
                 <button type="button" class="close text-white ">
                     <span aria-hidden="true">&times;</span>
@@ -176,9 +176,9 @@
 </div>
 <!-- 仕様の構成の編集画面ポップアップ -->
 <div class="modal fade modal-drag  bd-example-modal-lg " id="ShiyoEditModal" tabindex="-1" role="dialog" data-keyboard="false" data-backdrop="static" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-dialog-ShiyoEditModal modal-lg" role="document">
         <div class="modal-content w-100">
-            <div class="modal-header bg-primary pt-2 pb-2">
+            <div class="modal-header modal-header-ShiyoEditModal bg-primary pt-2 pb-2">
                 <h6 class="modal-title text-white">材料構成編集</h6>
                 <button type="button" class="close">
                     <span aria-hidden="true">&times;</span>

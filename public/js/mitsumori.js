@@ -4,6 +4,7 @@ function init() {
     let Amount = $('input[name="Amount"]');
     let Quantity = $('input[name="Quantity"]');
     let MitsumoriModal = "#MitsumoriModal";
+    let ShiyoEditModal = "#ShiyoEditModal";
 
     var listModalSavePosition = ["MitsumoriModal", "ShiyoEditModal"];
     // 移動した位置」「変更したサイズ」を記憶しておき、次に同じポップアップウィンドウを開いた際、その位置、サイズを再現する
@@ -11,27 +12,26 @@ function init() {
         if (Cookies.get(modal + 'Header') !== undefined) {
             $("#" + modal).attr("style", Cookies.get(modal + 'Header'));
         }
-        if (Cookies.get('MitsumoriModalDialog') !== undefined) {
+        if (Cookies.get(modal + 'Dialog') !== undefined) {
             $("#" + modal + " .modal-dialog").attr("style", Cookies.get(modal + 'Dialog'));
             $("#" + modal + " .modal-content").attr("style", Cookies.get(modal + 'Content'));
         }
+        // ポップアップウィンドウを全て,移動可,サイズ変更可にする。
+        $("#" + modal).draggable({
+            handle: ".modal-header-" + modal,
+            stop: function (e) {
+                Cookies.set($(this).attr("id") + "Header", e.target.getAttribute("style").replace("display: block;", ""));
+            }
+        });
+        $("#" + modal + " .modal-content").resizable({
+            alsoResize: ".modal-dialog-" + modal,
+            minHeight: 150,
+            stop: function (e) {
+                Cookies.set($(this).parent().parent().attr("id") + "Dialog", $(this).parent().attr("style"));
+                Cookies.set($(this).parent().parent().attr("id") + "Content", $(this).attr("style"));
+            }
+        });
     })
-
-    // ポップアップウィンドウを全て,移動可,サイズ変更可にする。
-    $(".modal").draggable({
-        handle: ".modal-header",
-        stop: function (e) {
-            Cookies.set($(this).attr("id") + "Header", e.target.getAttribute("style").replace("display: block;", ""));
-        }
-    });
-    $('.modal-drag .modal-content').resizable({
-        alsoResize: ".modal-dialog",
-        minHeight: 150,
-        stop: function (e) {
-            Cookies.set($(this).parent().parent().attr("id") + "Dialog", $(this).parent().attr("style"));
-            Cookies.set($(this).parent().parent().attr("id") + "Content", $(this).attr("style"));
-        }
-    });
 
     // 数量がNullであれば、デフォルト値として「1」をセットし、金額も更新する。
     $("input[name=UnitPrice]").on("change", function () {
@@ -268,11 +268,11 @@ function init() {
         } else {
             // 工事仕様の選択画面閉じる
             if (action == "close") {
-                $("#MitsumoriModal").modal("hide")
+                $(MitsumoriModal).modal("hide")
             }
             // 仕様の構成の編集画面閉じる
             if (action == "closeEdit") {
-                $("#ShiyoEditModal").modal("hide")
+                $(ShiyoEditModal).modal("hide")
             }
         }
     }
@@ -518,7 +518,7 @@ function init() {
                             scrollPosition.y = -flex.scrollSize.height;
                         }
                         flex.scrollPosition = scrollPosition;
-                        $("#MitsumoriModal").modal("hide")
+                        $(MitsumoriModal).modal("hide")
                         setRowSelected(flex, dataSelected)
                     }
                 }
@@ -664,11 +664,11 @@ function init() {
     var form_shiyo_changed_flag = false;
     var formSelected = $(".form-selected");
     // 工事仕様の選択画面閉じるのポップアップ表示
-    $("#MitsumoriModal .close").on("click", function () {
+    $(MitsumoriModal + " .close").on("click", function () {
         if (form_shiyo !== getFormSelected() || form_shiyo_flex !== JSON.stringify(shiyo_selected_flex.itemsSource)) {
             dispConfirmModal("編集中のデータはまだ保存していません。<br>編集中の内容を破棄し、見積明細画面に戻りますか？", "close");
         } else {
-            $("#MitsumoriModal").modal("hide");
+            $(MitsumoriModal).modal("hide");
         }
     })
 
@@ -730,14 +730,13 @@ function init() {
 
     // 仕様の構成の編集画面表示
     $(document).on("click", ".btnShiyoEdit", function (e) {
-        modal = "#ShiyoEditModal";
-        $(modal).modal();
+        $(ShiyoEditModal).modal();
         shiyo_selected_edit = shiyo_selected_flex.selectedItems[0];
-        $(modal + " .Koshu_Nmtxt").html(shiyo_selected_edit["Koshu_Nm"])
-        $(modal + " .Bui_NMtxt").html(shiyo_selected_edit["Bui_NM"])
-        $(modal + " input[name=Shiyo_Nm]").val(shiyo_selected_edit["Shiyo_Nm"])
-        $(modal + " input[name=Maker_Nm]").val(shiyo_selected_edit["Maker_Nm"])
-        $(modal + " select[name=Tani_ID]").val(shiyo_selected_edit["Tani_ID"])
+        $(ShiyoEditModal + " .Koshu_Nmtxt").html(shiyo_selected_edit["Koshu_Nm"])
+        $(ShiyoEditModal + " .Bui_NMtxt").html(shiyo_selected_edit["Bui_NM"])
+        $(ShiyoEditModal + " input[name=Shiyo_Nm]").val(shiyo_selected_edit["Shiyo_Nm"])
+        $(ShiyoEditModal + " input[name=Maker_Nm]").val(shiyo_selected_edit["Maker_Nm"])
+        $(ShiyoEditModal + " select[name=Tani_ID]").val(shiyo_selected_edit["Tani_ID"])
         // 材料リストデータ取得
         ajaxZairyoSelected(shiyo_selected_edit["Shiyo_ID"])
     })
@@ -801,6 +800,13 @@ function init() {
             /* show HTML in column headers */
             if (e.panel == s.columnHeaders) {
                 e.cell.innerHTML = e.cell.textContent;
+            }
+        },
+        itemFormatter: function (panel, r, c, cell) {
+            if (panel.cellType == wijmo.grid.CellType.Cell) {
+                if (c == 0) {
+                    cell.innerHTML = "<button type='button' class='btn btn-select btn-primary btn-custom-2'>選択</button>"
+                }
             }
         },
         autoGenerateColumns: false,
@@ -905,6 +911,12 @@ function init() {
 
     // 赤画面行にクリック時,青画面に追加
     zairyo_flex.hostElement.addEventListener('dblclick', function (e) {
+        addItemInZairyoSelected(e)
+    })
+    $(document).on("click", "#zairyo .btn-select", function (e) {
+        addItemInZairyoSelected(e)
+    })
+    function addItemInZairyoSelected(e) {
         ht = zairyo_flex.hitTest(e);
         if (ht.cellType == 1) {
             selectedItem = JSON.parse(JSON.stringify(zairyo_flex.itemsSource[ht.row]));
@@ -915,8 +927,7 @@ function init() {
                 e.preventDefault();
             }
         }
-    })
-
+    }
     // マイナス数量になったらエラー
     function checkNegative(source, Zairyo_Shiyo_ID, Sort_No, value) {
         subtotal = 0;
@@ -940,11 +951,11 @@ function init() {
     })
 
     // 仕様の構成の編集画面閉じるのポップアップ表示
-    $("#ShiyoEditModal .close").on("click", function () {
+    $(ShiyoEditModal + " .close").on("click", function () {
         if (form_zairyo_selected_flex !== JSON.stringify(zairyo_selected_flex.itemsSource)) {
             dispConfirmModal("編集中のデータはまだ保存していません。<br>編集中の内容を破棄し、工事仕様の選択に戻りますか？", "closeEdit");
         } else {
-            $("#ShiyoEditModal").modal("hide")
+            $(ShiyoEditModal).modal("hide")
         }
     })
 
@@ -1016,6 +1027,13 @@ function init() {
                 e.cell.innerHTML = e.cell.textContent;
             }
         },
+        itemFormatter: function (panel, r, c, cell) {
+            if (panel.cellType == wijmo.grid.CellType.Cell) {
+                if (c == 0) {
+                    cell.innerHTML = "<button type='button' class='btn btn-select btn-primary btn-custom-2'>選択</button>"
+                }
+            }
+        },
         autoGenerateColumns: false,
         isReadOnly: true,
         selectionMode: 'Row',
@@ -1047,8 +1065,10 @@ function init() {
     headerRow1.cssClass = "header-red-bold"
     shiyo_flex2.columnHeaders.rows[2].cssClass = "header-red-normal"
 
-    // 赤画面行にクリック時,青画面に追加
-    shiyo_flex2.hostElement.addEventListener('dblclick', function (e) {
+    $(document).on("click", "#shiyo2 .btn-select", function (e) {
+        addItemInShiyoSelected2(e)
+    })
+    function addItemInShiyoSelected2(e) {
         ht = shiyo_flex2.hitTest(e);
         if (ht.cellType == 1) {
             selectedItem = JSON.parse(JSON.stringify(shiyo_flex2.itemsSource[ht.row]));
@@ -1067,9 +1087,13 @@ function init() {
             zairyo_selected_flex.itemsSource.push(selectedItemNew);
             zairyo_selected_flex.collectionView.refresh();
             zairyo_selected_flex.select(zairyo_selected_flex.itemsSource.length, -1)
-            if (e.returnValue) {
-                e.preventDefault();
-            }
+        }
+    }
+    // 赤画面行にクリック時,青画面に追加
+    shiyo_flex2.hostElement.addEventListener('dblclick', function (e) {
+        addItemInShiyoSelected2(e)
+        if (e.returnValue) {
+            e.preventDefault();
         }
     })
     // 検索条件更新の時

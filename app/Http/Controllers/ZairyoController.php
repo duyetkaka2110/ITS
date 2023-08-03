@@ -247,6 +247,12 @@ class ZairyoController extends Controller
         $m_zairyo_shubetsu = m_zairyo_shubetsu::pluck("Zairyo_Shubetsu_Nm", "Zairyo_Shubetsu_ID")->toArray();
 
         return json_encode([
+            "select" => [
+                "name" => " ",
+                "class" => "wj-align-left-im",
+                "width" => 50,
+                "line1" => ""
+            ],
             "Shubetsu_Nm" => [
                 "name" => "材料種別",
                 "class" => "wj-align-left-im",
