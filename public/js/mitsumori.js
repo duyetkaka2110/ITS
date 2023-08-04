@@ -674,7 +674,6 @@ function init() {
         $(formshiyo + " input[name=Shiyo_Nm]").val('');
     })
     var form_shiyo = [];
-    var form_shiyo_changed_flag = false;
     var formSelected = $(".form-selected");
     // 工事仕様の選択画面閉じるのポップアップ表示
     $(MitsumoriModal + " .close").on("click", function () {
