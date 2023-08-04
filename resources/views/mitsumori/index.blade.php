@@ -158,7 +158,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="shiyo_selected" class="wijmo-custom wijmo-height-250 wijmo-blue"></div>
+                    <div id="shiyo_selected" class="wijmo-custom wijmo-height-220 wijmo-blue"></div>
                 </form>
                 <form class="form-shiyo position-relative">
                     {{ Form::hidden("page",0)}}
@@ -167,7 +167,7 @@
                             <span class="sr-only"></span>
                         </div>
                     </div>
-                    <div id="shiyo" class="wijmo-custom mt-2 wijmo-red wijmo-height-250"></div>
+                    <div id="shiyo" class="wijmo-custom mt-2 wijmo-red wijmo-height-220"></div>
                 </form>
                 <div id="shiyoPage" class="mt-2"></div>
             </div>
