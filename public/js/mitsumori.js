@@ -17,6 +17,10 @@ function init() {
             $("#" + modal + " .modal-dialog").attr("style", Cookies.get(modal + 'Dialog'));
             $("#" + modal + " .modal-content").attr("style", Cookies.get(modal + 'Content'));
         }
+        var windowX = $(window).width(); //determines the width of the browser window
+        var windowY = $(window).height();//determines the height of the browser window
+        var imageX = 2000; //put the width of your image here. my image was 2000x1000
+        var imageY = 1000;//image height
         // ポップアップウィンドウを全て,移動可,サイズ変更可にする。
         $("#" + modal).draggable({
             handle: ".modal-header-" + modal,
@@ -33,7 +37,14 @@ function init() {
             }
         });
     })
-
+    $(document).keydown(function (e) {
+        if (e.keyCode == 116 && e.ctrlKey) {
+            // ctrl + f5: ポップアップウィンドウを全て,移動可,サイズ保存をクリア
+            Object.keys(Cookies.get()).forEach(function (cookieName) {
+                Cookies.remove(cookieName);
+            });
+        }
+    });
     // 数量がNullであれば、デフォルト値として「1」をセットし、金額も更新する。
     $("input[name=UnitPrice]").on("change", function () {
         if ($("input[name=Quantity]").val() == 0 && shiyo_selected_flex.rows.length == 0 && this.value != 0) {
