@@ -1116,7 +1116,7 @@ function init() {
         }
     })
     // 検索条件更新の時
-    $(document).on("change", "#shiyo2 .btn-search", function (e) {
+    $(document).on("change", formshiyo2 + " .btn-search", function (e) {
         // 種別
         if (e.target.name == "Koshu_ID") {
             $(formshiyo2 + " select[name=Bui_ID]").val('');
@@ -1129,7 +1129,7 @@ function init() {
 
     $(document).on("click", formshiyo2 + " .btn-search-run", function () {
         $(formshiyo2 + " input[name=page]").val(1);
-        shiyoAjax2(shiyo_flex);
+        shiyoAjax2(shiyo_flex2);
     })
     $(document).on("click", formshiyo2 + " .btn-search-clear", function () {
         $(formshiyo2 + " select[name=Koshu_ID]").val('');
