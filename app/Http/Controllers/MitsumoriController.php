@@ -23,6 +23,26 @@ class MitsumoriController extends Controller
     protected $DetailType = 1;
 
     /**
+     * tabulator
+     */
+    public function index2(Request $rq)
+    {
+        $header = $this->_getTableHeader();
+        $cmd = json_encode(config("const.cmd"));
+        $list = $this->_getList();
+        $tanis = m_tani::orderBy("Sort_No")->pluck("Tani_Nm", "Tani_ID")->toArray();
+
+        $shiyo = new ShiyoController();
+        $headerShiyo = $shiyo->getTableHeaderShiyo();
+        $headerShiyoSelected = $shiyo->getTableHeaderShiyoSelected();
+
+        $zairyo = new ZairyoController();
+        $headerZairyo = $zairyo->getTableHeaderZairyo();
+        $headerZairyoSelected = $zairyo->getTableHeaderZairyoSelected();
+
+        return view("mitsumori.index2", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
+    }
+    /**
      * 見積明細画面
      */
     public function index(Request $rq)

@@ -5,6 +5,7 @@ function init() {
     let Quantity = $('input[name="Quantity"]');
     let MitsumoriModal = "#MitsumoriModal";
     let ShiyoEditModal = "#ShiyoEditModal";
+    let firstUnitPrice;
 
     var listModalSavePosition = ["MitsumoriModal", "ShiyoEditModal"];
     // 移動した位置」「変更したサイズ」を記憶しておき、次に同じポップアップウィンドウを開いた際、その位置、サイズを再現する
@@ -101,7 +102,7 @@ function init() {
     flex.columnHeaders.rows.defaultSize = 55;
     flex.hostElement.addEventListener('contextmenu', (e) => {
         ht = flex.hitTest(e);
-        setRowSelected(flex,{first: ht.row})
+        setRowSelected(flex, { first: ht.row })
         // set select rows style
         if (ht.cellType == 2) {
             // show on row header only
@@ -325,6 +326,7 @@ function init() {
                     shiyo_flex.itemsSource = new wijmo.collections.ObservableArray(res["dataShiyo"]["data"]);
                     $("#shiyoPage").html(res["dataShiyo"]["pagi"])
                     form_shiyo_flex = JSON.stringify(shiyo_selected_flex.itemsSource);
+                    firstUnitPrice = wijmo.getAggregate("Sum", shiyo_selected_flex.itemsSource, "M_Tanka_IPN2");
                 }
             }
         });
@@ -448,13 +450,11 @@ function init() {
             $.each(s.rows, function (r, value) {
                 s.rows[r].dataItem["Sort_No"] = r + 1;
             })
-            if (s.rows.length > 0) {
-                total = wijmo.getAggregate("Sum", shiyo_selected_flex.itemsSource, "M_Tanka_IPN2");
+            total = wijmo.getAggregate("Sum", shiyo_selected_flex.itemsSource, "M_Tanka_IPN2");
+            if (s.rows.length > 0 && total != firstUnitPrice) {
+                firstUnitPrice = total;
                 UnitPrice.val(numberFormat(total, "n0"))
-                UnitPrice.prop('readonly', true);
                 Amount.val(numberFormat(total * Quantity.val()))
-            } else {
-                UnitPrice.prop('readonly', false);
             }
         },
         _cellEditEnding: (s, e) => {
@@ -689,11 +689,8 @@ function init() {
             shiyoAjax(shiyo_flex);
         }
     })
-    $(formshiyo).bind("keypress", function (e) {
+    $("form").bind("keypress", function (e) {
         if (e.keyCode == 13) {
-            if (e.target.name == "Shiyo_Nm") {
-                shiyoAjax(shiyo_flex);
-            }
             e.preventDefault();
             return false;
         }
