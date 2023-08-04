@@ -673,16 +673,6 @@ function init() {
         $(formshiyo + " select[name=Shiyo_Shubetsu_ID]").val('');
         $(formshiyo + " input[name=Shiyo_Nm]").val('');
     })
-    $(document).on("click", formshiyo2 + " .btn-search-run", function () {
-        $(formshiyo2 + " input[name=page]").val(1);
-        shiyoAjax2(shiyo_flex);
-    })
-    $(document).on("click", formshiyo2 + " .btn-search-clear", function () {
-        $(formshiyo2 + " select[name=Koshu_ID]").val('');
-        $(formshiyo2 + " select[name=Bui_ID]").val('');
-        $(formshiyo2 + " select[name=Shiyo_Shubetsu_ID]").val('');
-        $(formshiyo2 + " input[name=Shiyo_Nm]").val('');
-    })
     var form_shiyo = [];
     var form_shiyo_changed_flag = false;
     var formSelected = $(".form-selected");
@@ -1137,6 +1127,16 @@ function init() {
         shiyoAjax2(shiyo_flex2);
     })
 
+    $(document).on("click", formshiyo2 + " .btn-search-run", function () {
+        $(formshiyo2 + " input[name=page]").val(1);
+        shiyoAjax2(shiyo_flex);
+    })
+    $(document).on("click", formshiyo2 + " .btn-search-clear", function () {
+        $(formshiyo2 + " select[name=Koshu_ID]").val('');
+        $(formshiyo2 + " select[name=Bui_ID]").val('');
+        $(formshiyo2 + " select[name=Shiyo_Shubetsu_ID]").val('');
+        $(formshiyo2 + " input[name=Shiyo_Nm]").val('');
+    })
     // ページング
     $(document).on("click", "#shiyoPage2 .page-link", function (e) {
         e.preventDefault();
