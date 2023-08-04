@@ -41,9 +41,9 @@ class DataController extends Controller
         // $this->_read($this->appPath . m_shiyo_shubetsu::getTableName() . $this->fileExe, m_shiyo_shubetsu::select("*"), m_shiyo_shubetsu::getTableName());
         // $this->_read($this->appPath . m_shiyo_shubetsu_kbn::getTableName() . $this->fileExe, m_shiyo_shubetsu_kbn::select("*"), m_shiyo_shubetsu_kbn::getTableName());
 
-        // $this->_read($this->appPath . m_zairyo_kosei::getTableName() . $this->fileExe, m_zairyo_kosei::select("*"), m_zairyo_kosei::getTableName());
+        $this->_read($this->appPath . m_zairyo_kosei::getTableName() . $this->fileExe, m_zairyo_kosei::select("*"), m_zairyo_kosei::getTableName());
 
-        $this->_read($this->appPath . m_zairyo_value::getTableName() . $this->fileExe, m_zairyo_value::select("*"), m_zairyo_value::getTableName());
+        // $this->_read($this->appPath . m_zairyo_value::getTableName() . $this->fileExe, m_zairyo_value::select("*"), m_zairyo_value::getTableName());
        
         // $this->_read($this->appPath . m_maker::getTableName() . $this->fileExe, m_maker::select("*"), m_maker::getTableName());
     }
