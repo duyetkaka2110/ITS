@@ -262,14 +262,14 @@ class ZairyoController extends Controller
             "Name" => [
                 "name" => "材料名称",
                 "class" => "",
-                "width" => 300,
+                "width" => 320,
                 "line1" => "<input type='text' name='Zairyo_Nm' class='w-100 form-control pl-1 btn-search-zairyo' />"
             ],
             "Tani_Nm" => [
                 "name" => "単位",
                 "class" => "wj-align-center",
-                "width" => "",
-                "line1" => ""
+                "width" => 150,
+                "line1" => "<button type='button' class='btn btn-search-run btn-primary'>検索</button><button type='button' class='btn btn-search-clear btn-primary ml-2'>クリア</button>"
             ],
             "Tanka" => [
                 "name" => "材料単価",

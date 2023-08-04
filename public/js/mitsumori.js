@@ -6,6 +6,7 @@ function init() {
     let MitsumoriModal = "#MitsumoriModal";
     let ShiyoEditModal = "#ShiyoEditModal";
     let firstUnitPrice;
+    let formZairyo = ".form-zairyo";
 
     var listModalSavePosition = ["MitsumoriModal", "ShiyoEditModal"];
     // 移動した位置」「変更したサイズ」を記憶しておき、次に同じポップアップウィンドウを開いた際、その位置、サイズを再現する
@@ -838,7 +839,16 @@ function init() {
 
     // 検索条件更新の時
     $(document).on("change", "#zairyo .btn-search-zairyo", function (e) {
-        $(".form-zairyo input[name=page]").val(1);
+        $(formZairyo + " input[name=page]").val(1);
+        zairyoAjax(zairyo_flex);
+    })
+    $(document).on("click", "#zairyo .btn-search-clear", function (e) {
+        $(formZairyo + " .btn-search-zairyo").val("");
+
+    })
+
+    $(document).on("click", "#zairyo .btn-search-run", function (e) {
+        $(formZairyo + " input[name=page]").val(1);
         zairyoAjax(zairyo_flex);
     })
 
@@ -847,7 +857,7 @@ function init() {
         e.preventDefault();
         page = getQueryStringValue($(this).attr('href'), "page")
         if (page) {
-            $(".form-zairyo input[name=page]").val(page);
+            $(formZairyo + " input[name=page]").val(page);
             zairyoAjax(zairyo_flex);
         }
     })
@@ -999,7 +1009,7 @@ function init() {
         });
     })
     function zairyoAjax(zairyo_flex) {
-        dataSearchZairyo = $(".form-zairyo").serializeArray();
+        dataSearchZairyo = $(formZairyo).serializeArray();
         $.ajax({
             type: ajaxMethod,
             data: dataSearchZairyo,
