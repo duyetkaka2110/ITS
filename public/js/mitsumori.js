@@ -663,11 +663,11 @@ function init() {
         shiyoAjax(shiyo_flex);
     })
 
-    $(document).on("click", "#shiyo .btn-search-run", function () {
+    $(document).on("click", formshiyo + " .btn-search-run", function () {
         $(formshiyo + " input[name=page]").val(1);
         shiyoAjax(shiyo_flex);
     })
-    $(document).on("click", "#shiyo .btn-search-clear", function () {
+    $(document).on("click", formshiyo + " .btn-search-clear", function () {
         $(formshiyo + " select[name=Koshu_ID]").val('');
         $(formshiyo + " select[name=Bui_ID]").val('');
         $(formshiyo + " select[name=Shiyo_Shubetsu_ID]").val('');
