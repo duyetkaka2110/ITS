@@ -264,3 +264,7 @@ body {
     padding: 3px 5px 0;
     font-size: 85%;
 }
+
+.white-space-normal {
+    white-space: normal;
+}

@@ -20,7 +20,7 @@ Route::get("/readCsvShiyo", "DataController@readCsvShiyo")->name("readCsvShiyo")
 Route::get("/readCsvZairyo", "DataController@readCsvZairyo")->name("readCsvZairyo");
 Route::get("/readCsvTani", "DataController@readCsvTani")->name("readCsvTani");
 
-// Route::get("/", "MitsumoriController@index2")->name("home");
+Route::get("/2", "MitsumoriController@index2")->name("home");
 Route::get("/", "MitsumoriController@index")->name("home");
 Route::get("/mitsumore-action", "MitsumoriController@action")->name("mitsumore.action");
 Route::post("/mitsumore-action", "MitsumoriController@action");
