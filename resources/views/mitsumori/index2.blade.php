@@ -71,6 +71,14 @@
     .tabulator-row.tabulator-selected .text-danger {
         color: #fff !important;
     }
+    #container{
+        height: 500px;
+        overflow: scroll;
+    }
+    .table-custom{
+        height: 500px;
+        overflow: scroll;
+    }
 </style>
 @endsection
 @section("js")
@@ -90,33 +98,79 @@
 
 <script>
     $(document).ready(function() {
+        convert()
+        // Function to convert JSON data to HTML table
+        function convert() {
+
+            // Sample JSON data
+            let jsonData = list;
+
+            // Get the container element where the table will be inserted
+            let container = $("#container");
+
+            // Create the table element
+            let table = $("<table class='table table-striped table-bordered table-custom'>");
+
+            // Get the keys (column names) of the first object in the JSON data
+            let cols = Object.keys(jsonData[0]);
+
+            // Create the header element
+            let thead = $("<thead>");
+            let tr = $("<tr>");
+
+            // Loop through the column names and create header cells
+            $.each(cols, function(i, item) {
+                let th = $("<th>");
+                th.text(item); // Set the column name as the text of the header cell
+                tr.append(th); // Append the header cell to the header row
+            });
+            thead.append(tr); // Append the header row to the header
+            table.append(tr) // Append the header to the table
+
+            // Loop through the JSON data and create table rows
+            $.each(jsonData, function(i, item) {
+                let tr = $("<tr>");
+
+                // Get the values of the current object in the JSON data
+                let vals = Object.values(item);
+
+                // Loop through the values and create table cells
+                $.each(vals, (i, elem) => {
+                    let td = $("<td>");
+                    td.text(elem); // Set the value as the text of the table cell
+                    tr.append(td); // Append the table cell to the table row
+                });
+                table.append(tr); // Append the table row to the table
+            });
+            container.append(table) // Append the table to the container element
+        }
         $('.not-mousedown').mousedown(function(event) {
             event.preventDefault();
         });
         //initialize table
-        var flex = new Tabulator("#grid", {
-            height: "1011px",
-            columnHeaderSortMulti: false,
-            data: list,
-            movableRows: true, //enable user movable rows
-            selectable: true, //make rows selectable 
-            selectableRangeMode: "click",
-            layout: "fitColumns",
-            rowHeight: 70,
-            rowContextMenu: function(e, row) {
-                flex.deselectRow();
-                row.select();
-                //add context menu to rows
-                return rowMenu;
-                // console.info(table.getSelectedData())
-            },
-            columns: getheaderCol(header)
-        });
-        flex.on("rowDblClick", function(e, row) {
-            e.preventDefault();
-            // show popup
-            console.info(flex)
-        });
+        // var flex = new Tabulator("#grid", {
+        //     height: "1011px",
+        //     columnHeaderSortMulti: false,
+        //     data: list,
+        //     movableRows: false, //enable user movable rows
+        //     selectable: true, //make rows selectable 
+        //     selectableRangeMode: "click",
+        //     layout: "fitColumns",
+        //     rowHeight: 70,
+        //     rowContextMenu: function(e, row) {
+        //         flex.deselectRow();
+        //         row.select();
+        //         //add context menu to rows
+        //         return rowMenu;
+        //         // console.info(table.getSelectedData())
+        //     },
+        //     columns: getheaderCol(header)
+        // });
+        // flex.on("rowDblClick", function(e, row) {
+        //     e.preventDefault();
+        //     // show popup
+        //     console.info(flex)
+        // });
 
 
         // メニュー一覧表示
@@ -189,6 +243,7 @@
 @endsection
 @section('content')
 <div class="page"></div>
+<div id="container"></div>
 <div class="container-fluid">
     <div class="mg-menu"></div>
     <div id="grid" class="not-"></div>
