@@ -5,7 +5,7 @@
 <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
 <link href="{{ URL::asset('css/mitsumori.css') }}" rel="stylesheet" />
 <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css" rel="stylesheet" />
 <style>
     .container-fluid {
         max-width: 2133px;
@@ -88,9 +88,10 @@
 @section("js")
 <script type="text/javascript" src="{{ URL::asset('js/js.cookie.min.js') }}"></script>
 <script type="text/javascript" src="{{ URL::asset('js/jquery-ui.min.js') }}"></script>
+<script type="text/javascript" src="{{ URL::asset('js/jquery.floatThead.js') }}"></script>
 <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+<script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
 
 <script>
     var list = <?php echo $list ?>;
@@ -103,11 +104,7 @@
 </script>
 
 <style>
-
-.dataTables_info{
-    display: none;
-}
-    </style>
+</style>
 <script>
     $(document).ready(function() {
         // Get the keys (column names) of the first object in the JSON data
@@ -123,7 +120,11 @@
         new DataTable('#example', {
             columns: cols,
             data: list,
-            fixedHeader: true,
+            fixedHeader: {
+                headerOffset: "auto"
+            },
+            sort: false,
+            info: false,
             paging: false,
             searching: false,
             select: {
@@ -134,9 +135,15 @@
             searchPanes: {
                 controls: false
             },
+            fixedColumns: {
+                left: 4
+            },
             dom: 'Plfrtip'
         });
-        $('.dataTables_info:eq(1)').hide();
+        $('#example').floatThead({
+            position: 'absolute',
+            scrollContainer: true
+        });
         // Function to convert JSON data to HTML table
         function convert() {
 
@@ -281,7 +288,7 @@
 @endsection
 @section('content')
 <div id="container" class="display">
-    <table id="example" class="display" style="width:100%">
+    <table id="example" class="display bg-white" style="width:100%">
     </table>
 </div>
 <div class="page"></div>
