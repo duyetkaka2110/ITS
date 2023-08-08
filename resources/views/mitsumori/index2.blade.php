@@ -4,8 +4,6 @@
 <link href="{{ URL::asset('css/jquery-ui.css') }}" rel="stylesheet" />
 <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
 <link href="{{ URL::asset('css/mitsumori.css') }}" rel="stylesheet" />
-<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css" rel="stylesheet" />
 <style>
     .container-fluid {
         max-width: 2133px;
@@ -89,8 +87,6 @@
 <script type="text/javascript" src="{{ URL::asset('js/js.cookie.min.js') }}"></script>
 <script type="text/javascript" src="{{ URL::asset('js/jquery-ui.min.js') }}"></script>
 <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
 
 <script>
     var list = <?php echo $list ?>;
@@ -102,113 +98,35 @@
     var headerZairyoSelected = <?php echo $headerZairyoSelected ?>;
 </script>
 
-<style>
-
-.dataTables_info{
-    display: none;
-}
-    </style>
 <script>
     $(document).ready(function() {
-        // Get the keys (column names) of the first object in the JSON data
-        console.info(list)
-        let cols = [];
-        $.each(list[0], function(key, val) {
-            cols.push({
-                title: key,
-                data: key
-            })
-        })
-
-        new DataTable('#example', {
-            columns: cols,
-            data: list,
-            fixedHeader: true,
-            paging: false,
-            searching: false,
-            select: {
-                style: "single",
-                className: "row-selected"
-            },
-            responsive: true,
-            searchPanes: {
-                controls: false
-            },
-            dom: 'Plfrtip'
-        });
-        $('.dataTables_info:eq(1)').hide();
-        // Function to convert JSON data to HTML table
-        function convert() {
-
-            // Sample JSON data
-            let jsonData = list;
-
-            // Get the container element where the table will be inserted
-            let container = $("#table");
-
-            // Create the table element
-            let table = $("<table class='table table-striped table-bordered table-custom'>");
-
-            // Get the keys (column names) of the first object in the JSON data
-            let cols = Object.keys(jsonData[0]);
-
-            // Create the header element
-            let thead = $("<thead>");
-            let tr = $("<tr>");
-
-            // Loop through the column names and create header cells
-            $.each(cols, function(i, item) {
-                let th = $("<th>");
-                th.text(item); // Set the column name as the text of the header cell
-                tr.append(th); // Append the header cell to the header row
-            });
-            thead.append(tr); // Append the header row to the header
-            table.append(tr) // Append the header to the table
-
-            // Loop through the JSON data and create table rows
-            $.each(jsonData, function(i, item) {
-                let tr = $("<tr>");
-
-                // Get the values of the current object in the JSON data
-                let vals = Object.values(item);
-
-                // Loop through the values and create table cells
-                $.each(vals, (i, elem) => {
-                    let td = $("<td>");
-                    td.text(elem); // Set the value as the text of the table cell
-                    tr.append(td); // Append the table cell to the table row
-                });
-                table.append(tr); // Append the table row to the table
-            });
-            container.append(table) // Append the table to the container element
-        }
         $('.not-mousedown').mousedown(function(event) {
             event.preventDefault();
         });
         //initialize table
-        // var flex = new Tabulator("#grid", {
-        //     height: "1011px",
-        //     columnHeaderSortMulti: false,
-        //     data: list,
-        //     movableRows: false, //enable user movable rows
-        //     selectable: true, //make rows selectable 
-        //     selectableRangeMode: "click",
-        //     layout: "fitColumns",
-        //     rowHeight: 70,
-        //     rowContextMenu: function(e, row) {
-        //         flex.deselectRow();
-        //         row.select();
-        //         //add context menu to rows
-        //         return rowMenu;
-        //         // console.info(table.getSelectedData())
-        //     },
-        //     columns: getheaderCol(header)
-        // });
-        // flex.on("rowDblClick", function(e, row) {
-        //     e.preventDefault();
-        //     // show popup
-        //     console.info(flex)
-        // });
+        var flex = new Tabulator("#grid", {
+            height: "1011px",
+            columnHeaderSortMulti: false,
+            data: list,
+            movableRows: false, //enable user movable rows
+            selectable: true, //make rows selectable 
+            selectableRangeMode: "click",
+            layout: "fitColumns",
+            rowHeight: 70,
+            rowContextMenu: function(e, row) {
+                flex.deselectRow();
+                row.select();
+                //add context menu to rows
+                return rowMenu;
+                // console.info(table.getSelectedData())
+            },
+            columns: getheaderCol(header)
+        });
+        flex.on("rowDblClick", function(e, row) {
+            e.preventDefault();
+            // show popup
+            console.info(flex)
+        });
 
 
         // メニュー一覧表示
@@ -280,10 +198,6 @@
 
 @endsection
 @section('content')
-<div id="container" class="display">
-    <table id="example" class="display" style="width:100%">
-    </table>
-</div>
 <div class="page"></div>
 <div class="container-fluid">
     <div class="mg-menu"></div>
