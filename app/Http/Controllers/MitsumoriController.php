@@ -134,7 +134,7 @@ class MitsumoriController extends Controller
             $lastNo = $rq->FirstName ? $lastNo : 0;
             // DB更新
             for ($i = 1; $i <= $RowAdd; $i++) {
-                $data["No"] = $lastNo = $rq->FirstName ? $lastNo + $i : 0;
+                $data["No"] = $lastNo = $rq->FirstName ? $lastNo + 1 : 0;
                 $this->upsertMitsumoriShiyo($rq, $data, $dataIS);
             }
             if ($rq->btn == "btnSave" && $dataNoChange) {
