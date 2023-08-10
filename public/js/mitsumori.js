@@ -396,11 +396,10 @@ function init() {
     // get list items after selected rows, No can change
     function getNextHaveNo(flex, row) {
         let dataNoChange = [];
-        if (row < flex.itemsSource.length - 1)
-            while (flex.itemsSource[row].No) {
-                dataNoChange.push(flex.itemsSource[row].id);
-                row++;
-            }
+        while (flex.itemsSource[row].No && row < flex.itemsSource.length) {
+            dataNoChange.push(flex.itemsSource[row].id);
+            row++;
+        }
         return dataNoChange;
     }
 
