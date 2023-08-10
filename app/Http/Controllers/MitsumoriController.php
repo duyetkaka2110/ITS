@@ -125,15 +125,23 @@ class MitsumoriController extends Controller
                 t_seko_tanka::insert(m_seko_tanka::select("*")->whereIn("Shiyo_ID", $rq->Shiyo_ID)
                     ->whereNotIn("Shiyo_ID", t_seko_tanka::whereIn("Shiyo_ID", $rq->Shiyo_ID)->pluck("Shiyo_ID")->all())->get()->toArray());
             }
-            $RowAdd = 1;
-            // 選択行に登録の時
-            if ($rq->btn == "btnSaveNew") {
-                // 新規行として追加
-                $RowAdd = $rq->RowAdd;
-            }
+            // 選択行に登録の時、新規行として追加
+            $RowAdd = $rq->btn == "btnSaveNew" ? $rq->RowAdd : 1;
+            // No更新
+            $dataSelected = json_decode($rq->dataSelected, true);
+            $dataNoChange = json_decode($rq->dataNoChange, true);
+            $lastNo = $rq->btn == "btnSaveNew" ? (t_mitsumori::where("DetailNo", t_mitsumori::max("DetailNo"))->value("No")) : ($dataSelected["prevItemNo"] ? $dataSelected["prevItemNo"] : 0);
+            $lastNo = $rq->FirstName ? $lastNo : 0;
             // DB更新
             for ($i = 1; $i <= $RowAdd; $i++) {
+                $data["No"] = $lastNo = $rq->FirstName ? $lastNo + $i : 0;
                 $this->upsertMitsumoriShiyo($rq, $data, $dataIS);
+            }
+            if ($rq->btn == "btnSave" && $dataNoChange) {
+                // No再設定
+                $NoUpdate = $rq->FirstName ? ' + ' . $lastNo : " - " . ($dataSelected["lastNo"] ? $dataSelected["lastNo"] : 0);
+                t_mitsumori::whereIn('id', $dataNoChange)
+                    ->update(['No' => DB::Raw("No" . $NoUpdate)]);
             }
 
             // 全て計再設
@@ -158,7 +166,7 @@ class MitsumoriController extends Controller
      * 工事仕様の選択データ登録
      * param Request $rq
      * param array $data 見積詳細データ
-     * param varray $dataIS　見積詳細＿仕様データ
+     * param array $dataIS　見積詳細＿仕様データ
      */
     public function upsertMitsumoriShiyo(Request $rq, array $data, array $dataIS)
     {

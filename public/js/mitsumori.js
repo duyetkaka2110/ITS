@@ -517,9 +517,13 @@ function init() {
                 shiyo_selected_form.push({ name: "AtariSuryo[]", value: value["AtariSuryo"] != undefined ? value["AtariSuryo"] : null });
                 shiyo_selected_form.push({ name: "Sort_No[]", value: value["Sort_No"] });
             });
+            dataSelected = $.merge(shiyo_selected_form,
+                [{ name: "dataSelected", value: JSON.stringify(getSeletedItems(flex)) },
+                { name: "dataNoChange", value: JSON.stringify(getNextHaveNo(flex, flex.selection.bottomRow + 1)) }])
+
             $.ajax({
                 type: ajaxMethod,
-                data: $.merge($(".form-selected").serializeArray(), shiyo_selected_form),
+                data: $.merge($(".form-selected").serializeArray(), dataSelected),
                 url: $("input[name=route-istore]").val(),
                 success: function (res) {
                     if (res["status"]) {
@@ -538,6 +542,14 @@ function init() {
             });
         }
     })
+    function objectifyForm(formArray) {
+        //serialize data function
+        var returnArray = {};
+        $.each(formArray, function (key, value) {
+            returnArray[formArray[i]['name']] = formArray[i]['value'];
+        })
+        return returnArray;
+    }
     function numberFormat(number, str = null) {
         if (!number) return 0;
         return wijmo.Globalize.format(number, str ? str : "n0")
