@@ -386,7 +386,8 @@ class MitsumoriController extends Controller
      */
     private function _resetTotal(string $cmdText)
     {
-        $list = t_mitsumori::select("id", "DetailNo", "Amount", "AdQuoNo", "DetailType")
+        $keyTotal = "Amount";
+        $list = t_mitsumori::select("id", "DetailNo", "AdQuoNo", "DetailType")
             ->where("AdQuoNo", $this->AdQuoNo)
             ->where("DetailType", $this->DetailType)
             ->where("FirstName", $cmdText)
@@ -395,7 +396,7 @@ class MitsumoriController extends Controller
         if ($list) {
             $preDetailNo = 0;
             foreach ($list as $k => $l) {
-                $list[$k]["Amount"] =    $this->_getSum("Amount", $preDetailNo, $l["DetailNo"] - 1);
+                $list[$k][$keyTotal] =    $this->_getSum($keyTotal, $preDetailNo, $l["DetailNo"] - 1);
                 $preDetailNo = $l["DetailNo"] + 1;
             }
             t_mitsumori::upsert($list, "id");
@@ -403,19 +404,21 @@ class MitsumoriController extends Controller
     }
 
     /**
-     * 小計取得
+     * 計取得
      * param string $key
      * param int $DetailNoStart
      * param int $DetailNoENd
      * return int
      */
-    private function _getSum(string $key, int $DetailNoStart, int $DetailNoENd)
+    private function _getSum(string $key, int $DetailNoStart, int $DetailNoEnd)
     {
         return t_mitsumori::where("AdQuoNo", $this->AdQuoNo)
             ->where("DetailType", $this->DetailType)
-            ->whereBetween('DetailNo', [$DetailNoStart, $DetailNoENd])
-            ->whereNotIn("FirstName", [config("const.cmd.cmdTotal.text"), config("const.cmd.cmdTotalKe.text"), config("const.cmd.cmdTotalGo.text")])
-            ->sum($key);
+            ->whereBetween('DetailNo', [$DetailNoStart, $DetailNoEnd])
+            ->where(function ($q) {
+                $q->whereNotIn("FirstName", [config("const.cmd.cmdTotal.text"), config("const.cmd.cmdTotalKe.text"), config("const.cmd.cmdTotalGo.text")]);
+                $q->orWhereNull("FirstName");
+            })->sum($key);
     }
     /**
      * 貼り付け機能

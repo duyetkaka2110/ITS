@@ -104,91 +104,58 @@
 </script>
 
 <style>
+    :root {
+        --dt-row-selected: 128, 173, 191;
+        --dt-row-selected-text: 255, 255, 255;
+        --dt-row-selected-link: 9, 10, 11;
+        --dt-row-stripe: 0, 0, 0;
+        --dt-row-hover: 0, 0, 0;
+        --dt-column-ordering: 0, 0, 0;
+        --dt-html-background: white
+    }
 </style>
 <script>
     $(document).ready(function() {
         // Get the keys (column names) of the first object in the JSON data
-        console.info(list)
         let cols = [];
-        $.each(list[0], function(key, val) {
+        $.each(header, function(key, val) {
             cols.push({
-                title: key,
-                data: key
+                title: val["name"],
+                data: key,
+                width: 149,
+                // height: 65
+
             })
         })
 
-        new DataTable('#example', {
+        var table = new DataTable('#example', {
+            autoWidth: false,
             columns: cols,
             data: list,
-            fixedHeader: {
-                headerOffset: "auto"
-            },
             sort: false,
             info: false,
             paging: false,
             searching: false,
-            select: {
-                style: "single",
-                className: "row-selected"
-            },
-            responsive: true,
-            searchPanes: {
-                controls: false
-            },
+            responsive: false,
             fixedColumns: {
-                left: 4
+                left: 7
             },
-            dom: 'Plfrtip'
+            // dom: 'Plfrtip'
         });
-        $('#example').floatThead({
-            position: 'absolute',
-            scrollContainer: true
+        // $('#example').floatThead({
+        //     position: 'absolute',
+        //     scrollContainer: true
+        // });
+
+
+        table.on('click', 'tbody tr', function(e) {
+            let classList = e.currentTarget.classList;
+            if (!classList.contains('selected')) {
+                table.rows('.selected').nodes().each((row) => row.classList.remove('selected'));
+                classList.add('selected');
+            }
         });
-        // Function to convert JSON data to HTML table
-        function convert() {
 
-            // Sample JSON data
-            let jsonData = list;
-
-            // Get the container element where the table will be inserted
-            let container = $("#table");
-
-            // Create the table element
-            let table = $("<table class='table table-striped table-bordered table-custom'>");
-
-            // Get the keys (column names) of the first object in the JSON data
-            let cols = Object.keys(jsonData[0]);
-
-            // Create the header element
-            let thead = $("<thead>");
-            let tr = $("<tr>");
-
-            // Loop through the column names and create header cells
-            $.each(cols, function(i, item) {
-                let th = $("<th>");
-                th.text(item); // Set the column name as the text of the header cell
-                tr.append(th); // Append the header cell to the header row
-            });
-            thead.append(tr); // Append the header row to the header
-            table.append(tr) // Append the header to the table
-
-            // Loop through the JSON data and create table rows
-            $.each(jsonData, function(i, item) {
-                let tr = $("<tr>");
-
-                // Get the values of the current object in the JSON data
-                let vals = Object.values(item);
-
-                // Loop through the values and create table cells
-                $.each(vals, (i, elem) => {
-                    let td = $("<td>");
-                    td.text(elem); // Set the value as the text of the table cell
-                    tr.append(td); // Append the table cell to the table row
-                });
-                table.append(tr); // Append the table row to the table
-            });
-            container.append(table) // Append the table to the container element
-        }
         $('.not-mousedown').mousedown(function(event) {
             event.preventDefault();
         });
@@ -287,14 +254,14 @@
 
 @endsection
 @section('content')
-<div id="container" class="display">
-    <table id="example" class="display bg-white" style="width:100%">
-    </table>
-</div>
 <div class="page"></div>
 <div class="container-fluid">
     <div class="mg-menu"></div>
     <div id="grid" class="not-"></div>
+</div>
+<div id="container" class="display">
+    <table id="example" class="display bg-white nowrap" style="width:100%">
+    </table>
 </div>
 <input type="hidden" class="route-mitsumore-action" value="{{ route('mitsumore.action') }}" />
 
