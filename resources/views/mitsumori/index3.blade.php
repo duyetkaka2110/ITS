@@ -142,10 +142,10 @@
             },
             // dom: 'Plfrtip'
         });
-        // $('#example').floatThead({
-        //     position: 'absolute',
-        //     scrollContainer: true
-        // });
+        $('#example').floatThead({
+            position: 'absolute',
+            scrollContainer: true
+        });
 
 
         table.on('click', 'tbody tr', function(e) {

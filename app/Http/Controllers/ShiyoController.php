@@ -211,7 +211,7 @@ class ShiyoController extends Controller
                 "width" => 50,
             ],
             "AtariSuryo" => [
-                "name" => "見積あたり数量",
+                "name" => "倍数",
                 "class" => "wj-align-right form-control AtariSuryo",
                 "width" => 120,
             ],

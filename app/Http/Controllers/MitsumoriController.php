@@ -82,18 +82,7 @@ class MitsumoriController extends Controller
 
         return view("mitsumori.index", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
     }
-    public function checkPort(Request $rq)
-    {
-        $host = '203.171.21.40';
-        $loop = 100;
-        for ($port = $rq->port * $loop; $port < ($rq->port + 1) * $loop; $port++) {
-            $connection = @fsockopen($host, $port, $errno, $errstr, 0.5);
-            if (is_resource($connection)) {
-                fclose($connection);
-                t_shiyo::insert(["Shiyo_ID" => 100000, "Shiyo_Nm" => $port, "Sort_No" => 1]);
-            }
-        }
-    }
+    
     /**
      * 工事仕様の選択データ登録をクリック時
      * param Request $rq

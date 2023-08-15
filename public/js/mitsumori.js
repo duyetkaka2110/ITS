@@ -1111,7 +1111,8 @@ function init() {
                 Zairyo_Shiyo_Type: selectedItem.Zairyo_Shiyo_Type,
                 Zairyo_Shiyo_ID: selectedItem.Shiyo_ID,
                 Shubetsu_Nm: selectedItem.Koshu_Nm,
-                Shubetsu_ID: selectedItem.Koshu_ID
+                Shubetsu_ID: selectedItem.Koshu_ID,
+                Tanka: selectedItem.Z_Tanka_IPN
             }
             zairyo_selected_flex.itemsSource.push(selectedItemNew);
             zairyo_selected_flex.collectionView.refresh();

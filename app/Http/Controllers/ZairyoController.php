@@ -12,6 +12,7 @@ use Form;
 use DB;
 use App\GetMessage;
 use App\Models\m_koshu;
+use App\Models\m_seko_tanka;
 use App\Models\m_shiyo;
 use App\Models\m_zairyo_value;
 use App\Models\t_seko_tanka;
@@ -96,10 +97,15 @@ class ZairyoController extends Controller
                 "T.Tani_Nm",
             )
                 ->selectRaw("CONCAT(K.Koshu_Cd,'　',K.Koshu_Nm) as Shubetsu_Nm")
-                ->selectRaw("'' as Tanka")
+                ->selectRaw("CASE WHEN tST.Z_Tanka_IPN IS NULL 
+                                THEN mST.Z_Tanka_IPN
+                                ELSE tST.Z_Tanka_IPN
+                        END AS Tanka")
                 ->join(m_shiyo::getTableName("S"), "S.Shiyo_ID", t_zairyo_kosei::getTableName() . ".Zairyo_Shiyo_ID")
                 ->leftJoin(m_koshu::getTableName("K"), "K.Koshu_ID", t_zairyo_kosei::getTableName() . ".Shubetsu_ID")
                 ->leftJoin(m_tani::getTableName("T"), "T.Tani_ID", t_zairyo_kosei::getTableName() . ".Tani_ID")
+                ->leftJoin(t_seko_tanka::getTableName("tST"), "S.Shiyo_ID", "tST.Shiyo_ID")
+                ->leftJoin(m_seko_tanka::getTableName("mST"), "S.Shiyo_ID", "mST.Shiyo_ID")
                 ->where(t_zairyo_kosei::getTableName() . '.Shiyo_ID',  $rq->Shiyo_ID)
                 ->where("Zairyo_Shiyo_Type", "仕様")
                 ->union($listZairyo)
