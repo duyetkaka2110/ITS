@@ -35,3 +35,7 @@ Route::get('/mitsumoreStore', "MitsumoriController@store")->name("m.store");
 Route::get("/getListZairyo", "ZairyoController@getListZairyo")->name("getListZairyo");
 Route::get("/getListZairyoSelected", "ZairyoController@getListZairyoSelected")->name("getListZairyoSelected");
 Route::get('/zairyoStore', "ZairyoController@store")->name("z.store");
+
+
+Route::get('/category', "CategoryController@index")->name("c.home");
+Route::get('/category-store', "CategoryController@store")->name("c.store");
