@@ -14,9 +14,9 @@ return new class extends Migration
     {
         Schema::dropIfExists($this->table);
         Schema::create($this->table, function (Blueprint $table) {
-            $table->id();
+            $table->string('Category_ID')->primary();
             $table->string('Category_Nm');
-            $table->unsignedInteger('Parent_ID')->nullable();
+            $table->string('Parent_ID')->nullable();
             $table->integer('Sort_No')->nullable()->default(0);
             $table->timestamps();
         });

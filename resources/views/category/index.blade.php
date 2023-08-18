@@ -40,7 +40,7 @@
 </style>
 @endsection
 @section("js")
-<script type="text/javascript" src="{{ URL::asset('jstree/jstree.min.js') }}"></script>
+<script type="text/javascript" src="{{ URL::asset('jstree/jstree.js') }}"></script>
 <script>
     var categories = <?php echo $categories ?>
 </script>
@@ -48,39 +48,126 @@
     $(function() {
         var dataUpdate = [];
         var ajaxMethod = "GET";
-        $('#jstree').jstree({
+        var jstree = $('#jstree');
+        jstree.jstree({
             'core': {
                 'data': categories,
                 "animation": 0,
-                "check_callback": true,
+                "check_callback": function(op) {
+
+                    if (op === "delete_node") {
+                        return confirm("Are you sure you want to delete?");
+                    }
+                    return true;
+                },
                 "themes": {
                     "stripes": false,
                 },
+                "opened": true
             },
+            "unique": {
+                case_sensitive: true,
+                trim_whitespace: true,
+                duplicate: function(name, counter) {
+                    console.info(name)
+                    return name + "のコピー"; // This would just return the duplicate name to use as the node is created
+                },
+                "error_callback": function(n, p, f) {
+                    console.info("Duplicate node `" + n + "` with function `" + f + "`!");
+                }
+
+            },
+            "contextmenu": getContextmenu(),
             "plugins": [
-                "contextmenu", "dnd", "search",
-                "state", "types", "wholerow", "changed"
+                "contextmenu", "dnd", "search", "unique",
+                "state", "wholerow"
             ],
         }).on("create_node.jstree", function(e, data) {
-            console.log(data);
+            dataUpdate = {
+                action: "create_node",
+                Category_ID: data.node.id,
+                Sort_No: data.position,
+                Parent_ID: data.parent ? data.parent : 0,
+                Category_Nm: data.node.text
+            };
+            update(dataUpdate)
         }).on("move_node.jstree", function(e, data) {
-            console.log(data);
+            console.info(data)
             dataUpdate = {
                 action: "move_node",
-                id: data.node.id,
-                position: data.position,
-                parent: data.parent == "#" ? 0 : data.parent
+                Category_ID: data.node.id,
+                Sort_No: data.position + 1,
+                Old_Sort_No: data.old_position + 1,
+                Parent_ID: data.parent ? data.parent : 0,
+                Old_Parent_ID: data.old_parent,
+                Category_Nm: data.node.text,
             };
-            // update(dataUpdate)
-        }).on("copy_node.jstree", function(e, data) {
-            console.log(data);
+            update(dataUpdate)
         }).on("rename_node.jstree", function(e, data) {
-            console.log(data);
+            dataUpdate = {
+                action: "rename_node",
+                Category_ID: data.node.id,
+                Category_Nm: data.node.text
+            };
+            update(dataUpdate)
         }).on("delete_node.jstree", function(e, data) {
-            console.log(data);
-        }).on("paste.jstree", function(e, data) {
-            console.log(data);
+            dataUpdate = {
+                action: "delete_node",
+                Category_ID: data.node.id,
+            };
+            update(dataUpdate)
         });
+
+        function getContextmenu() {
+            return {
+                "items": function($node) {
+                    var tree = jstree.jstree(true);
+                    return {
+                        "Create": {
+                            "separator_before": false,
+                            "separator_after": false,
+                            "label": "新規作成",
+                            "icon": "fa fa-plus-square",
+                            "action": function(obj) {
+                                $node = tree.create_node($node);
+                                tree.edit($node);
+                            }
+                        },
+                        "Duplicate": {
+                            "separator_before": false,
+                            "separator_after": false,
+                            "label": "複製",
+                            icon: "fa fa-files-o",
+                            "action": function(obj) {
+                                inst = $.jstree.reference(obj.reference),
+                                    obj = inst.get_node(obj.reference);
+                                tree.copy(obj);
+                                obj = inst.get_node(jstree.find("[id='" + obj.parent + "']"));
+                                tree.paste(obj);
+                            }
+                        },
+                        "Rename": {
+                            "separator_before": false,
+                            "separator_after": false,
+                            "label": "フォルダ名の変更",
+                            icon: "fa fa-text-height",
+                            "action": function(obj) {
+                                tree.edit($node);
+                            }
+                        },
+                        "Delete": {
+                            "separator_before": false,
+                            "separator_after": false,
+                            "label": "削除",
+                            icon: "fa fa-trash",
+                            "action": function(obj) {
+                                tree.delete_node($node);
+                            }
+                        }
+                    };
+                }
+            }
+        }
 
         function update(dataUpdate) {
             if (dataUpdate) {
@@ -92,7 +179,7 @@
                         $('.loading').addClass('d-none');
                     },
                     success: function(res) {
-                        console.info(res)
+                        console.info(res["data"])
                         if (res["status"]) {
 
                         } else {}

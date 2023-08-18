@@ -9,7 +9,21 @@ class t_category extends Model
 {
     use HasFactory;
     protected $hidden = ["created_at", "updated_at"];
+    protected $primaryKey = 'Category_ID';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
+    public static function boot ()
+    {
+        parent::boot();
+        // 削除フォルダが子、孫を持っている場合、一括で削除する
+        self::deleting(function (t_category $category) {
+            foreach ($category->allChilds as $sub)
+            {
+                $sub->delete();
+            }
+        });
+    }
     // string $As 短い名
     public static function getTableName(string $As = "")
     {
@@ -25,9 +39,9 @@ class t_category extends Model
 
     public function childs()
     {
-        return $this->hasMany(self::class, 'Parent_ID',"id");
+        return $this->hasMany(self::class, 'Parent_ID');
     }
-    
+
     public function allParents()
     {
         return $this->parent()->with('allParents');
@@ -37,7 +51,4 @@ class t_category extends Model
     {
         return $this->childs()->with('allChilds');
     }
-    // public function children(){
-    //     return $this->allChilds();
-    // }
 }
