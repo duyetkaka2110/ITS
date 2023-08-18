@@ -214,5 +214,7 @@
 @endsection
 @section('content')
 <div id="jstree"></div>
+
+<a href="{{ route('c.reset') }}" class="btn btn-primary m-3">データ再設定</a>
 {{ Form::hidden('route-cstore', route('c.store')) }}
 @endsection

@@ -39,3 +39,4 @@ Route::get('/zairyoStore', "ZairyoController@store")->name("z.store");
 
 Route::get('/category', "CategoryController@index")->name("c.home");
 Route::get('/category-store', "CategoryController@store")->name("c.store");
+Route::get('/category-reset', "CategoryController@setData")->name("c.reset");
