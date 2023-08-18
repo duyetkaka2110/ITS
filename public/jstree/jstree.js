@@ -53,7 +53,15 @@
 			Promise.resolve(arg).then(cb);
 		};
 	}
-
+	function getTid(dataTid) {
+		var tid = 0;
+		$.each(dataTid, function (index, val) {
+			if ($.isNumeric(index) && parseInt(index) > tid) {
+				tid = index;
+			}
+		});
+		return parseInt(tid);
+	}
 	function getLastComa(t) {
 		var re = new RegExp(/\(.*\)/);
 		var t2 = re.exec(t), t3;
@@ -2129,9 +2137,11 @@
 				data.icon = true;
 			}
 			tmp = d.children("ul").children("li");
+			var tid_new = getTid(this._model.data);
 			do {
-				tid = 'j' + this._id + '_' + (++this._cnt);
+				tid = 'j' + this._id + '_' + (++tid_new);
 			} while (m[tid]);
+
 			data.id = data.li_attr.id ? data.li_attr.id.toString() : tid;
 			if (tmp.length) {
 				tmp.each(function (i, v) {
@@ -2272,11 +2282,13 @@
 			if (!ps) { ps = []; }
 			else { ps = ps.concat(); }
 			if (p) { ps.unshift(p); }
-			var tid = false, i, j, c, e, m = this._model.data, df = this._model.default_state, tmp;
+			var tid = 0, i, j, c, e, m = this._model.data, df = this._model.default_state, tmp;
+			// duyet edit start 20230818
+			var tid_new = getTid(this._model.data);
 			do {
-				tid = 'j' + this._id + '_' + (++this._cnt);
+				tid = 'j' + this._id + '_' + (++tid_new);
 			} while (m[tid]);
-
+			// duyet edit end 20230818
 			tmp = {
 				id: false,
 				text: typeof d === 'string' ? d : '',
@@ -4387,6 +4399,7 @@
 			node = old_ins ? old_ins.get_json(obj, { no_id: true, no_data: true, no_state: true }) : obj;
 			if (!node) { return false; }
 			if (node.id === true) { delete node.id; }
+
 			node = this._parse_model_from_json(node, new_par.id, new_par.parents.concat());
 			if (!node) { return false; }
 			tmp = this.get_node(node);

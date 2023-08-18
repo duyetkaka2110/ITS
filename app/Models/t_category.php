@@ -13,13 +13,12 @@ class t_category extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    public static function boot ()
+    public static function boot()
     {
         parent::boot();
         // 削除フォルダが子、孫を持っている場合、一括で削除する
         self::deleting(function (t_category $category) {
-            foreach ($category->allChilds as $sub)
-            {
+            foreach ($category->allChilds as $sub) {
                 $sub->delete();
             }
         });
@@ -39,7 +38,7 @@ class t_category extends Model
 
     public function childs()
     {
-        return $this->hasMany(self::class, 'Parent_ID');
+        return $this->hasMany(self::class, 'Parent_ID')->orderBy("Sort_No");
     }
 
     public function allParents()

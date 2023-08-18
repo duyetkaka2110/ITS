@@ -46,6 +46,7 @@
 </script>
 <script>
     $(function() {
+        console.info(categories)
         var dataUpdate = [];
         var ajaxMethod = "GET";
         var jstree = $('#jstree');
@@ -54,74 +55,95 @@
                 'data': categories,
                 "animation": 0,
                 "check_callback": function(op) {
-
                     if (op === "delete_node") {
-                        return confirm("Are you sure you want to delete?");
+                        return confirm("削除します。よろしいですか？");
                     }
                     return true;
                 },
                 "themes": {
                     "stripes": false,
-                },
-                "opened": true
-            },
-            "unique": {
-                case_sensitive: true,
-                trim_whitespace: true,
-                duplicate: function(name, counter) {
-                    console.info(name)
-                    return name + "のコピー"; // This would just return the duplicate name to use as the node is created
-                },
-                "error_callback": function(n, p, f) {
-                    console.info("Duplicate node `" + n + "` with function `" + f + "`!");
                 }
-
             },
             "contextmenu": getContextmenu(),
             "plugins": [
                 "contextmenu", "dnd", "search", "unique",
                 "state", "wholerow"
             ],
+        }).on('loaded.jstree', function() {
+            // jstree.jstree('open_all');
         }).on("create_node.jstree", function(e, data) {
             dataUpdate = {
                 action: "create_node",
-                Category_ID: data.node.id,
-                Sort_No: data.position,
-                Parent_ID: data.parent ? data.parent : 0,
+                Category_ID: getIdNode(data.node.id),
+                Sort_No: data.position + 1,
+                Parent_ID: data.parent ? getIdNode(data.parent) : 0,
                 Category_Nm: data.node.text
             };
             update(dataUpdate)
         }).on("move_node.jstree", function(e, data) {
-            console.info(data)
             dataUpdate = {
                 action: "move_node",
-                Category_ID: data.node.id,
+                Category_ID: getIdNode(data.node.id),
                 Sort_No: data.position + 1,
                 Old_Sort_No: data.old_position + 1,
-                Parent_ID: data.parent ? data.parent : 0,
-                Old_Parent_ID: data.old_parent,
+                Parent_ID: data.parent ? getIdNode(data.parent) : 0,
+                Old_Parent_ID: getIdNode(data.old_parent),
                 Category_Nm: data.node.text,
             };
             update(dataUpdate)
         }).on("rename_node.jstree", function(e, data) {
             dataUpdate = {
                 action: "rename_node",
-                Category_ID: data.node.id,
+                Category_ID: getIdNode(data.node.id),
                 Category_Nm: data.node.text
             };
             update(dataUpdate)
         }).on("delete_node.jstree", function(e, data) {
             dataUpdate = {
                 action: "delete_node",
-                Category_ID: data.node.id,
+                Category_ID: getIdNode(data.node.id),
+                Sort_No: ($.inArray(data.node.id, data.instance._model.data[data.parent].children)) + 1,
             };
             update(dataUpdate)
+        }).on("copy_node.jstree", function(e, data) {
+            console.info(data)
+            let list = [{
+                Category_ID: getIdNode(data.node.id),
+                Category_Nm: data.node.text,
+                Parent_ID: data.parent ? getIdNode(data.parent) : 0,
+                Sort_No: data.position + 1,
+            }];
+            let node, parent;
+            $.each(data.node.children_d, function(index, key) {
+                node = data.instance._model.data[key];
+                parent = data.instance._model.data[data.instance._model.data[key].parent];
+                list.push({
+                    Category_ID: getIdNode(data.instance._model.data[key].id),
+                    Category_Nm: data.instance._model.data[key].text,
+                    Parent_ID: getIdNode(data.instance._model.data[key].parent),
+                    Sort_No: ($.inArray(node.id, parent.children)) + 1,
+                })
+            })
+            update({
+                action: "duplicate_node",
+                list: list,
+                Category_ID: getIdNode(data.node.id),
+                Parent_ID: data.parent ? getIdNode(data.parent) : 0,
+                Sort_No: data.position + 1,
+            })
         });
 
+        function getIdNode(id){
+            idnew = id.split("_");
+            if(idnew.length >1){
+                return idnew[1];
+            }
+            return id;
+        }
         function getContextmenu() {
             return {
                 "items": function($node) {
-                    var tree = jstree.jstree(true);
+                    var tree = jstree.jstree();
                     return {
                         "Create": {
                             "separator_before": false,

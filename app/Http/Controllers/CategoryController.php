@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\t_category;
 use Illuminate\Http\Request;
 use DB;
+use App\GetMessage;
 
 class CategoryController extends Controller
 {
@@ -12,43 +13,47 @@ class CategoryController extends Controller
     /**
      * 階層画面
      */
-    public function index(Request $rq)
+    public function index()
     {
         $title = "階層";
         $categories = t_category::whereNull("Parent_ID")
             ->orWhere("Parent_ID", 0)
             ->with("allChilds")
             ->orderBy("Sort_No")
-            ->orderBy("allChilds.Sort_No")
-            // ->orderBy("Category_ID")
             ->get()->toArray();
         $categories = json_encode($this->_getCategoryTree($categories));
 
         return view("category.index", compact("title", "categories"));
     }
 
+    /**
+     * 階層データ保存
+     * param Request $rq
+     * return 配列
+     */
     public function store(Request $rq)
     {
         try {
             DB::beginTransaction();
             $data = $rq->only("Category_ID", "Category_Nm", "Parent_ID", "Sort_No");
-            if ($rq->action != "delete_node") {
+            if ($rq->action == "delete_node") {
+                //　削除ボタン
+                if ($rq->Category_ID && t_category::find($data["Category_ID"])) {
+                    t_category::find($data["Category_ID"])->delete();
+                    $this->resetSortNext($rq);
+                }
+            } else if ($rq->action == "duplicate_node") {
+                t_category::upsert($rq->list, ["Category_ID"]);
+                $this->resetSortNext($rq);
+            } else {
                 // ドラッグ＆ドロップ
                 if ($rq->action == "move_node") {
                     // Sort_No更新
-                    $str = ($rq->Parent_ID == $rq->Old_Parent_ID && $rq->Sort_No < $rq->Old_Sort_No) || $rq->Parent_ID != $rq->Old_Parent_ID ? ">=" : ">";
-                    t_category::where("Parent_ID", $rq->Parent_ID)
-                        ->where("Sort_No", $str, $rq->Sort_No)->update(["Sort_No" => DB::raw("Sort_No+1")]);
-                    // Sort_No更新
+                    $this->resetSortNext($rq);
                     t_category::where("Parent_ID", $rq->Old_Parent_ID)
                         ->where("Sort_No", ">", $rq->Old_Sort_No)->update(["Sort_No" => DB::raw("Sort_No-1")]);
                 }
                 t_category::upsert($data, ["Category_ID"]);
-            } else {
-                //　削除ボタン
-                if ($rq->Category_ID && t_category::find($data["Category_ID"])) {
-                    t_category::find($data["Category_ID"])->delete();
-                }
             }
             DB::commit();
             return [
@@ -63,7 +68,12 @@ class CategoryController extends Controller
             ];
         }
     }
-
+    public function resetSortNext(Request $rq)
+    {
+        $str = ($rq->Parent_ID == $rq->Old_Parent_ID && $rq->Sort_No < $rq->Old_Sort_No) || $rq->Parent_ID != $rq->Old_Parent_ID || $rq->action == "duplicate_node" ? ">=" : ">";
+        t_category::where("Parent_ID", $rq->Parent_ID)
+            ->where("Sort_No", $str, $rq->Sort_No)->update(["Sort_No" => DB::raw("Sort_No+1")]);
+    }
     /**
      * 階層一覧のjsTreeフォーマット取得
      * param $data 階層一覧
@@ -76,7 +86,7 @@ class CategoryController extends Controller
             $tmp[] = [
                 "id" => $d["Category_ID"],
                 "parentID" => $d["Parent_ID"] ? $d["Parent_ID"] : 0,
-                "text" => $d["Category_Nm"],
+                "text" => $d["Category_Nm"] ,
                 "children" => $this->_getCategoryTree($d["all_childs"])
             ];
         }
