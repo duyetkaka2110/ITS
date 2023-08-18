@@ -53,9 +53,17 @@
 			Promise.resolve(arg).then(cb);
 		};
 	}
+	function getIdNode(id) {
+		let idnew = id.split("_");
+		if (idnew.length > 1) {
+			return idnew[1];
+		}
+		return id;
+	}
 	function getTid(dataTid) {
 		var tid = 0;
 		$.each(dataTid, function (index, val) {
+			index = getIdNode(index);
 			if ($.isNumeric(index) && parseInt(index) > tid) {
 				tid = index;
 			}
@@ -8559,6 +8567,7 @@
 				if (t in c)
 					count += c[t];
 				c[t] = count;
+				console.info(c)
 				// duyet edit end 20230817
 			}
 			if (!s) { n = n.toLowerCase(); }

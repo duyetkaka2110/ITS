@@ -46,7 +46,6 @@
 </script>
 <script>
     $(function() {
-        console.info(categories)
         var dataUpdate = [];
         var ajaxMethod = "GET";
         var jstree = $('#jstree');
@@ -106,7 +105,6 @@
             };
             update(dataUpdate)
         }).on("copy_node.jstree", function(e, data) {
-            console.info(data)
             let list = [{
                 Category_ID: getIdNode(data.node.id),
                 Category_Nm: data.node.text,
@@ -133,13 +131,14 @@
             })
         });
 
-        function getIdNode(id){
+        function getIdNode(id) {
             idnew = id.split("_");
-            if(idnew.length >1){
+            if (idnew.length > 1) {
                 return idnew[1];
             }
             return id;
         }
+
         function getContextmenu() {
             return {
                 "items": function($node) {
@@ -201,10 +200,11 @@
                         $('.loading').addClass('d-none');
                     },
                     success: function(res) {
-                        console.info(res["data"])
                         if (res["status"]) {
-
-                        } else {}
+                            console.info(res["data"])
+                        } else {
+                            dispMessageModal(res["msg"])
+                        }
                     }
                 });
             }
