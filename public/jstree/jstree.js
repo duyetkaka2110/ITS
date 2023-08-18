@@ -8567,7 +8567,6 @@
 				if (t in c)
 					count += c[t];
 				c[t] = count;
-				console.info(c)
 				// duyet edit end 20230817
 			}
 			if (!s) { n = n.toLowerCase(); }
