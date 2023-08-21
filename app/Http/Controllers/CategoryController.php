@@ -51,8 +51,6 @@ class CategoryController extends Controller
                     // Sort_No更新
                     $this->resetSortNext($rq);
                     $this->resetSortNextMinus($rq->Old_Parent_ID, $rq->Old_Sort_No);
-                    t_category::where("Parent_ID", $rq->Old_Parent_ID)
-                        ->where("Sort_No", ">", $rq->Old_Sort_No)->update(["Sort_No" => DB::raw("Sort_No-1")]);
                 }
                 t_category::upsert($data, ["Category_ID"]);
             }
