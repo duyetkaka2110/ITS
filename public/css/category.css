@@ -1,0 +1,57 @@
+.jstree-default .jstree-themeicon,
+.jstree-default .jstree-themeicon-custom {
+    color: #5ac70a;
+    font-size: 131%;
+    background-image: unset;
+}
+
+.jstree-closed>.jstree-ocl,
+.jstree-open>.jstree-ocl {
+    background-image: unset;
+}
+
+.jstree-closed>.jstree-ocl::before,
+.jstree-open>.jstree-ocl::before,
+.jstree-default .jstree-themeicon::before {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    content: "\f054";
+    color: #8b8b8b;
+}
+
+.jstree-default .jstree-themeicon::before {
+
+    color: #5ac70a;
+    content: "\f07b";
+}
+
+.jstree-open>.jstree-ocl::before {
+    content: "\f078";
+}
+
+.mg-jstree.col-sm-3 {
+    width: 250px;
+    max-width: unset;
+    flex: none;
+}
+
+.mg-grid.col-sm-9 {
+    max-width: calc(100% - 250px);
+}
+
+.cate-close .mg-jstree.col-sm-3 {
+    text-align: center;
+    width: 50px;
+}
+
+.cate-close .mg-grid.col-sm-9 {
+    max-width: calc(100% - 50px);
+}
+
+.cate-close #jstree {
+    display: none;
+}

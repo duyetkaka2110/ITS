@@ -4,6 +4,8 @@
 <link href="{{ URL::asset('css/jquery-ui.css') }}" rel="stylesheet" />
 <link href="{{ URL::asset('css/wijmo.min.css') }}" rel="stylesheet" />
 <link href="{{ URL::asset('css/mitsumori.css') }}" rel="stylesheet" />
+<link href="{{ URL::asset('jstree/themes/default/style.min.css') }}" rel="stylesheet" />
+<link href="{{ URL::asset('css/category.css') }}" rel="stylesheet" />
 @endsection
 @section("js")
 <script src="{{ URL::asset('js/js.cookie.min.js') }}"></script>
@@ -25,9 +27,12 @@
     var headerShiyoSelected = <?php echo $headerShiyoSelected ?>;
     var headerZairyo = <?php echo $headerZairyo ?>;
     var headerZairyoSelected = <?php echo $headerZairyoSelected ?>;
+    var categories = <?php echo $categories ?>
 </script>
 
 <script src="{{ URL::asset('js/mitsumori.js') }}" type="text/javascript"></script>
+<script type="text/javascript" src="{{ URL::asset('jstree/jstree.js') }}"></script>
+<script type="text/javascript" src="{{ URL::asset('js/category.js') }}"></script>
 <script>
     $(document).ready(function() {
         $(".btn-secondary").on("click", function() {
@@ -50,13 +55,25 @@
         // $("#MitsumoriModal").modal()
     })
 </script>
-
+<style>
+</style>
 @endsection
 @section('content')
 <div class="page"></div>
-<div class="container-fluid">
-    <div class="mg-menu"></div>
-    <div id="grid" class="has-ctx-menu"></div>
+<div class="mg-all row m-0 ">
+    <div class="mg-jstree col-sm-3">
+        <label class="pt-2 pb-2 m-0 btn-collapse bold cursor-point" data-toggle="collapse" >
+            <i class="fa fa-minus-square-o" aria-hidden="true"></i>
+            <strong>カテゴリ</strong>
+        </label>
+        <div id="jstree" class=""></div>
+    </div>
+
+    <div class="mg-grid  col-sm-9 p-0">
+        <div class="mg-menu"></div>
+        <div id="grid" class="has-ctx-menu"></div>
+    </div>
+    {{ Form::hidden('route-cstore', route('c.store')) }}
 </div>
 <button class="reload w-13em" style="height: 40px;">画面再表示</button>
 <button class="reset w-13em" style="height: 40px;">データリセット</button>
@@ -133,10 +150,10 @@
                             <div class="form-group row mb-1">
                                 <label class="col-sm-2 col-form-label text-right">数量</label>
                                 <div class="col-sm-10 pl-0">
-                                    <input type="url" title="数量" class="form-control p-1 h-30 col-3 d-inline text-right imeoff amount-change floatic"  inputmode="number" name="Quantity">
+                                    <input type="url" title="数量" class="form-control p-1 h-30 col-3 d-inline text-right imeoff amount-change floatic" inputmode="number" name="Quantity">
                                     <span class="ml-2 pr-1">単価</span>
                                     <div class="input-group align-bottom pl-0 col-3 mt-1 d-inline-flex">
-                                        <input type="url" title="単価"  class="form-control p-1 h-30  d-inline text-right imeoff numeric amount-change" inputmode="number" name="UnitPrice"  >
+                                        <input type="url" title="単価" class="form-control p-1 h-30  d-inline text-right imeoff numeric amount-change" inputmode="number" name="UnitPrice">
                                         <div class="input-group-append">
                                             <span class="input-group-text p-1 font-s-83">円</span>
                                         </div>
@@ -180,7 +197,7 @@
         <div class="modal-content w-100">
             <div class="modal-header modal-header-ShiyoEditModal bg-primary pt-2 pb-2">
                 <h6 class="modal-title text-white">材料構成編集</h6>
-                <button type="button" class="close">
+                <button type="button" class="close text-white ">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -243,7 +260,7 @@
                                 <label class="m-0 cursor-point"><input type="radio" class="ml-2" name="radioSearch" value="form-shiyo2"><span class="pl-1">仕様検索</span></label>
                             </div>
                             <form class="form-kosei form-zairyo position-relative">
-                                {{ Form::hidden("page",0)}} 
+                                {{ Form::hidden("page",0)}}
                                 <div class="zairyo-loading d-none">
                                     <div class="spinner-border text-primary" role="status">
                                         <span class="sr-only"></span>

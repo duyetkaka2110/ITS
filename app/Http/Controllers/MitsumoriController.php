@@ -16,6 +16,7 @@ use App\Models\t_seko_tanka;
 use App\Models\t_shiyo;
 use App\Http\Controllers\ShiyoController;
 use App\Http\Controllers\ZairyoController;
+use App\Http\Controllers\CategoryController;
 
 class MitsumoriController extends Controller
 {
@@ -40,7 +41,7 @@ class MitsumoriController extends Controller
         $headerZairyo = $zairyo->getTableHeaderZairyo();
         $headerZairyoSelected = $zairyo->getTableHeaderZairyoSelected();
 
-        return view("mitsumori.index3", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
+        return view("mitsumori.index3", compact( "header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
     }
     /**
      * tabulator
@@ -67,6 +68,8 @@ class MitsumoriController extends Controller
      */
     public function index(Request $rq)
     {
+        $ctg = new CategoryController();
+        $categories = $ctg->getList();
         $header = $this->_getTableHeader();
         $cmd = json_encode(config("const.cmd"));
         $list = $this->_getList();
@@ -80,9 +83,9 @@ class MitsumoriController extends Controller
         $headerZairyo = $zairyo->getTableHeaderZairyo();
         $headerZairyoSelected = $zairyo->getTableHeaderZairyoSelected();
 
-        return view("mitsumori.index", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
+        return view("mitsumori.index", compact("categories","header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
     }
-    
+
     /**
      * 工事仕様の選択データ登録をクリック時
      * param Request $rq

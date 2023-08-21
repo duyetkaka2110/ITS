@@ -26,6 +26,23 @@ class CategoryController extends Controller
         return view("category.index", compact("title", "categories"));
     }
 
+
+    /**
+     * 階層一覧取得
+     */
+    public function getList()
+    {
+        $title = "階層";
+        $categories = t_category::whereNull("Parent_ID")
+            ->orWhere("Parent_ID", 0)
+            ->with("allChilds")
+            ->orderBy("Sort_No")
+            ->get()->toArray();
+        $categories = json_encode($this->_getCategoryTree($categories));
+        return $categories;
+    }
+
+
     /**
      * 階層データ保存
      * param Request $rq
@@ -43,6 +60,7 @@ class CategoryController extends Controller
                     $this->resetSortNextMinus($rq->Parent_ID, $rq->Sort_No);
                 }
             } else if ($rq->action == "duplicate_node") {
+                // 複製
                 t_category::upsert($rq->list, ["Category_ID"]);
                 $this->resetSortNext($rq);
             } else {
@@ -67,18 +85,42 @@ class CategoryController extends Controller
             ];
         }
     }
+
+    /**
+     * 選択行から、Sort_No上げる
+     * param Request $rq
+     */
     public function resetSortNext(Request $rq)
     {
-        $str = ($rq->Parent_ID == $rq->Old_Parent_ID && $rq->Sort_No < $rq->Old_Sort_No) || $rq->Parent_ID != $rq->Old_Parent_ID || $rq->action == "duplicate_node" ? ">=" : ">";
-        t_category::where("Parent_ID", $rq->Parent_ID)
-            ->where("Sort_No", $str, $rq->Sort_No)->update(["Sort_No" => DB::raw("Sort_No+1")]);
+        $str = ($rq->Parent_ID == $rq->Old_Parent_ID && $rq->Sort_No < $rq->Old_Sort_No)
+            || $rq->Parent_ID != $rq->Old_Parent_ID
+            || $rq->action == "duplicate_node" ? ">=" : ">";
+        $this->_resetSort($rq->Parent_ID, $rq->Sort_No,  $str, "+");
     }
 
-    public function resetSortNextMinus($Parent_ID, $Sort_No)
+    /**
+     * 選択行から、Sort_No下げる
+     * param int $Parent_ID 選択行ＩＤ
+     * param int $Sort_No 選択行の位置
+     */
+    public function resetSortNextMinus(int $Parent_ID, int $Sort_No)
+    {
+        $this->_resetSort($Parent_ID, $Sort_No, ">", "-");
+    }
+
+    /**
+     * 選択行から、Sort_No更新
+     * param int $Parent_ID 選択行ＩＤ
+     * param int $Sort_No 選択行の位置
+     * param string $str > < =
+     * param string $cal + -
+     */
+    private function _resetSort(int $Parent_ID, int $Sort_No, string $str, string $cal)
     {
         t_category::where("Parent_ID", $Parent_ID)
-            ->where("Sort_No", ">", $Sort_No)->update(["Sort_No" => DB::raw("Sort_No-1")]);
+            ->where("Sort_No", $str, $Sort_No)->update(["Sort_No" => DB::raw("Sort_No $cal 1")]);
     }
+
     /**
      * 階層一覧のjsTreeフォーマット取得
      * param $data 階層一覧
@@ -97,6 +139,7 @@ class CategoryController extends Controller
         }
         return $tmp;
     }
+
     public function setData()
     {
         $json = '[{"Category_ID":"1","Category_Nm":"\u8010\u706b\u30fb\u906e\u97f3\u5de5\u4e8b","Parent_ID":"0","Sort_No":1},{"Category_ID":"10","Category_Nm":"\u58c1(3)(23)(2343)","Parent_ID":"0","Sort_No":8},{"Category_ID":"11","Category_Nm":"\u30c9\u5de5\u4e8b","Parent_ID":"0","Sort_No":10},{"Category_ID":"14","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c01","Parent_ID":"0","Sort_No":11},{"Category_ID":"2","Category_Nm":"\u8010\u706b\u58c1\u4e0b\u5730\u5de5\u4e8b","Parent_ID":"0","Sort_No":4},{"Category_ID":"290","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c02","Parent_ID":"0","Sort_No":2},{"Category_ID":"291","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c0","Parent_ID":"0","Sort_No":12},{"Category_ID":"3","Category_Nm":"\u58c1","Parent_ID":"0","Sort_No":3},{"Category_ID":"30","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c03","Parent_ID":"0","Sort_No":6},{"Category_ID":"7","Category_Nm":"\u58c1 2","Parent_ID":"0","Sort_No":9},{"Category_ID":"8","Category_Nm":"\u30d1\u30fc\u30c6\u30a3\u30b7\u30e7\u30f3","Parent_ID":"0","Sort_No":5},{"Category_ID":"9","Category_Nm":"\u58c1(3)","Parent_ID":"0","Sort_No":7}]';

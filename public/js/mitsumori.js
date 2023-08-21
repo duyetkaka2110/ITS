@@ -18,10 +18,6 @@ function init() {
             $("#" + modal + " .modal-dialog").attr("style", Cookies.get(modal + 'Dialog'));
             $("#" + modal + " .modal-content").attr("style", Cookies.get(modal + 'Content'));
         }
-        var windowX = $(window).width(); //determines the width of the browser window
-        var windowY = $(window).height();//determines the height of the browser window
-        var imageX = 2000; //put the width of your image here. my image was 2000x1000
-        var imageY = 1000;//image height
         // ポップアップウィンドウを全て,移動可,サイズ変更可にする。
         $("#" + modal).draggable({
             handle: ".modal-header-" + modal,
