@@ -71,14 +71,14 @@
 		return parseInt(tid);
 	}
 	function getLastComa(t) {
-		var re = new RegExp(/\(.*\)/);
+		var re = new RegExp(/\(.*\)$/);
 		var t2 = re.exec(t), t3;
 		var last = "";
 		if (t2) {
 			t3 = t2[0].split("(");
 			last = "(" + t3[t3.length - 1]
 		}
-		return last;
+		return last.length;
 	}
 	/**
 	 * holds all jstree related functions and variables, inclu ding the actual class and methods to create, access and manipulate instances.
@@ -4236,7 +4236,7 @@
 			if (pos > new_par.children.length) { pos = new_par.children.length; }
 
 			//duyet edit start 20230817
-			this.check("move_node", obj, new_par, pos, { 'core': true, 'origin': origin, 'is_multi': (old_ins && old_ins._id && old_ins._id !== this._id), 'is_foreign': (!old_ins || !old_ins._id) });
+			this.check("move_node", obj, new_par, pos, { isCopy: false, 'core': true, 'origin': origin, 'is_multi': (old_ins && old_ins._id && old_ins._id !== this._id), 'is_foreign': (!old_ins || !old_ins._id) });
 			if (obj.text in c && (obj.parent != new_par.id)) {
 				obj.text += "(" + (c[obj.text] + 1) + ")";
 			}
@@ -4412,9 +4412,9 @@
 			if (!node) { return false; }
 			tmp = this.get_node(node);
 			//duyet edit start 20230817
-			if (this.check("copy_node", obj, new_par, pos, { 'core': true, 'origin': origin, 'is_multi': (old_ins && old_ins._id && old_ins._id !== this._id), 'is_foreign': (!old_ins || !old_ins._id) })) {
+			if (this.check("copy_node", obj, new_par, pos, { isCopy: false, 'core': true, 'origin': origin, 'is_multi': (old_ins && old_ins._id && old_ins._id !== this._id), 'is_foreign': (!old_ins || !old_ins._id) })) {
 				tmp.text += "のコピー"
-				let count = this.check("copy_node", tmp, new_par, pos, { 'core': true, 'origin': origin, 'is_multi': (old_ins && old_ins._id && old_ins._id !== this._id), 'is_foreign': (!old_ins || !old_ins._id) });
+				let count = this.check("copy_node", tmp, new_par, pos, { isCopy: true, 'core': true, 'origin': origin, 'is_multi': (old_ins && old_ins._id && old_ins._id !== this._id), 'is_foreign': (!old_ins || !old_ins._id) });
 				if (count) {
 					tmp.text += "(" + count + ")";
 				}
@@ -8560,9 +8560,11 @@
 					t = t.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
 				}
 				// duyet edit start 20230817
-				var removeStr = n_coma ? "" : getLastComa(t);
-				// if(chk === "copy_mode") removeStr =  n_coma ? getLastComa(t) : "";
-				t = t.replace(removeStr, '');
+				// var removeStr = n_coma ? "" : getLastComa(t);
+				var isCopy = "isCopy"
+				var removeStr = more && isCopy in more && more.isCopy ? getLastComa(t) : "";
+				if (removeStr)
+					t = t.substr(0, t.length - removeStr);
 				let count = 1;
 				if (t in c)
 					count += c[t];
@@ -8604,12 +8606,10 @@
 						this._data.core.last_error = { 'error': 'check', 'plugin': 'unique', 'id': 'unique_03', 'reason': 'Child with name ' + n + ' already exists. Preventing: ' + chk, 'data': JSON.stringify({ 'chk': chk, 'pos': pos, 'obj': obj && (obj.id || obj.id === 0) ? obj.id : false, 'par': par && (par.id || par.id === 0) ? par.id : false }) };
 					}
 					return true;
-					return i;
 			}
 			return true;
 		};
 		this.create_node = function (par, node, pos, callback, is_loaded) {
-			// o day
 			if (!node || (typeof node === 'object' && node.text === undefined)) {
 				if (par === null) {
 					par = $.jstree.root;
