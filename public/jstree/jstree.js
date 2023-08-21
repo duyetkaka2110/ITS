@@ -4079,7 +4079,7 @@
 			 * @param {Object} node
 			 * @param {String} parent the parent's ID
 			 */
-			this.trigger('delete_node', { "node": obj, "parent": par.id });
+			this.trigger('delete_node', { "node": obj, "parent": par.id, position: pos });
 			if (c) {
 				this.trigger('changed', { 'action': 'delete_node', 'node': obj, 'selected': this._data.core.selected, 'parent': par.id });
 			}

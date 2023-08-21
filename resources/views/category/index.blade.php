@@ -101,7 +101,8 @@
             dataUpdate = {
                 action: "delete_node",
                 Category_ID: getIdNode(data.node.id),
-                Sort_No: ($.inArray(data.node.id, data.instance._model.data[data.parent].children)) + 1,
+                Parent_ID: data.parent ? getIdNode(data.parent) : 0,
+                Sort_No: data.position + 1,
             };
             update(dataUpdate)
         }).on("copy_node.jstree", function(e, data) {
