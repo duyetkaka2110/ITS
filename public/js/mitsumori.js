@@ -1,4 +1,6 @@
 document.readyState === 'complete' ? init() : window.onload = init;
+var flex; //　見積一覧
+var categorySelected = null;
 function init() {
     let UnitPrice = $('input[name="UnitPrice"]');
     let Amount = $('input[name="Amount"]');
@@ -72,7 +74,7 @@ function init() {
     var ajaxMethod = "get";
     var datacopy = null;
     // create Grid table
-    var flex = new wijmo.grid.FlexGrid("#grid", {
+    flex = new wijmo.grid.FlexGrid("#grid", {
         loadedRows: function (s, e) {
             for (var i = 0; i < s.rows.length; i++) {
                 var row = s.rows[i];
@@ -316,7 +318,7 @@ function init() {
         dataSearch.push({ name: "Bui_ID", value: flex_selected["Bui_ID"] })
         dataSearch.push({ name: "Shiyo_Shubetsu_ID", value: flex_selected["Shiyo_Shubetsu_ID"] ? flex_selected["Koshu_ID"] + '_' + flex_selected["Shiyo_Shubetsu_ID"] : '' })
         dataSearch.push({ name: "Shiyo_Nm", value: null })
-        dataSearch.push({ name: "Invoice_ID", value: flex_selected["id"] });
+        dataSearch.push({ name: "Mitsumori_ID", value: flex_selected["id"] });
         // check form has changed
         form_shiyo = getFormSelected();
         shiyo_selected_ajax()

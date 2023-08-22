@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('Category_ID')->primary();
             $table->string('Category_Nm');
             $table->string('Parent_ID')->nullable()->default(0);
+            $table->integer('AdQuoNo')->nullable()->index();
+            $table->integer('DetailType')->nullable()->index();
             $table->integer('Sort_No')->nullable()->default(0);
             $table->timestamps();
         });

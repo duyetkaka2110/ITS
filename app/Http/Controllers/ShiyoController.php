@@ -21,10 +21,10 @@ class ShiyoController extends Controller
 
     /**
      * 工事仕様の選択の緑画面の一覧取得
-     * param int $Invoice_ID 見積詳細ID
+     * param int $Mitsumori_ID 見積詳細ID
      * return 配列
      */
-    public function getListShiyoSelected(int $Invoice_ID)
+    public function getListShiyoSelected(int $Mitsumori_ID)
     {
 
         $data = t_mitsumori_meisai::select(
@@ -56,7 +56,7 @@ class ShiyoController extends Controller
             ->join(m_tani::getTableName("T"), "S.Tani_ID", "T.Tani_ID")
             ->join(m_koshu::getTableName("K"), "S.Koshu_ID", "K.Koshu_ID")
             ->join(t_seko_tanka::getTableName("ST"), "S.Shiyo_ID", "ST.Shiyo_ID")
-            ->where(t_mitsumori_meisai::getTableName() . ".Invoice_ID", $Invoice_ID)
+            ->where(t_mitsumori_meisai::getTableName() . ".Mitsumori_ID", $Mitsumori_ID)
             ->orderBy(t_mitsumori_meisai::getTableName() . ".Sort_No")
             ->get()->toArray();
         if (!$data) {
@@ -85,7 +85,7 @@ class ShiyoController extends Controller
                 ->join(m_tani::getTableName("T"), "S.Tani_ID", "T.Tani_ID")
                 ->join(m_koshu::getTableName("K"), "S.Koshu_ID", "K.Koshu_ID")
                 ->join(m_seko_tanka::getTableName("ST"), "S.Shiyo_ID", "ST.Shiyo_ID")
-                ->where(t_mitsumori_meisai::getTableName() . ".Invoice_ID", $Invoice_ID)
+                ->where(t_mitsumori_meisai::getTableName() . ".Mitsumori_ID", $Mitsumori_ID)
                 ->orderBy(t_mitsumori_meisai::getTableName() . ".Sort_No")
                 ->get()->toArray();
         }

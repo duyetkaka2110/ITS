@@ -42,6 +42,7 @@
 		ccp_mode = false,
 		ccp_inst = false,
 		themes_loaded = [],
+		tid_new = null,
 		src = $('script:last').attr('src'),
 		document = window.document; // local variable is always faster to access then a global
 	var c = [];
@@ -61,14 +62,16 @@
 		return id;
 	}
 	function getTid(dataTid) {
-		var tid = 0;
-		$.each(dataTid, function (index, val) {
-			index = getIdNode(index);
-			if ($.isNumeric(index) && parseInt(index) > tid) {
-				tid = index;
-			}
-		});
-		return parseInt(tid);
+		if (!tid_new) {
+			var tid = 0;
+			$.each(dataTid, function (index, val) {
+				index = getIdNode(index);
+				if ($.isNumeric(index) && parseInt(index) > tid) {
+					tid = index;
+				}
+			});
+			tid_new = parseInt(tid);
+		}
 	}
 	function getLastComa(t) {
 		var re = new RegExp(/\(.*\)$/);
@@ -2145,7 +2148,7 @@
 				data.icon = true;
 			}
 			tmp = d.children("ul").children("li");
-			var tid_new = getTid(this._model.data);
+			getTid(this._model.data);
 			do {
 				tid = 'j' + this._id + '_' + (++tid_new);
 			} while (m[tid]);
@@ -2292,7 +2295,9 @@
 			if (p) { ps.unshift(p); }
 			var tid = 0, i, j, c, e, m = this._model.data, df = this._model.default_state, tmp;
 			// duyet edit start 20230818
-			var tid_new = getTid(this._model.data);
+			getTid(this._model.data);
+			console.info(this)
+			console.info("tid json")
 			do {
 				tid = 'j' + this._id + '_' + (++tid_new);
 			} while (m[tid]);

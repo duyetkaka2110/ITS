@@ -7,6 +7,7 @@ $(function () {
         'core': {
             'data': categories,
             "animation": 0,
+            "dblclick_toggle" : false,
             "check_callback": function (op) {
                 if (op === "delete_node") {
                     return confirm("削除します。よろしいですか？");
@@ -60,11 +61,13 @@ $(function () {
         };
         update(dataUpdate)
     }).on("copy_node.jstree", function (e, data) {
+        console.info(data)
         let list = [{
             Category_ID: getIdNode(data.node.id),
             Category_Nm: data.node.text,
             Parent_ID: data.parent ? getIdNode(data.parent) : 0,
             Sort_No: data.position + 1,
+            Category_ID_Old: getIdNode(data.original.id)
         }];
         let node, parent;
         $.each(data.node.children_d, function (index, key) {
@@ -75,6 +78,7 @@ $(function () {
                 Category_Nm: data.instance._model.data[key].text,
                 Parent_ID: getIdNode(data.instance._model.data[key].parent),
                 Sort_No: ($.inArray(node.id, parent.children)) + 1,
+                Category_ID_Old: getIdNode(data.original.children_d[index])
             })
         })
         update({
@@ -84,7 +88,19 @@ $(function () {
             Parent_ID: data.parent ? getIdNode(data.parent) : 0,
             Sort_No: data.position + 1,
         })
+    }).on("dblclick.jstree", function (event, data) {
+        var id = jstree.jstree('get_selected')[0];
+        var node = jstree.jstree("get_node", id)
+        if (node.parent != 0) {
+            categorySelected = id;
+            getListMitsumore(id)
+        }
+    }).on("click.jstree",function(){
+        setScroll();
     });
+    $(window).resize(function () {
+        setScroll();
+    })
     if (Cookies.get("cate-close") != undefined && Cookies.get("cate-close") == "true") {
         $(".mg-all").addClass("cate-close");
     }
@@ -170,11 +186,32 @@ $(function () {
             setScroll();
         }
     }
+    function getListMitsumore(id) {
+        // 見積明細取得
+        $.ajax({
+            type: ajaxMethod,
+            url: $("input[name=route-mlist]").val()+"/"+id,
+            success: function (res) {
+                if (res["status"]) {
+                    flex.itemsSource = new wijmo.collections.ObservableArray($.parseJSON(res["data"]));
+                } else {
+                    dispMessageModal(res["msg"])
+                }
+            }
+        });
+    }
     function setScroll() {
         if ($(".jstree-container-ul").width() > 250) {
             jstree.css("overflow-x", "scroll");
         } else {
             jstree.css("overflow-x", "unset");
+        }
+        if ($(".jstree-container-ul").height() > ( window.innerHeight - 90 + $(".mg-menu").height() + 10)) {
+            jstree.css("overflow-y", "scroll");
+            jstree.css("height", window.innerHeight - 90);
+        } else {
+            jstree.css("overflow-y", "unset");
+            jstree.css("height", "auto");
         }
     }
 });

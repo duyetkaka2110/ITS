@@ -30,6 +30,9 @@ Route::get("/getListShiyo", "ShiyoController@getListShiyo")->name("getListShiyo"
 Route::get('/setMitsumoreShiyo', "MitsumoriController@setMitsumoreShiyo")->name("setMitsumoreShiyo");
 Route::get('/getMitsumoreMeisai', "MitsumoriController@getMitsumoreMeisai")->name("getMitsumoreMeisai");
 Route::get('/mitsumoreStore', "MitsumoriController@store")->name("m.store");
+Route::get('/getListMitsumore', "MitsumoriController@getListMitsumore")->name("m.list");
+Route::get('/getListMitsumore/{Category_ID}', "MitsumoriController@getListMitsumore");
+
 
 
 Route::get("/getListZairyo", "ZairyoController@getListZairyo")->name("getListZairyo");

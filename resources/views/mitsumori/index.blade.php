@@ -35,6 +35,7 @@
 <script type="text/javascript" src="{{ URL::asset('js/category.js') }}"></script>
 <script>
     $(document).ready(function() {
+
         $(".btn-secondary").on("click", function() {
             dispMessageModal("工事中です")
         })
@@ -75,8 +76,9 @@
     </div>
     {{ Form::hidden('route-cstore', route('c.store')) }}
 </div>
-<button class="reload w-13em" style="height: 40px;">画面再表示</button>
-<button class="reset w-13em" style="height: 40px;">データリセット</button>
+<a class="reload btn btn-primary" href="#" >画面再表示</a>
+<a class="reset btn btn-primary" href="#" >データリセット</a>
+<a href="{{ route('c.reset') }}" class=" btn btn-primary">カテゴリリセット</a>
 <input type="hidden" class="route-mitsumore-action" value="{{ route('mitsumore.action') }}" />
 
 @endsection
@@ -290,6 +292,7 @@
 {{ Form::hidden('route-setMitsumoreShiyo', route('setMitsumoreShiyo')) }}
 {{ Form::hidden('route-getMitsumoreMeisai', route('getMitsumoreMeisai')) }}
 {{ Form::hidden('route-istore', route('m.store')) }}
+{{ Form::hidden('route-mlist', route('m.list')) }}
 {{ Form::hidden('route-getListZairyo', route('getListZairyo')) }}
 {{ Form::hidden('route-getListZairyoSelected', route('getListZairyoSelected')) }}
 {{ Form::hidden('route-zstore', route('z.store')) }}

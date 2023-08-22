@@ -17,12 +17,22 @@ use App\Models\t_shiyo;
 use App\Http\Controllers\ShiyoController;
 use App\Http\Controllers\ZairyoController;
 use App\Http\Controllers\CategoryController;
+use App\Models\t_category;
+use Session;
 
 class MitsumoriController extends Controller
 {
     protected $AdQuoNo = 3;
     protected $DetailType = 1;
 
+    public function __construct()
+    {
+        // カテゴリ選択した取得
+        if (Session::get("AdQuoNo")) {
+            $this->AdQuoNo = Session::get("AdQuoNo");
+            $this->DetailType = Session::get("DetailType");
+        }
+    }
     /**
      * datatable
      */
@@ -41,7 +51,7 @@ class MitsumoriController extends Controller
         $headerZairyo = $zairyo->getTableHeaderZairyo();
         $headerZairyoSelected = $zairyo->getTableHeaderZairyoSelected();
 
-        return view("mitsumori.index3", compact( "header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
+        return view("mitsumori.index3", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
     }
     /**
      * tabulator
@@ -83,7 +93,7 @@ class MitsumoriController extends Controller
         $headerZairyo = $zairyo->getTableHeaderZairyo();
         $headerZairyoSelected = $zairyo->getTableHeaderZairyoSelected();
 
-        return view("mitsumori.index", compact("categories","header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
+        return view("mitsumori.index", compact("categories", "header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
     }
 
     /**
@@ -174,7 +184,7 @@ class MitsumoriController extends Controller
         }
         if ($dataIS) {
             $dataIS = array_map(function ($arr) use ($id) {
-                return $arr + ['Invoice_ID' => $id];
+                return $arr + ['Mitsumori_ID' => $id];
             }, $dataIS);
             t_mitsumori_meisai::insert($dataIS);
         }
@@ -200,16 +210,48 @@ class MitsumoriController extends Controller
     public function getMitsumoreMeisai(Request $rq)
     {
         $shiyo = new ShiyoController;
-        if ($rq->filled("Invoice_ID")) {
+        if ($rq->filled("Mitsumori_ID")) {
             return [
                 "status" => true,
-                "data" => $shiyo->getListShiyoSelected($rq->Invoice_ID),
+                "data" => $shiyo->getListShiyoSelected($rq->Mitsumori_ID),
                 "dataShiyo" => $shiyo->getListShiyo($rq)
             ];
         }
         return [
             "status" => false
         ];
+    }
+
+    /**
+     * カテゴリ選択後、見積詳細一覧取得
+     * param $Category_ID　カテゴリID
+     * return 配列
+     */
+    public function getListMitsumore($Category_ID)
+    {
+        $cate = $this->_setCategorySelected($Category_ID);
+        return [
+            "status" => true,
+            "data" => $this->_getList(),
+            "cate" => $cate
+        ];
+    }
+
+    /**
+     * カテゴリ選択後、選択行設定
+     * param $Category_ID　カテゴリID
+     * return 配列
+     */
+    private function _setCategorySelected($Category_ID)
+    {
+        $cate = t_category::select("AdQuoNo", "DetailType")->where("Category_ID", $Category_ID)->first();
+        if ($cate) {
+            $this->AdQuoNo = $cate->AdQuoNo;
+            $this->DetailType = $cate->DetailType;
+            Session::put("AdQuoNo", $cate->AdQuoNo);
+            Session::put("DetailType", $cate->DetailType);
+        }
+        return $cate;
     }
 
     /**
@@ -262,9 +304,9 @@ class MitsumoriController extends Controller
                                 ELSE ''
                         END AS SpecName3")
                 ->selectRaw("CASE WHEN No != 0 THEN No END AS No")
-                ->leftJoin($this->_getRawSortNo(1), "A1.Invoice_ID", t_mitsumori::getTableName() . ".id")
-                ->leftJoin($this->_getRawSortNo(2), "A2.Invoice_ID",  t_mitsumori::getTableName() . ".id")
-                ->leftJoin($this->_getRawSortNo(3), "A3.Invoice_ID",  t_mitsumori::getTableName() . ".id")
+                ->leftJoin($this->_getRawSortNo(1), "A1.Mitsumori_ID", t_mitsumori::getTableName() . ".id")
+                ->leftJoin($this->_getRawSortNo(2), "A2.Mitsumori_ID",  t_mitsumori::getTableName() . ".id")
+                ->leftJoin($this->_getRawSortNo(3), "A3.Mitsumori_ID",  t_mitsumori::getTableName() . ".id")
                 ->leftJoin(m_shiyo::getTableName("S"), "S.Shiyo_ID", "A1.Shiyo_ID")
                 ->leftJoin(m_koshu::getTableName("K"), "K.Koshu_ID",  "S.Koshu_ID")
                 ->leftJoin(m_bui::getTableName("B"), "B.Bui_ID", "S.Bui_ID")
@@ -290,7 +332,7 @@ class MitsumoriController extends Controller
 
     private function _getRawSortNo(int $number)
     {
-        return DB::raw("(SELECT ISs.Invoice_ID, ISs.Sort_No, ISs.Shiyo_ID, S.Shiyo_Nm FROM " . t_mitsumori_meisai::getTableName("ISs") . "  LEFT JOIN " . m_shiyo::getTableName("S") . " ON S.Shiyo_ID = ISs.Shiyo_ID WHERE ISs.Sort_No = $number ) as A$number");
+        return DB::raw("(SELECT ISs.Mitsumori_ID, ISs.Sort_No, ISs.Shiyo_ID, S.Shiyo_Nm FROM " . t_mitsumori_meisai::getTableName("ISs") . "  LEFT JOIN " . m_shiyo::getTableName("S") . " ON S.Shiyo_ID = ISs.Shiyo_ID WHERE ISs.Sort_No = $number ) as A$number");
     }
 
     /**
@@ -469,7 +511,7 @@ class MitsumoriController extends Controller
             t_mitsumori::where("id", $dataSelected["id"][$k])->update($l);
             t_mitsumori::find($dataSelected["id"][$k])->meisais()->delete();
             t_mitsumori_meisai::insert(t_mitsumori_meisai::select("Shiyo_ID", "AtariSuryo", "Sort_No")
-                ->selectRaw($dataSelected["id"][$k] . " as Invoice_ID")->where("Invoice_ID", $dataCopy["id"][$k])->get()->toArray());
+                ->selectRaw($dataSelected["id"][$k] . " as Mitsumori_ID")->where("Mitsumori_ID", $dataCopy["id"][$k])->get()->toArray());
         }
 
         $data["NoUpdate"] = ' - ' . $dataSelected["nextItemNo"] - $no;
@@ -501,7 +543,7 @@ class MitsumoriController extends Controller
             $l["No"] = $no;
             $id = t_mitsumori::insertGetId($l);
             t_mitsumori_meisai::insert(t_mitsumori_meisai::select("Shiyo_ID", "AtariSuryo", "Sort_No")
-                ->selectRaw($id . " as Invoice_ID")->where("Invoice_ID", $dataCopy["id"][$k])->get()->toArray());
+                ->selectRaw($id . " as Mitsumori_ID")->where("Mitsumori_ID", $dataCopy["id"][$k])->get()->toArray());
         }
         $data["NoUpdate"] = ' - ' . $dataSelected["firstNo"] - $no - 1;
         $data["DetailNoUpdate"] = ' + ' . $dataSelected["count"];
@@ -541,7 +583,7 @@ class MitsumoriController extends Controller
     {
         // 行削除
         t_mitsumori::whereIn("id", $dataSelected["id"])->delete();
-        t_mitsumori_meisai::whereIn("Invoice_ID", $dataSelected["id"])->delete();
+        t_mitsumori_meisai::whereIn("Mitsumori_ID", $dataSelected["id"])->delete();
         $data["DetailNoUpdate"] = ' - ' . $dataSelected["count"];
         $data["NoUpdate"] = ' - ' . (end($dataSelected["No"]) ? end($dataSelected["No"]) : 0) - ($dataSelected["prevItemNo"] ? $dataSelected["prevItemNo"] : 0);
         return $data;

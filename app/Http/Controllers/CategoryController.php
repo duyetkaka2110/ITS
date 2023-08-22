@@ -6,6 +6,8 @@ use App\Models\t_category;
 use Illuminate\Http\Request;
 use DB;
 use App\GetMessage;
+use App\Models\t_mitsumori;
+use App\Models\t_mitsumori_meisai;
 
 class CategoryController extends Controller
 {
@@ -61,8 +63,33 @@ class CategoryController extends Controller
                 }
             } else if ($rq->action == "duplicate_node") {
                 // 複製
-                t_category::upsert($rq->list, ["Category_ID"]);
                 $this->resetSortNext($rq);
+                $list = $rq->list;
+                foreach ($list as $key => $l) {
+                    $old = t_category::select("AdQuoNo", "DetailType")
+                        ->where("DetailType", "!=", 0)
+                        ->where("Category_ID", $l["Category_ID_Old"])->first();
+                    unset($list[$key]["Category_ID_Old"]);
+                    $list[$key]["AdQuoNo"] = $l["Category_ID"];
+                    $list[$key]["DetailType"] = $old ? $old->DetailType : 0;
+
+                    if ($old) {
+                        // t_mitsumori複製
+                    //     t_mitsumori::insert(t_mitsumori::select("*")
+                    //         ->selectRaw($l["Category_ID"] . " AS AdQuoNo")
+                    //         ->where("AdQuoNo", $old->AdQuoNo)
+                    //         ->where("DetailType", $old->DetailType)->get()->toArray());
+
+                    //    $data =  t_mitsumori::select("MM.*")
+                    //         ->selectRaw($l["Category_ID"] . " AS AdQuoNo")
+                    //         ->join(t_mitsumori_meisai::getTableName("MM"), "MM.Mitsumori_ID", t_mitsumori::getTableName() . ".id")
+                    //         ->where("AdQuoNo", $old->AdQuoNo)
+                    //         ->where("DetailType", $old->DetailType)->get()->toArray();
+
+                    //     dd($old, $data);
+                    }
+                }
+                t_category::upsert($list, ["Category_ID"]);
             } else {
                 // ドラッグ＆ドロップ
                 if ($rq->action == "move_node") {
@@ -142,9 +169,46 @@ class CategoryController extends Controller
 
     public function setData()
     {
-        $json = '[{"Category_ID":"1","Category_Nm":"\u8010\u706b\u30fb\u906e\u97f3\u5de5\u4e8b","Parent_ID":"0","Sort_No":1},{"Category_ID":"10","Category_Nm":"\u58c1(3)(23)(2343)","Parent_ID":"0","Sort_No":8},{"Category_ID":"11","Category_Nm":"\u30c9\u5de5\u4e8b","Parent_ID":"0","Sort_No":10},{"Category_ID":"14","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c01","Parent_ID":"0","Sort_No":11},{"Category_ID":"2","Category_Nm":"\u8010\u706b\u58c1\u4e0b\u5730\u5de5\u4e8b","Parent_ID":"0","Sort_No":4},{"Category_ID":"290","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c02","Parent_ID":"0","Sort_No":2},{"Category_ID":"291","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c0","Parent_ID":"0","Sort_No":12},{"Category_ID":"3","Category_Nm":"\u58c1","Parent_ID":"0","Sort_No":3},{"Category_ID":"30","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c03","Parent_ID":"0","Sort_No":6},{"Category_ID":"7","Category_Nm":"\u58c1 2","Parent_ID":"0","Sort_No":9},{"Category_ID":"8","Category_Nm":"\u30d1\u30fc\u30c6\u30a3\u30b7\u30e7\u30f3","Parent_ID":"0","Sort_No":5},{"Category_ID":"9","Category_Nm":"\u58c1(3)","Parent_ID":"0","Sort_No":7}]';
+
+        $data = t_mitsumori::select("AdQuoNo")
+            ->selectRaw("0 AS DetailType")
+            ->selectRaw("ROW_NUMBER() OVER(ORDER BY  AdQuoNo) Sort_No")
+            ->selectRaw("CONCAT('見積シート ' ,AdQuoNo ) AS Category_Nm")
+            ->selectRaw("0 AS Parent_ID")
+            ->groupBy("AdQuoNo");
+        $sql = t_mitsumori::select("AdQuoNo", "DetailType")
+            ->selectRaw("DetailType AS Sort_No")
+            ->selectRaw("CASE WHEN DetailType = 1 
+                                    THEN '明細①'
+                            WHEN DetailType = 2 
+                                    THEN '明細②'
+                            WHEN DetailType = 3 
+                                    THEN '明細③'
+                            WHEN DetailType = 4 
+                                    THEN '明細④'
+                            WHEN DetailType = 5 
+                                    THEN '明細⑤'
+                                    ELSE '明細'
+                            END AS Category_Nm")
+            ->selectRaw("AdQuoNo AS Parent_ID")
+            ->groupBy("AdQuoNo", "DetailType")
+            ->union($data)
+            ->toSql();
+        $data = DB::select("SELECT *, ROW_NUMBER() OVER(ORDER BY Parent_ID, AdQuoNo, DetailType) Category_ID FROM (" . $sql . ") a");
+        $data = array_map(function ($value) {
+            return (array)$value;
+        }, $data);
         t_category::query()->delete();
-        t_category::insert(json_decode($json, true));
+        t_category::insert($data);
+        t_category::select("Category_ID", "AdQuoNo")->where("Parent_ID", 0)->each(function ($val, $key) {
+            t_category::where("Parent_ID", $val->AdQuoNo)
+                ->where("AdQuoNo", $val->AdQuoNo)
+                ->update(["Parent_ID" => $val->Category_ID]);
+        });
+
+        // $json = '[{"Category_ID":"1","Category_Nm":"\u8010\u706b\u30fb\u906e\u97f3\u5de5\u4e8b","Parent_ID":"0","Sort_No":1},{"Category_ID":"10","Category_Nm":"\u58c1(3)(23)(2343)","Parent_ID":"0","Sort_No":8},{"Category_ID":"11","Category_Nm":"\u30c9\u5de5\u4e8b","Parent_ID":"0","Sort_No":10},{"Category_ID":"14","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c01","Parent_ID":"0","Sort_No":11},{"Category_ID":"2","Category_Nm":"\u8010\u706b\u58c1\u4e0b\u5730\u5de5\u4e8b","Parent_ID":"0","Sort_No":4},{"Category_ID":"290","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c02","Parent_ID":"0","Sort_No":2},{"Category_ID":"291","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c0","Parent_ID":"0","Sort_No":12},{"Category_ID":"3","Category_Nm":"\u58c1","Parent_ID":"0","Sort_No":3},{"Category_ID":"30","Category_Nm":"\u65b0\u898f\u30d5\u30a9\u30eb\u30c03","Parent_ID":"0","Sort_No":6},{"Category_ID":"7","Category_Nm":"\u58c1 2","Parent_ID":"0","Sort_No":9},{"Category_ID":"8","Category_Nm":"\u30d1\u30fc\u30c6\u30a3\u30b7\u30e7\u30f3","Parent_ID":"0","Sort_No":5},{"Category_ID":"9","Category_Nm":"\u58c1(3)","Parent_ID":"0","Sort_No":7}]';
+        // t_category::query()->delete();
+        // t_category::insert(json_decode($json, true));
         return redirect()->back();
     }
 }

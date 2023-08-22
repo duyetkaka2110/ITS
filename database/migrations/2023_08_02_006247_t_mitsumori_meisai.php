@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create($this->table, function (Blueprint $table) {
             $table->id();
             $table->integer('Shiyo_ID')->nullable()->index();
-            $table->integer('Invoice_ID')->nullable();
+            $table->integer('Mitsumori_ID')->nullable();
             $table->decimal('AtariSuryo',10,2)->nullable();
             $table->integer('Sort_No')->nullable();
             $table->boolean('Default_Flg')->nullable();

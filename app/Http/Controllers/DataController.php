@@ -128,14 +128,14 @@ class DataController extends Controller
                 if (isset($temp["SpecName1"])) {
                     t_mitsumori_meisai::insert([
                         "Shiyo_ID" => m_shiyo::where("Shiyo_Nm", $temp["SpecName1"])->value("Shiyo_ID"),
-                        "Invoice_ID" => $id,
+                        "Mitsumori_ID" => $id,
                         "Sort_No" => 1
                     ]);
                 }
                 if (isset($temp["SpecName2"])) {
                     t_mitsumori_meisai::insert([
                         "Shiyo_ID" => m_shiyo::where("Shiyo_Nm", $temp["SpecName2"])->value("Shiyo_ID"),
-                        "Invoice_ID" => $id,
+                        "Mitsumori_ID" => $id,
                         "Sort_No" => 2
                     ]);
                 }
