@@ -7,7 +7,7 @@ $(function () {
         'core': {
             'data': categories,
             "animation": 0,
-            "dblclick_toggle" : false,
+            "dblclick_toggle": false,
             "check_callback": function (op) {
                 if (op === "delete_node") {
                     return confirm("削除します。よろしいですか？");
@@ -95,7 +95,7 @@ $(function () {
             categorySelected = id;
             getListMitsumore(getIdNode(id))
         }
-    }).on("click.jstree",function(){
+    }).on("click.jstree", function () {
         setScroll();
     });
     $(window).resize(function () {
@@ -178,9 +178,7 @@ $(function () {
                 },
                 success: function (res) {
                     if (res["status"]) {
-                        if(res["msg"]){
-                            dispSuccessMsg(res["msg"])
-                        }
+                        dispSuccessMsg(res["msg"])
                     } else {
                         dispMessageModal(res["msg"])
                     }
@@ -193,7 +191,7 @@ $(function () {
         // 見積明細取得
         $.ajax({
             type: ajaxMethod,
-            url: $("input[name=route-mlist]").val()+"/"+id,
+            url: $("input[name=route-mlist]").val() + "/" + id,
             success: function (res) {
                 if (res["status"]) {
                     flex.itemsSource = new wijmo.collections.ObservableArray($.parseJSON(res["data"]));
@@ -209,7 +207,7 @@ $(function () {
         } else {
             jstree.css("overflow-x", "unset");
         }
-        if ($(".jstree-container-ul").height() > ( window.innerHeight - 90 + $(".mg-menu").height() + 10)) {
+        if ($(".jstree-container-ul").height() > (window.innerHeight - 90 + $(".mg-menu").height() + 10)) {
             jstree.css("overflow-y", "scroll");
             jstree.css("height", window.innerHeight - 90);
         } else {

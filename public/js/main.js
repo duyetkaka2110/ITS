@@ -26,8 +26,10 @@ $(document).on('show.bs.modal', '.modal', function () {
 });
 // メッセージポップアップ表示
 function dispMessageModal(content) {
-    $("#MessageModal .modal-body").html(content);
-    $("#MessageModal").modal();
+    if (content) {
+        $("#MessageModal .modal-body").html(content);
+        $("#MessageModal").modal();
+    }
 }
 // 確認ポップアップ表示
 function dispConfirmModal(content, action) {
@@ -37,14 +39,18 @@ function dispConfirmModal(content, action) {
 }
 // 見積ポップアップ表示
 function dispMitsumoriModal(content) {
-    $("#MitsumoriModal .modal-body").html(content);
-    $("#MitsumoriModal").modal();
+    if (content) {
+        $("#MitsumoriModal .modal-body").html(content);
+        $("#MitsumoriModal").modal();
+    }
 }
 
 // 完了メッセージ表示
 function dispSuccessMsg(msg) {
-    $(".alert-success").html(msg);
-    $(".alert-success").fadeIn(100).delay(1500).fadeOut(100);
+    if (msg) {
+        $(".alert-success").html(msg);
+        $(".alert-success").fadeIn(100).delay(1500).fadeOut(100);
+    }
 }
 function getQueryStringValue(uri, key) {
     if (!uri) return false;
