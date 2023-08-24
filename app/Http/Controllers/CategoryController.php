@@ -54,6 +54,7 @@ class CategoryController extends Controller
     {
         try {
             DB::beginTransaction();
+            $msg = null;
             $data = $rq->only("Category_ID", "Category_Nm", "Parent_ID", "Sort_No");
             if ($rq->action == "delete_node") {
                 //　削除ボタン
@@ -75,21 +76,24 @@ class CategoryController extends Controller
 
                     if ($old) {
                         // t_mitsumori複製
-                    //     t_mitsumori::insert(t_mitsumori::select("*")
-                    //         ->selectRaw($l["Category_ID"] . " AS AdQuoNo")
-                    //         ->where("AdQuoNo", $old->AdQuoNo)
-                    //         ->where("DetailType", $old->DetailType)->get()->toArray());
-
-                    //    $data =  t_mitsumori::select("MM.*")
-                    //         ->selectRaw($l["Category_ID"] . " AS AdQuoNo")
-                    //         ->join(t_mitsumori_meisai::getTableName("MM"), "MM.Mitsumori_ID", t_mitsumori::getTableName() . ".id")
-                    //         ->where("AdQuoNo", $old->AdQuoNo)
-                    //         ->where("DetailType", $old->DetailType)->get()->toArray();
-
-                    //     dd($old, $data);
+                        t_mitsumori::select("*")
+                            ->selectRaw($l["Category_ID"] . " AS AdQuoNo") // 新規見積書設定
+                            ->where("AdQuoNo", $old->AdQuoNo)
+                            ->where("DetailType", $old->DetailType)
+                            ->get()->each(function ($e, $k) {
+                                $oldId = $e->id;
+                                $e = $e->toArray();
+                                unset($e["id"]);
+                                $newId = t_mitsumori::insertGetId($e);
+                                // t_mitsumori_meisai複製
+                                t_mitsumori_meisai::insert(t_mitsumori_meisai::select("*")
+                                    ->selectRaw($newId . " AS Mitsumori_ID") // 新規見積カテゴリ設定
+                                    ->where("Mitsumori_ID", $oldId)->get()->toArray());
+                            });
                     }
                 }
                 t_category::upsert($list, ["Category_ID"]);
+                $msg = str_replace("{p}", "複製", GetMessage::getMessageByID("error004"));
             } else {
                 // ドラッグ＆ドロップ
                 if ($rq->action == "move_node") {
@@ -103,6 +107,7 @@ class CategoryController extends Controller
             return [
                 "status" => true,
                 "data" => t_category::pluck("Sort_No"),
+                "msg" => $msg
             ];
         } catch (Throwable $e) {
             DB::rollBack();

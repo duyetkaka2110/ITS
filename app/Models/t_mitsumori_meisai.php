@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class t_mitsumori_meisai extends Model
 {
     use HasFactory;
-    
-    protected $hidden = ["id", "created_at", "updated_at"];
+
+    protected $hidden = ["id","created_at", "updated_at"];
 
     // string $As 短い名
     public static function getTableName(string $As = "")

@@ -93,7 +93,7 @@ $(function () {
         var node = jstree.jstree("get_node", id)
         if (node.parent != 0) {
             categorySelected = id;
-            getListMitsumore(id)
+            getListMitsumore(getIdNode(id))
         }
     }).on("click.jstree",function(){
         setScroll();
@@ -178,6 +178,9 @@ $(function () {
                 },
                 success: function (res) {
                     if (res["status"]) {
+                        if(res["msg"]){
+                            dispSuccessMsg(res["msg"])
+                        }
                     } else {
                         dispMessageModal(res["msg"])
                     }
