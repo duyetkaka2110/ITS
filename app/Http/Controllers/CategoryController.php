@@ -51,9 +51,11 @@ class CategoryController extends Controller
             ->orderBy("Sort_No")
             ->get()->toArray();
         if ($id) {
+            // カテゴリ選択後
             $this->_getNewParentArray($categories);
             return $this->tmp;
         }
+        // カテゴリ一覧表示
         $categories = json_encode($this->_getCategoryTree($categories));
         return $categories;
     }
