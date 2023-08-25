@@ -22,7 +22,7 @@ use Session;
 
 class MitsumoriController extends Controller
 {
-    protected $AdQuoNo = 0;
+    protected $AdQuoNo = 7;
     protected $Category_ID = 0;
 
     public function __construct()

@@ -16,7 +16,7 @@ use function PHPUnit\Framework\returnSelf;
 class CategoryController extends Controller
 {
     protected $tmp = [];
-    protected $AdQuoNo = 0;
+    protected $AdQuoNo = 7;
     protected $Category_ID = 0;
 
     public function __construct()
