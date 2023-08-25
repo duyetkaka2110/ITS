@@ -77,8 +77,7 @@
     {{ Form::hidden('route-cstore', route('c.store')) }}
 </div>
 <a class="reload btn btn-primary" href="#" >画面再表示</a>
-<a class="reset btn btn-primary" href="#" >データリセット</a>
-<a href="{{ route('c.reset') }}" class=" btn btn-primary">カテゴリリセット</a>
+<a href="{{ route('c.reset') }}" class=" btn btn-primary">データリセット</a>
 <input type="hidden" class="route-mitsumore-action" value="{{ route('mitsumore.action') }}" />
 
 @endsection

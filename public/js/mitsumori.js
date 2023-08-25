@@ -247,9 +247,8 @@ function init() {
             if (action == cmd.cmdPasteNew.cmd && datacopy) {
                 dataAction = datacopy;
             }
-
             // DB更新
-            if (dataSelected.count) {
+            if (dataSelected.count || action == cmd.cmdNew.cmd) {
                 $.ajax({
                     type: ajaxMethod,
                     data: {
@@ -372,6 +371,7 @@ function init() {
     function getDataSelected(selectedItems, first, last) {
         selectedItems.sort(sortOnKey("DetailNo", false, false))
         var NoItems = selectedItems.map(el => el.No);
+        console.info(selectedItems)
         var dataSelected = {
             count: selectedItems.length,
             id: selectedItems.map(el => el.id),
@@ -380,8 +380,8 @@ function init() {
             haveNoNull: NoItems.some(v => v === null) ? 1 : null,
             first: first,// first selected row
             last: last, // last selected row
-            firstNo: selectedItems[0].No,
-            lastNo: selectedItems[selectedItems.length - 1].No,
+            firstNo: selectedItems.length > 0 ? selectedItems[0].No : 0,
+            lastNo: selectedItems.length > 0 ? selectedItems[selectedItems.length - 1].No : 0,
             prevItemNo: first > 0 ? flex.itemsSource[first - 1].No : 0,
             nextItemNo: last < flex.itemsSource.length - 1 ? flex.itemsSource[last].No : 0,
         }
@@ -394,6 +394,8 @@ function init() {
     // get list items after selected rows, No can change
     function getNextHaveNo(flex, row) {
         let dataNoChange = [];
+        if (flex.itemsSource.length < 1)
+            return dataNoChange;
         while (row < flex.itemsSource.length && flex.itemsSource[row].No) {
             dataNoChange.push(flex.itemsSource[row].id);
             row++;

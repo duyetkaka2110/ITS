@@ -8,6 +8,7 @@
 <script type="text/javascript" src="{{ URL::asset('jstree/jstree.js') }}"></script>
 <script>
     var categories = <?php echo $categories ?>
+    var cateIDMax = <?php echo $cateIDMax ?>
 </script>
 <script type="text/javascript" src="{{ URL::asset('js/category.js') }}"></script>
 @endsection

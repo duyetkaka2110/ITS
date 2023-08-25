@@ -22,15 +22,17 @@ use Session;
 
 class MitsumoriController extends Controller
 {
-    protected $AdQuoNo = 3;
-    protected $DetailType = 1;
+    protected $AdQuoNo = 0;
+    protected $Category_ID = 0;
 
     public function __construct()
     {
         // カテゴリ選択した取得
+        if (Session::get("Category_ID")) {
+            $this->Category_ID = Session::get("Category_ID");
+        }
         if (Session::get("AdQuoNo")) {
             $this->AdQuoNo = Session::get("AdQuoNo");
-            $this->DetailType = Session::get("DetailType");
         }
     }
     /**
@@ -80,6 +82,7 @@ class MitsumoriController extends Controller
     {
         $ctg = new CategoryController();
         $categories = $ctg->getList();
+        $cateIDMax = t_category::max("Category_ID");
         $header = $this->_getTableHeader();
         $cmd = json_encode(config("const.cmd"));
         $list = $this->_getList();
@@ -93,7 +96,7 @@ class MitsumoriController extends Controller
         $headerZairyo = $zairyo->getTableHeaderZairyo();
         $headerZairyoSelected = $zairyo->getTableHeaderZairyoSelected();
 
-        return view("mitsumori.index", compact("categories", "header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
+        return view("mitsumori.index", compact("categories", "cateIDMax", "header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
     }
 
     /**
@@ -132,7 +135,7 @@ class MitsumoriController extends Controller
             // No更新
             $dataSelected = json_decode($rq->dataSelected, true);
             $dataNoChange = json_decode($rq->dataNoChange, true);
-            $lastNo = $rq->btn == "btnSaveNew" ? (t_mitsumori::where("DetailNo", t_mitsumori::max("DetailNo"))->value("No")) : ($dataSelected["prevItemNo"] ? $dataSelected["prevItemNo"] : 0);
+            $lastNo = $rq->btn == "btnSaveNew" ? (t_mitsumori::where("AdQuoNo", $this->AdQuoNo)->where("Category_ID", $this->Category_ID)->where("DetailNo", t_mitsumori::max("DetailNo"))->value("No")) : ($dataSelected["prevItemNo"] ? $dataSelected["prevItemNo"] : 0);
             $lastNo = $rq->FirstName ? $lastNo : 0;
             // DB更新
             for ($i = 1; $i <= $RowAdd; $i++) {
@@ -178,8 +181,8 @@ class MitsumoriController extends Controller
             t_mitsumori::find($id)->meisais()->delete();
         } else {
             $data["AdQuoNo"] = $this->AdQuoNo;
-            $data["DetailType"] = $this->DetailType;
-            $data["DetailNo"] = t_mitsumori::max("DetailNo") + 1;
+            $data["Category_ID"] = $this->Category_ID;
+            $data["DetailNo"] = t_mitsumori::where("AdQuoNo",$this->AdQuoNo)->where("Category_ID",$this->Category_ID)->max("DetailNo") + 1;
             $id = t_mitsumori::insertGetId($data);
         }
         if ($dataIS) {
@@ -233,7 +236,7 @@ class MitsumoriController extends Controller
         return [
             "status" => true,
             "data" => $this->_getList(),
-            "cate" => $cate
+            "cate" => $cate,
         ];
     }
 
@@ -244,12 +247,12 @@ class MitsumoriController extends Controller
      */
     private function _setCategorySelected($Category_ID)
     {
-        $cate = t_category::select("AdQuoNo", "DetailType")->where("Category_ID", $Category_ID)->first();
+        $cate = t_category::select("AdQuoNo", "Category_ID")->where("Category_ID", $Category_ID)->first();
         if ($cate) {
             $this->AdQuoNo = $cate->AdQuoNo;
-            $this->DetailType = $cate->DetailType;
+            $this->Category_ID = $cate->Category_ID;
             Session::put("AdQuoNo", $cate->AdQuoNo);
-            Session::put("DetailType", $cate->DetailType);
+            Session::put("Category_ID", $cate->Category_ID);
         }
         return $cate;
     }
@@ -313,7 +316,7 @@ class MitsumoriController extends Controller
                 ->leftJoin(m_shiyo_shubetsu::getTableName("SK"), "SK.Shiyo_Shubetsu_ID", "S.Shiyo_Shubetsu_ID");
         }
         $list = $list->where(t_mitsumori::getTableName() . ".AdQuoNo", $this->AdQuoNo)
-            ->where(t_mitsumori::getTableName() . ".DetailType", $this->DetailType)
+            ->where(t_mitsumori::getTableName() . ".Category_ID", $this->Category_ID)
             ->when($whereInId, function ($query, $whereInId) {
                 return $query->whereIn(t_mitsumori::getTableName() . ".id", $whereInId);
             })
@@ -384,11 +387,15 @@ class MitsumoriController extends Controller
             // 明細No:再設定
             if ($data["DetailNoUpdate"]) {
                 t_mitsumori::where('DetailNo', '>=', $dataSelected["DetailNo"][0])
+                    ->where("AdQuoNo", $this->AdQuoNo)
+                    ->where("Category_ID", $this->Category_ID)
                     ->update(['DetailNo' => DB::Raw("DetailNo" . $data["DetailNoUpdate"])]);
             }
             // 7列目の「No」更新
             if ($dataNoChange && $data["NoUpdate"]) {
                 t_mitsumori::whereIn('id', $dataNoChange)
+                    ->where("AdQuoNo", $this->AdQuoNo)
+                    ->where("Category_ID", $this->Category_ID)
                     ->update(['No' => DB::Raw("No" . $data["NoUpdate"])]);
             }
             if ($data["dataNew"]) {
@@ -398,7 +405,8 @@ class MitsumoriController extends Controller
             DB::commit();
             return [
                 "status" => true,
-                "data" => $this->_getList()
+                "data" => $this->_getList(),
+                "Category_ID" => $this->Category_ID
             ];
         } catch (Throwable $e) {
             DB::rollBack();
@@ -429,9 +437,9 @@ class MitsumoriController extends Controller
     private function _resetTotal(string $cmdText)
     {
         $keyTotal = "Amount";
-        $list = t_mitsumori::select("id", "DetailNo", "AdQuoNo", "DetailType")
+        $list = t_mitsumori::select("id", "DetailNo", "AdQuoNo", "Category_ID")
             ->where("AdQuoNo", $this->AdQuoNo)
-            ->where("DetailType", $this->DetailType)
+            ->where("Category_ID", $this->Category_ID)
             ->where("FirstName", $cmdText)
             ->orderBy("DetailNo") // 明細No
             ->get()->toArray();
@@ -455,7 +463,7 @@ class MitsumoriController extends Controller
     private function _getSum(string $key, int $DetailNoStart, int $DetailNoEnd)
     {
         return t_mitsumori::where("AdQuoNo", $this->AdQuoNo)
-            ->where("DetailType", $this->DetailType)
+            ->where("Category_ID", $this->Category_ID)
             ->whereBetween('DetailNo', [$DetailNoStart, $DetailNoEnd])
             ->where(function ($q) {
                 $q->whereNotIn("FirstName", [config("const.cmd.cmdTotal.text"), config("const.cmd.cmdTotalKe.text"), config("const.cmd.cmdTotalGo.text")]);
@@ -473,7 +481,7 @@ class MitsumoriController extends Controller
         // 小計行追加
         $data["dataNew"][] = [
             "AdQuoNo" => $this->AdQuoNo,
-            "DetailType" => $this->DetailType,
+            "Category_ID" => $this->Category_ID,
             "DetailNo" => $dataSelected["first"] + 1,
             "FirstName" => config("const.cmd.$cmdKey.text"),
             "SpecName1" => config("const.cmd.$cmdKey.text"),
@@ -529,11 +537,19 @@ class MitsumoriController extends Controller
     {
         // コピーデータ取得
         $list = $this->_getList($dataCopy["id"], false)->toArray();
-
         $no = $dataSelected["prevItemNo"] ? ($dataSelected["prevItemNo"]) : 0;
+        $DetailNo = $dataSelected["DetailNo"][0];
+        // 明細No:再設定
+        if (count($dataCopy["id"])) {
+            t_mitsumori::where('DetailNo', '>=', $dataSelected["DetailNo"][0])
+                ->where("AdQuoNo", $this->AdQuoNo)
+                ->where("Category_ID", $this->Category_ID)
+                ->update(['DetailNo' => DB::Raw("DetailNo" .  ' + ' . count($dataCopy["id"]))]);
+        }
         foreach ($list as $k => $l) {
             unset($l["id"]);
-            $l["DetailNo"] = $dataSelected["DetailNo"][$k];
+            $l["DetailNo"] = $DetailNo;
+            $DetailNo++;
             // 7列目の「No」更新
             if ($l["No"]) {
                 $no++;
@@ -541,12 +557,12 @@ class MitsumoriController extends Controller
                 $no = 0;
             }
             $l["No"] = $no;
+            // dd($list);
             $id = t_mitsumori::insertGetId($l);
             t_mitsumori_meisai::insert(t_mitsumori_meisai::select("Shiyo_ID", "AtariSuryo", "Sort_No")
                 ->selectRaw($id . " as Mitsumori_ID")->where("Mitsumori_ID", $dataCopy["id"][$k])->get()->toArray());
         }
         $data["NoUpdate"] = ' - ' . $dataSelected["firstNo"] - $no - 1;
-        $data["DetailNoUpdate"] = ' + ' . $dataSelected["count"];
         return $data;
     }
 
@@ -559,16 +575,25 @@ class MitsumoriController extends Controller
      */
     private function _setNew($data, $dataSelected)
     {
-        foreach ($dataSelected["DetailNo"] as $item) {
+        if (isset($dataSelected["DetailNo"])) {
+            foreach ($dataSelected["DetailNo"] as $item) {
+                $data["dataNew"][] = [
+                    "AdQuoNo" => $this->AdQuoNo,
+                    "Category_ID" => $this->Category_ID,
+                    "DetailNo" => $item,
+                    "No" => NULL // No：再設定
+                ];
+            }
+            $data["DetailNoUpdate"] = ' +  ' . $dataSelected["count"];
+            $data["NoUpdate"] = ' - ' . (reset($dataSelected["No"]) - 1);
+        } else {
             $data["dataNew"][] = [
                 "AdQuoNo" => $this->AdQuoNo,
-                "DetailType" => $this->DetailType,
-                "DetailNo" => $item,
+                "Category_ID" => $this->Category_ID,
+                "DetailNo" => 1,
                 "No" => NULL // No：再設定
             ];
         }
-        $data["DetailNoUpdate"] = ' +  ' . $dataSelected["count"];
-        $data["NoUpdate"] = ' - ' . (reset($dataSelected["No"]) - 1);
         return $data;
     }
 

@@ -11,6 +11,7 @@ use App\Models\m_bui;
 use App\Models\m_bui_kbn;
 use App\Models\m_koshu;
 use App\Models\m_maker;
+use App\Models\m_quotation;
 use App\Models\m_seko_tanka;
 use App\Models\m_shiyo_shubetsu;
 use App\Models\m_shiyo_shubetsu_kbn;
@@ -41,11 +42,12 @@ class DataController extends Controller
         // $this->_read($this->appPath . m_shiyo_shubetsu::getTableName() . $this->fileExe, m_shiyo_shubetsu::select("*"), m_shiyo_shubetsu::getTableName());
         // $this->_read($this->appPath . m_shiyo_shubetsu_kbn::getTableName() . $this->fileExe, m_shiyo_shubetsu_kbn::select("*"), m_shiyo_shubetsu_kbn::getTableName());
 
-        $this->_read($this->appPath . m_zairyo_kosei::getTableName() . $this->fileExe, m_zairyo_kosei::select("*"), m_zairyo_kosei::getTableName());
+        // $this->_read($this->appPath . m_zairyo_kosei::getTableName() . $this->fileExe, m_zairyo_kosei::select("*"), m_zairyo_kosei::getTableName());
 
         // $this->_read($this->appPath . m_zairyo_value::getTableName() . $this->fileExe, m_zairyo_value::select("*"), m_zairyo_value::getTableName());
-       
+
         // $this->_read($this->appPath . m_maker::getTableName() . $this->fileExe, m_maker::select("*"), m_maker::getTableName());
+        $this->_read($this->appPath . m_quotation::getTableName() . $this->fileExe, m_quotation::select("*"), m_quotation::getTableName());
     }
 
     /**
@@ -101,12 +103,25 @@ class DataController extends Controller
                 if ($r == '') {
                     unset($temp[$k]);
                 } else {
-                    if ($tblName == t_mitsumori::getTableName())
+                    if ($tblName == t_mitsumori::getTableName() || $tblName == m_quotation::getTableName()) {
                         $temp[$k] = str_replace(",", "", strval($temp[$k]));
+                        $temp[$k] = str_replace("¥", "", strval($temp[$k]));
+                    }
                 }
             }
             if (isset($temp["UPDATE_DATE"]))
                 $temp["UPDATE_DATE"] = \Carbon\Carbon::parse($temp["UPDATE_DATE"])->format("Y-m-d");
+            // m_quotation
+            if (isset($temp["Quo_Date"]) && $temp["Quo_Date"]) {
+                $temp["Quo_Date"] = self::j2e($temp["Quo_Date"], "y-m-d");
+            }
+            if (isset($temp["Change_Date"]) && $temp["Change_Date"])
+                $temp["Change_Date"] =  self::j2e($temp["Change_Date"], "y-m-d");
+            if (isset($temp["Construct_Start"]) && $temp["Construct_Start"])
+                $temp["Construct_Start"] =  self::j2e($temp["Construct_Start"], "y-m-d");
+            if (isset($temp["Construct_End"]) && $temp["Construct_End"])
+                $temp["Construct_End"] =  self::j2e($temp["Construct_End"], "y-m-d");
+
             if ($tblName == t_mitsumori::getTableName()) {
                 if (isset($temp["Unit"])) $temp["Unit_ID"] = m_tani::where("Tani_Nm", $temp["Unit"])->value("Tani_ID");
                 if (isset($temp["UnitOrg"])) $temp["UnitOrg_ID"] = m_tani::where("Tani_Nm", $temp["UnitOrg"])->value("Tani_ID");
@@ -149,5 +164,48 @@ class DataController extends Controller
 
         fclose($file);
         echo "done: " . $count;
+    }
+    public static $era_pattern = array(
+        "明治" => 1867,
+        "大正" => 1911,
+        "昭和" => 1925,
+        "平成" => 1988,
+        "令和" => 2018
+    );
+
+    // 和暦（元号）を西暦に変換 : 昭和４７年３月１日 -> 1972.3.1
+    public static function j2e($era_string = "", $format = "")
+    {
+        if (!$era_string) {
+            return null;
+        }
+        preg_match('/^(明治|大正|昭和|平成|令和)(.+?)年?(.+?)月(.+?)日$/', trim($era_string), $match);
+        if ($match && isset(self::$era_pattern[$match[1]])) {
+            $num = mb_convert_kana($match[2], "KVa");
+            return self::output_ymd_format(
+                $format,
+                self::$era_pattern[$match[1]] + (int)$num,
+                mb_convert_kana($match[3], "KVa"),
+                mb_convert_kana($match[4], "KVa")
+            );
+        } else {
+            return null;
+        }
+    }
+
+    public static function output_ymd_format($format = "", $year, $month, $day)
+    {
+        if ($format) {
+            $format = str_replace("y", $year, $format);
+            $format = str_replace("m", $month, $format);
+            $format = str_replace("d", $day, $format);
+            return $format;
+        } else {
+            return array(
+                "year"  => $year,
+                "month" => $month,
+                "day"   => $day
+            );
+        }
     }
 }

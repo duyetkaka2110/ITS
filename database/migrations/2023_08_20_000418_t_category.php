@@ -15,10 +15,9 @@ return new class extends Migration
         Schema::dropIfExists($this->table);
         Schema::create($this->table, function (Blueprint $table) {
             $table->string('Category_ID')->primary();
-            $table->string('Category_Nm');
+            $table->string('Category_Nm')->nullable();
             $table->string('Parent_ID')->nullable()->default(0);
             $table->integer('AdQuoNo')->nullable()->index();
-            $table->integer('DetailType')->nullable()->index();
             $table->integer('Sort_No')->nullable()->default(0);
             $table->timestamps();
         });

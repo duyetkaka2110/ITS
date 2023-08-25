@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create($this->table, function (Blueprint $table) {
             $table->id();
             $table->integer('AdQuoNo')->index();
-            $table->integer('DetailType');
+            $table->integer('Category_ID');
             $table->integer('DetailNo')->nullable();
             $table->string('Type', 100)->nullable();
             $table->string('PartName', 100)->nullable();

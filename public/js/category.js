@@ -23,12 +23,15 @@ $(function () {
             "contextmenu", "dnd", "search", "unique",
             "state", "wholerow"
         ],
+    }).on('loaded.jstree', function () {
+        jstree.jstree('open_all');
+    }).on("refresh.jstree", function (e, data) {
+        jstree.jstree("open_all");
     }).on('ready.jstree', function (e, data) {
         setScroll();
     }).on("create_node.jstree", function (e, data) {
         dataUpdate = {
             action: "create_node",
-            Category_ID: getIdNode(data.node.id),
             Sort_No: data.position + 1,
             Parent_ID: data.parent ? getIdNode(data.parent) : 0,
             Category_Nm: data.node.text
@@ -61,40 +64,18 @@ $(function () {
         };
         update(dataUpdate)
     }).on("copy_node.jstree", function (e, data) {
-        console.info(data)
-        let list = [{
-            Category_ID: getIdNode(data.node.id),
-            Category_Nm: data.node.text,
-            Parent_ID: data.parent ? getIdNode(data.parent) : 0,
-            Sort_No: data.position + 1,
-            Category_ID_Old: getIdNode(data.original.id)
-        }];
-        let node, parent;
-        $.each(data.node.children_d, function (index, key) {
-            node = data.instance._model.data[key];
-            parent = data.instance._model.data[data.instance._model.data[key].parent];
-            list.push({
-                Category_ID: getIdNode(data.instance._model.data[key].id),
-                Category_Nm: data.instance._model.data[key].text,
-                Parent_ID: getIdNode(data.instance._model.data[key].parent),
-                Sort_No: ($.inArray(node.id, parent.children)) + 1,
-                Category_ID_Old: getIdNode(data.original.children_d[index])
-            })
-        })
         update({
             action: "duplicate_node",
-            list: list,
-            Category_ID: getIdNode(data.node.id),
+            Category_ID: getIdNode(data.original.id),
+            Category_Nm: data.node.text,
             Parent_ID: data.parent ? getIdNode(data.parent) : 0,
             Sort_No: data.position + 1,
         })
     }).on("dblclick.jstree", function (event, data) {
         var id = jstree.jstree('get_selected')[0];
         var node = jstree.jstree("get_node", id)
-        if (node.parent != 0) {
-            categorySelected = id;
-            getListMitsumore(getIdNode(id))
-        }
+        categorySelected = id;
+        getListMitsumore(getIdNode(id))
     }).on("click.jstree", function () {
         setScroll();
     });
@@ -137,8 +118,8 @@ $(function () {
                         "label": "複製",
                         icon: "fa fa-files-o",
                         "action": function (obj) {
-                            inst = $.jstree.reference(obj.reference),
-                                obj = inst.get_node(obj.reference);
+                            inst = $.jstree.reference(obj.reference);
+                            obj = inst.get_node(obj.reference);
                             tree.copy(obj);
                             obj = inst.get_node(jstree.find("[id='" + obj.parent + "']"));
                             tree.paste(obj);
@@ -179,6 +160,15 @@ $(function () {
                 success: function (res) {
                     if (res["status"]) {
                         dispSuccessMsg(res["msg"])
+                        // jstree.jstree("destroy");
+                        // initTree(res["data"]);
+                        var tree = jstree.jstree(true)
+                        console.info(tree);
+                        tree.settings.core.data = $.parseJSON(res["data"]);
+                        console.info(tree);
+                        jstree.jstree("refresh");
+                        jstree.jstree('open_all');
+                        // $.jstree._reference(res["data"]).refresh();
                     } else {
                         dispMessageModal(res["msg"])
                     }

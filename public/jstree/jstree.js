@@ -2296,8 +2296,6 @@
 			var tid = 0, i, j, c, e, m = this._model.data, df = this._model.default_state, tmp;
 			// duyet edit start 20230818
 			getTid(this._model.data);
-			console.info(this)
-			console.info("tid json")
 			do {
 				tid = 'j' + this._id + '_' + (++tid_new);
 			} while (m[tid]);
@@ -4446,13 +4444,13 @@
 			if (new_par.id === $.jstree.root) {
 				this._model.force_full_redraw = true;
 			}
-			if (!this._model.force_full_redraw) {
-				this._node_changed(new_par.id);
-			}
-			if (!skip_redraw) {
-				this.redraw(new_par.id === $.jstree.root);
-			}
-			if (callback) { callback.call(this, tmp, new_par, pos); }
+			// if (!this._model.force_full_redraw) {
+			// 	this._node_changed(new_par.id);
+			// }
+			// if (!skip_redraw) {
+			// 	this.redraw(new_par.id === $.jstree.root);
+			// }
+			// if (callback) { callback.call(this, tmp, new_par, pos); }
 			/**
 			 * triggered when a node is copied
 			 * @event
