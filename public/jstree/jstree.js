@@ -55,6 +55,7 @@
 		};
 	}
 	function getIdNode(id) {
+		if (!id) return id;
 		let idnew = id.split("_");
 		if (idnew.length > 1) {
 			return idnew[1];

@@ -6,6 +6,11 @@
 <link href="{{ URL::asset('css/mitsumori.css') }}" rel="stylesheet" />
 <link href="{{ URL::asset('jstree/themes/default/style.min.css') }}" rel="stylesheet" />
 <link href="{{ URL::asset('css/category.css') }}" rel="stylesheet" />
+<style>
+    .jstree-default .jstree-anchor {
+        width: 100%;
+    }
+</style>
 @endsection
 @section("js")
 <script src="{{ URL::asset('js/js.cookie.min.js') }}"></script>
@@ -63,9 +68,9 @@
 <div class="page"></div>
 <div class="mg-all row m-0 ">
     <div class="mg-jstree col-sm-3">
-        <label class="pt-2 pb-2 m-0 btn-collapse bold cursor-point" data-toggle="collapse" >
+        <label class="pt-2 pb-2 m-0 btn-collapse bold cursor-point" data-toggle="collapse">
             <i class="fa fa-minus-square-o" aria-hidden="true"></i>
-            <strong>カテゴリ</strong>
+            <strong>ルート</strong>
         </label>
         <div id="jstree" class=""></div>
     </div>
@@ -76,7 +81,7 @@
     </div>
     {{ Form::hidden('route-cstore', route('c.store')) }}
 </div>
-<a class="reload btn btn-primary" href="#" >画面再表示</a>
+<a class="reload btn btn-primary" href="#">画面再表示</a>
 <a href="{{ route('c.reset') }}" class=" btn btn-primary">データリセット</a>
 <input type="hidden" class="route-mitsumore-action" value="{{ route('mitsumore.action') }}" />
 

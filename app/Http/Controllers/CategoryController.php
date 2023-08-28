@@ -92,6 +92,7 @@ class CategoryController extends Controller
                 "id" => $d["Category_ID"],
                 "parentID" => $d["Parent_ID"] ? $d["Parent_ID"] : 0,
                 "text" => $d["Category_Nm"],
+                // "state" => ["opened" => true],
                 "Sort_No" => $d["Sort_No"],
                 "children" => $this->_getCategoryTree($d["all_childs"])
             ];
@@ -184,7 +185,7 @@ class CategoryController extends Controller
             DB::commit();
             return [
                 "status" => true,
-                "data" => ($rq->action == "create_node" || $rq->action == "duplicate_node") ? $this->getList() : [],
+                "data" =>  $this->getList(),
                 "msg" => $msg
             ];
         } catch (Throwable $e) {

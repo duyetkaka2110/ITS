@@ -3,6 +3,7 @@ $(function () {
     var dataUpdate = [];
     var ajaxMethod = "GET";
     var jstree = $('#jstree');
+    console.info(categories)
     jstree.jstree({
         'core': {
             'data': categories,
@@ -71,13 +72,8 @@ $(function () {
             Parent_ID: data.parent ? getIdNode(data.parent) : 0,
             Sort_No: data.position + 1,
         })
-    }).on("dblclick.jstree", function (event, data) {
-        var id = jstree.jstree('get_selected')[0];
-        var node = jstree.jstree("get_node", id)
-        categorySelected = id;
-        getListMitsumore(getIdNode(id))
-    }).on("click.jstree", function () {
-        setScroll();
+    }).on("click.jstree", function (event, data) {
+        
     });
     $(window).resize(function () {
         setScroll();
@@ -88,6 +84,12 @@ $(function () {
     $(".mg-all .btn-collapse").on("click", function () {
         $(".mg-all").toggleClass("cate-close");
         Cookies.set("cate-close", $(".mg-all").hasClass("cate-close"));
+    })
+    $(document).on("click",".jstree-default .jstree-anchor",function(){
+        var id = jstree.jstree('get_selected')[0];
+        categorySelected = id;
+        getListMitsumore(getIdNode(id))
+        setScroll();
     })
     function getIdNode(id) {
         idnew = id.split("_");
@@ -109,7 +111,17 @@ $(function () {
                         "icon": "fa fa-plus-square",
                         "action": function (obj) {
                             $node = tree.create_node($node);
-                            tree.edit($node);
+                        }
+                    },
+                    "CreateRoot": {
+                        "separator_before": false,
+                        "separator_after": false,
+                        "label": "ルートの新規作成",
+                        "icon": "fa fa-plus-square",
+                        "action": function (obj) {
+                            $node = tree._model.data[0];
+                            console.info($node)
+                            $node = tree.create_node($node);
                         }
                     },
                     "Duplicate": {
@@ -160,15 +172,11 @@ $(function () {
                 success: function (res) {
                     if (res["status"]) {
                         dispSuccessMsg(res["msg"])
-                        // jstree.jstree("destroy");
-                        // initTree(res["data"]);
-                        var tree = jstree.jstree(true)
-                        console.info(tree);
-                        tree.settings.core.data = $.parseJSON(res["data"]);
-                        console.info(tree);
-                        jstree.jstree("refresh");
-                        jstree.jstree('open_all');
-                        // $.jstree._reference(res["data"]).refresh();
+                        if (dataUpdate.action == "create_node" || dataUpdate.action == "duplicate_node") {
+                            var tree = jstree.jstree(true)
+                            tree.settings.core.data = $.parseJSON(res["data"]);
+                            jstree.jstree("refresh");
+                        }
                     } else {
                         dispMessageModal(res["msg"])
                     }
