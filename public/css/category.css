@@ -39,6 +39,10 @@
     flex: none;
 }
 
+.mg-grid.col-sm-9 {
+    max-width: calc(100% - 250px);
+}
+
 .cate-close .mg-jstree.col-sm-3 {
     text-align: center;
     width: 50px;
