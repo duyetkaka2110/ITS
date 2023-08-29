@@ -6,11 +6,6 @@
 <link href="{{ URL::asset('css/mitsumori.css') }}" rel="stylesheet" />
 <link href="{{ URL::asset('jstree/themes/default/style.min.css') }}" rel="stylesheet" />
 <link href="{{ URL::asset('css/category.css') }}" rel="stylesheet" />
-<style>
-    .jstree-default .jstree-anchor {
-        width: 100%;
-    }
-</style>
 @endsection
 @section("js")
 <script src="{{ URL::asset('js/js.cookie.min.js') }}"></script>
@@ -59,10 +54,9 @@
             }, 2000);
         })
         // $("#MitsumoriModal").modal()
+        
     })
 </script>
-<style>
-</style>
 @endsection
 @section('content')
 <div class="page"></div>
@@ -73,13 +67,12 @@
             <strong>ルート</strong>
         </label>
         <div id="jstree" class=""></div>
+        <div class="handler"></div>
     </div>
-
     <div class="mg-grid  col-sm-9 p-0">
         <div class="mg-menu"></div>
         <div id="grid" class="has-ctx-menu"></div>
     </div>
-    {{ Form::hidden('route-cstore', route('c.store')) }}
 </div>
 <a class="reload btn btn-primary" href="#">画面再表示</a>
 <a href="{{ route('c.reset') }}" class=" btn btn-primary">データリセット</a>
@@ -300,4 +293,5 @@
 {{ Form::hidden('route-getListZairyo', route('getListZairyo')) }}
 {{ Form::hidden('route-getListZairyoSelected', route('getListZairyoSelected')) }}
 {{ Form::hidden('route-zstore', route('z.store')) }}
+{{ Form::hidden('route-cstore', route('c.store')) }}
 @endsection

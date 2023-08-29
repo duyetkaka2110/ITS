@@ -3,7 +3,6 @@ $(function () {
     var dataUpdate = [];
     var ajaxMethod = "GET";
     var jstree = $('#jstree');
-    console.info(categories)
     jstree.jstree({
         'core': {
             'data': categories,
@@ -73,7 +72,7 @@ $(function () {
             Sort_No: data.position + 1,
         })
     }).on("click.jstree", function (event, data) {
-        
+
     });
     $(window).resize(function () {
         setScroll();
@@ -85,7 +84,7 @@ $(function () {
         $(".mg-all").toggleClass("cate-close");
         Cookies.set("cate-close", $(".mg-all").hasClass("cate-close"));
     })
-    $(document).on("click",".jstree-default .jstree-anchor",function(){
+    $(document).on("click", ".jstree-default .jstree-anchor", function () {
         var id = jstree.jstree('get_selected')[0];
         categorySelected = id;
         getListMitsumore(getIdNode(id))
@@ -200,7 +199,8 @@ $(function () {
         });
     }
     function setScroll() {
-        if ($(".jstree-container-ul").width() > 250) {
+        console.info($(".mg-jstree").width())
+        if ($(".jstree-container-ul").width() > $(".mg-jstree").width()) {
             jstree.css("overflow-x", "scroll");
         } else {
             jstree.css("overflow-x", "unset");
@@ -213,4 +213,50 @@ $(function () {
             jstree.css("height", "auto");
         }
     }
+    var wrapper = document.querySelector('.mg-all');
+    var box = null;
+    var isHandlerDragging = false;
+    var boxAminWidth = 200;
+    var new_width = 0,
+        current_width = 0;
+    var box = $(".mg-jstree"),
+        boxright = $(".mg-grid");
+
+    document.addEventListener('mousedown', function (e) {
+        // If mousedown event is fired from .handler, toggle flag to true
+        if (e.target.classList.contains('handler')) {
+            isHandlerDragging = true;
+        }
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        // Don't do anything if dragging flag is false or 
+        if (!isHandlerDragging) {
+            $(".handler").removeClass("handler-active")
+            return false;
+        }
+
+        $(".handler").addClass("handler-active")
+        // save the current box width
+        current_width = box.width();
+        // check the minimum width
+        new_width = e.clientX - box.offset().left - 8;
+        if (new_width >= boxAminWidth  && ($(window).width() - new_width - 30) > boxAminWidth) {
+            box.width(new_width);
+            setScroll();
+            boxright.css("max-width", $(window).width() - new_width - 30);
+        }
+
+        // make sure the boxs dont go past the wrapper, aka: the overflow effect
+        //if they do, we recover the last width of the current box to keep the boxs inside the wrapper.
+        if (wrapper.lastElementChild.offsetLeft + wrapper.lastElementChild.offsetWidth > wrapper.offsetWidth) {
+            box.width(current_width);
+        }
+
+    });
+
+    document.addEventListener('mouseup', function (e) {
+        // Turn off dragging flag when user mouse is up
+        isHandlerDragging = false;
+    });
 });

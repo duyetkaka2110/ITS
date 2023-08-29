@@ -39,10 +39,6 @@
     flex: none;
 }
 
-.mg-grid.col-sm-9 {
-    max-width: calc(100% - 250px);
-}
-
 .cate-close .mg-jstree.col-sm-3 {
     text-align: center;
     width: 50px;
@@ -54,4 +50,30 @@
 
 .cate-close #jstree {
     display: none;
+}
+
+.handler {
+    width: 20px;
+    height: 100%;
+    padding: 0;
+    cursor: ew-resize;
+    flex: 0 0 auto;
+    position: absolute;
+    top: 0;
+    right: -9px;
+    z-index: 88;
+}
+
+.handler::before {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 100%;
+    margin: 0 auto;
+    transition: background-color .15s .15s;
+}
+
+.handler:hover:before,
+.handler-active::before {
+    background: #1d9bd1;
 }
