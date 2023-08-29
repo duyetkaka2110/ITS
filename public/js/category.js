@@ -199,7 +199,6 @@ $(function () {
         });
     }
     function setScroll() {
-        console.info($(".mg-jstree").width())
         if ($(".jstree-container-ul").width() > $(".mg-jstree").width()) {
             jstree.css("overflow-x", "scroll");
         } else {
