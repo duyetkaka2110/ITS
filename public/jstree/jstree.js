@@ -4242,7 +4242,7 @@
 			//duyet edit start 20230817
 			this.check("move_node", obj, new_par, pos, { isCopy: false, 'core': true, 'origin': origin, 'is_multi': (old_ins && old_ins._id && old_ins._id !== this._id), 'is_foreign': (!old_ins || !old_ins._id) });
 			if (obj.text in c && (obj.parent != new_par.id)) {
-				obj.text += "(" + (c[obj.text] + 1) + ")";
+				obj.text += " (" + (c[obj.text] + 1) + ")";
 			}
 			//duyet edit end 20230817
 			if (obj.parent === new_par.id) {
