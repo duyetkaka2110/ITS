@@ -25,10 +25,6 @@ $(function () {
               "unique",
             "state", "wholerow"
         ],
-    }).on('loaded.jstree', function () {
-        // jstree.jstree('open_all');
-    }).on("refresh.jstree", function (e, data) {
-        // jstree.jstree("open_all");
     }).on('ready.jstree', function (e, data) {
         setScroll();
     }).on("create_node.jstree", function (e, data) {

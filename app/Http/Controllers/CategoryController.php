@@ -58,7 +58,6 @@ class CategoryController extends Controller
             return $this->tmp;
         }
         // カテゴリ一覧表示
-        // dd($this->_getCategoryTree($categories));
         $categories = json_encode($this->_getCategoryTree($categories));
         return $categories;
     }
