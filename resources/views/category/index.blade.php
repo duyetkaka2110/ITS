@@ -5,10 +5,9 @@
 <link href="{{ URL::asset('css/category.css') }}" rel="stylesheet" />
 @endsection
 @section("js")
-<script type="text/javascript" src="{{ URL::asset('jstree/jstree.js') }}"></script>
+<script type="text/javascript" src="{{ URL::asset('jstree/jstree.min.js') }}"></script>
 <script>
     var categories = <?php echo $categories ?>
-    var cateIDMax = <?php echo $cateIDMax ?>
 </script>
 <script type="text/javascript" src="{{ URL::asset('js/category.js') }}"></script>
 @endsection

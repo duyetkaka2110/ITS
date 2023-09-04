@@ -1,8 +1,8 @@
 
 $(function () {
-    var dataUpdate = [];
     var ajaxMethod = "GET";
     var jstree = $('#jstree');
+    console.info(categories)
     jstree.jstree({
         'core': {
             'data': categories,
@@ -20,13 +20,15 @@ $(function () {
         },
         "contextmenu": getContextmenu(),
         "plugins": [
-            "contextmenu", "dnd", "search", "unique",
+            "contextmenu",
+             "dnd", "search",
+              "unique",
             "state", "wholerow"
         ],
     }).on('loaded.jstree', function () {
-        jstree.jstree('open_all');
+        // jstree.jstree('open_all');
     }).on("refresh.jstree", function (e, data) {
-        jstree.jstree("open_all");
+        // jstree.jstree("open_all");
     }).on('ready.jstree', function (e, data) {
         setScroll();
     }).on("create_node.jstree", function (e, data) {
@@ -71,8 +73,6 @@ $(function () {
             Parent_ID: data.parent ? getIdNode(data.parent) : 0,
             Sort_No: data.position + 1,
         })
-    }).on("click.jstree", function (event, data) {
-
     });
     $(window).resize(function () {
         setScroll();
@@ -101,7 +101,7 @@ $(function () {
     function getContextmenu() {
         return {
             "items": function ($node) {
-                var tree = jstree.jstree();
+                var tree = jstree.jstree(true);
                 return {
                     "Create": {
                         "separator_before": false,
@@ -119,7 +119,6 @@ $(function () {
                         "icon": "fa fa-plus-square",
                         "action": function (obj) {
                             $node = tree._model.data[0];
-                            console.info($node)
                             $node = tree.create_node($node);
                         }
                     },
@@ -161,6 +160,7 @@ $(function () {
 
     function update(dataUpdate) {
         if (dataUpdate) {
+            console.info(dataUpdate);
             $.ajax({
                 type: ajaxMethod,
                 data: dataUpdate,

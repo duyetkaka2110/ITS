@@ -75,11 +75,13 @@ class MitsumoriController extends Controller
 
         return view("mitsumori.index2", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
     }
+    
     /**
      * 見積明細画面
      */
     public function index(Request $rq)
     {
+        
         $ctg = new CategoryController();
         $categories = $ctg->getList();
         $cateIDMax = t_category::max("Category_ID");

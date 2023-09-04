@@ -44,11 +44,13 @@ class CategoryController extends Controller
     public function getList(int $id = 0)
     {
         $categories = t_category::where("AdQuoNo", $this->AdQuoNo)
+        ->where("Parent_ID",0)
             ->when($id, function ($query, $id) {
                 return $query->where("Category_ID", $id);
             })
             ->with("allChilds")
             ->orderBy("Sort_No")
+            ->orderBy("Parent_ID")
             ->get()->toArray();
         if ($id) {
             // カテゴリ選択後
@@ -56,13 +58,14 @@ class CategoryController extends Controller
             return $this->tmp;
         }
         // カテゴリ一覧表示
+        // dd($this->_getCategoryTree($categories));
         $categories = json_encode($this->_getCategoryTree($categories));
         return $categories;
     }
 
     /**
      * 複製でカテゴリの新規追加取得
-     * param int $id カテゴリID
+     * param $categories カテゴリ複製の一覧
      */
     private function _getNewParentArray($categories)
     {
@@ -87,15 +90,16 @@ class CategoryController extends Controller
     private function _getCategoryTree($data)
     {
         $tmp = [];
-        foreach ($data as $d) {
+        foreach ($data as $k => $d) {
             $tmp[] = [
                 "id" => $d["Category_ID"],
-                "parentID" => $d["Parent_ID"] ? $d["Parent_ID"] : 0,
+                "parentID" => $d["Parent_ID"] ? intval($d["Parent_ID"]) : 0,
                 "text" => $d["Category_Nm"],
                 // "state" => ["opened" => true],
                 "Sort_No" => $d["Sort_No"],
                 "children" => $this->_getCategoryTree($d["all_childs"])
             ];
+            $this->_getCategoryTree($d["all_childs"]);
         }
         return $tmp;
     }

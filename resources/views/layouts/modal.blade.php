@@ -6,7 +6,6 @@
                 <h6 class="modal-title text-white">確認メッセージ</h6>
             </div>
             <div class="modal-body">
-
             </div>
             <div class="modal-footer justify-center">
                 <button type="button" class="btn btn-primary w-8em btnPopupOk" data-dismiss="modal">はい</button>
@@ -28,7 +27,7 @@
             </div>
             <div class="modal-footer justify-center">
                 <button type="button" class="btn btn-danger w-8em" data-dismiss="modal">閉じる</button>
-            </div>
+            </div>  
         </div>
     </div>
 </div>

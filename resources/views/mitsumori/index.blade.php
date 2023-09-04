@@ -35,7 +35,6 @@
 <script type="text/javascript" src="{{ URL::asset('js/category.js') }}"></script>
 <script>
     $(document).ready(function() {
-
         $(".btn-secondary").on("click", function() {
             dispMessageModal("工事中です")
         })
