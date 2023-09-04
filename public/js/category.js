@@ -2,7 +2,6 @@
 $(function () {
     var ajaxMethod = "GET";
     var jstree = $('#jstree');
-    console.info(categories)
     jstree.jstree({
         'core': {
             'data': categories,
@@ -156,7 +155,6 @@ $(function () {
 
     function update(dataUpdate) {
         if (dataUpdate) {
-            console.info(dataUpdate);
             $.ajax({
                 type: ajaxMethod,
                 data: dataUpdate,
