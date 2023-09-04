@@ -8565,10 +8565,12 @@
 				}
 				// duyet edit start 20230817
 				// var removeStr = n_coma ? "" : getLastComa(t);
-				var isCopy = "isCopy"
-				var removeStr = more && isCopy in more && more.isCopy ? getLastComa(t) : "";
+				var removeStr = more && "isCopy" in more && more.isCopy ? getLastComa(t) : "";
+				if(chk === "move_node") {
+					removeStr = getLastComa(t) ;
+				}
 				if (removeStr)
-					t = t.substr(0, t.length - removeStr);
+					t = $.trim(t.substr(0, t.length - removeStr));
 				let count = 1;
 				if (t in c)
 					count += c[t];
