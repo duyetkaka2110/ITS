@@ -1,4 +1,3 @@
-
 $(function () {
     var ajaxMethod = "GET";
     var jstree = $('#jstree');

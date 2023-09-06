@@ -6,7 +6,6 @@ use App\Models\t_category;
 use Illuminate\Http\Request;
 use DB;
 use App\GetMessage;
-use App\Models\m_quotation;
 use App\Models\t_mitsumori;
 use App\Models\t_mitsumori_meisai;
 use Session;
@@ -36,7 +35,7 @@ class CategoryController extends Controller
         $categories = $this->getList();
         return view("category.index", compact("title", "categories"));
     }
-
+    
     /**
      * 階層一覧取得
      * param int $id カテゴリID
@@ -44,7 +43,7 @@ class CategoryController extends Controller
     public function getList(int $id = 0)
     {
         $categories = t_category::where("AdQuoNo", $this->AdQuoNo)
-        ->where("Parent_ID",0)
+            ->where("Parent_ID", 0)
             ->when($id, function ($query, $id) {
                 return $query->where("Category_ID", $id);
             })
