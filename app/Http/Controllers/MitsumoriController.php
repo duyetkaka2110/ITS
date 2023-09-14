@@ -75,13 +75,13 @@ class MitsumoriController extends Controller
 
         return view("mitsumori.index2", compact("header", "list", "cmd", "headerShiyo", "headerShiyoSelected", "tanis", "headerZairyo", "headerZairyoSelected"));
     }
-    
+
     /**
      * 見積明細画面
      */
     public function index(Request $rq)
     {
-        
+
         $ctg = new CategoryController();
         $categories = $ctg->getList();
         $cateIDMax = t_category::max("Category_ID");
@@ -137,22 +137,26 @@ class MitsumoriController extends Controller
             // No更新
             $dataSelected = json_decode($rq->dataSelected, true);
             $dataNoChange = json_decode($rq->dataNoChange, true);
-            $lastNo = $rq->btn == "btnSaveNew" ? (t_mitsumori::where("AdQuoNo", $this->AdQuoNo)->where("Category_ID", $this->Category_ID)->where("DetailNo", t_mitsumori::max("DetailNo"))->value("No")) : ($dataSelected["prevItemNo"] ? $dataSelected["prevItemNo"] : 0);
+            $lastNo = $rq->btn == "btnSaveNew" ? (t_mitsumori::where("AdQuoNo", $this->AdQuoNo)->where("Category_ID", $this->Category_ID)->orderBy("DetailNo", "DESC")->value("No")) : ($dataSelected["prevItemNo"] ? $dataSelected["prevItemNo"] : 0);
             $lastNo = $rq->FirstName ? $lastNo : 0;
             // DB更新
             for ($i = 1; $i <= $RowAdd; $i++) {
                 $data["No"] = $lastNo = $rq->FirstName ? $lastNo + 1 : 0;
-                $this->upsertMitsumoriShiyo($rq, $data, $dataIS);
+                $this->upsertMitsumoriShiyo($rq, $data, $dataIS, $dataNoChange);
             }
+            // 「上書き保存」ボタンと「挿入して登録」ボタンをクリック時
             if ($rq->btn == "btnSave" && $dataNoChange) {
-                // No再設定
-                $NoUpdate = $rq->FirstName ? ' + ' . $lastNo : " - " . ($dataSelected["lastNo"] ? $dataSelected["lastNo"] : 0);
-                t_mitsumori::whereIn('id', $dataNoChange)
-                    ->update(['No' => DB::Raw("No" . $NoUpdate)]);
+                $FirstNameOld = t_mitsumori::where("id", $rq->id)->value("FirstName");
+                if ($FirstNameOld != $rq->FirstName && (!$FirstNameOld || !$rq->FirstName)) {
+                    // No再設定
+                    $NoUpdate = $rq->FirstName ? ' + ' . $lastNo : " - " . ($dataSelected["lastNo"] ? $dataSelected["lastNo"] : 0);
+                    t_mitsumori::whereIn('id', $dataNoChange)
+                        ->update(['No' => DB::Raw("No" . $NoUpdate)]);
+                }
             }
 
             // 全て計再設
-            if ($rq->btn == "btnSave") {
+            if ($rq->btn == "btnSave" || $rq->btn == "btnSaveAdd") {
                 $this->_resetAllTotal();
             }
             DB::commit();
@@ -175,16 +179,32 @@ class MitsumoriController extends Controller
      * param array $data 見積詳細データ
      * param array $dataIS　見積詳細＿仕様データ
      */
-    public function upsertMitsumoriShiyo(Request $rq, array $data, array $dataIS)
+    public function upsertMitsumoriShiyo(Request $rq, array $data, array $dataIS, array $dataNoChange)
     {
         $id = $rq->id;
         if ($rq->btn == "btnSave") {
             t_mitsumori::where("id", $id)->update($data);
             t_mitsumori::find($id)->meisais()->delete();
         } else {
+            // 挿入して登録ボタン
+            if ($rq->btn == "btnSaveAdd") {
+                $DetailNo = t_mitsumori::where("id", $id)->value("DetailNo");
+                $data["DetailNo"] = $DetailNo;
+                // 明細No:再設定
+                t_mitsumori::where('DetailNo', '>=', $DetailNo)
+                    ->where("AdQuoNo", $this->AdQuoNo)
+                    ->where("Category_ID", $this->Category_ID)
+                    ->update(['DetailNo' => DB::Raw("DetailNo + 1")]);
+                // No再設定
+                $dataNoChange[] = $id;
+                t_mitsumori::whereIn('id', $dataNoChange)
+                    ->update(['No' => DB::Raw("No + 1")]);
+            } else {
+                // 最下行に登録ボタン
+                $data["DetailNo"] = t_mitsumori::where("AdQuoNo", $this->AdQuoNo)->where("Category_ID", $this->Category_ID)->max("DetailNo") + 1;
+            }
             $data["AdQuoNo"] = $this->AdQuoNo;
             $data["Category_ID"] = $this->Category_ID;
-            $data["DetailNo"] = t_mitsumori::where("AdQuoNo",$this->AdQuoNo)->where("Category_ID",$this->Category_ID)->max("DetailNo") + 1;
             $id = t_mitsumori::insertGetId($data);
         }
         if ($dataIS) {
@@ -559,7 +579,6 @@ class MitsumoriController extends Controller
                 $no = 0;
             }
             $l["No"] = $no;
-            // dd($list);
             $id = t_mitsumori::insertGetId($l);
             t_mitsumori_meisai::insert(t_mitsumori_meisai::select("Shiyo_ID", "AtariSuryo", "Sort_No")
                 ->selectRaw($id . " as Mitsumori_ID")->where("Mitsumori_ID", $dataCopy["id"][$k])->get()->toArray());
@@ -718,32 +737,32 @@ class MitsumoriController extends Controller
             "MaterCost" => [
                 "name" => "材料費",
                 "class" => "wj-align-right",
-                "width" => 80
+                "width" => 100
             ],
             "LaborCost" => [
                 "name" => "労務費",
                 "class" => "wj-align-right",
-                "width" => 80
+                "width" => 100
             ],
             "LiftingCost" => [
                 "name" => "揚重費",
                 "class" => "wj-align-right",
-                "width" => 60
+                "width" => 100
             ],
             "SiteExpense" => [
                 "name" => "現場経費",
                 "class" => "wj-align-right",
-                "width" => 60
+                "width" => 100
             ],
             "OutsCost" => [
                 "name" => "外注費",
                 "class" => "wj-align-center",
-                "width" => 60
+                "width" => 70
             ],
             "LaborOuts" => [
                 "name" => "労務•外注",
                 "class" => "wj-align-center bg-green",
-                "width" => 50
+                "width" => 60
             ],
             "MaterUnitPrice" => [
                 "name" => "材料単価*",

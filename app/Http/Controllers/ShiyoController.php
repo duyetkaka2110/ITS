@@ -154,7 +154,7 @@ class ShiyoController extends Controller
                 return $q->where(m_shiyo::getTableName() . '.Shiyo_ID', '!=',  $rq->Shiyo_ID);
             })
             ->orderBy(m_shiyo::getTableName() . ".Sort_No");
-        $perPage = 10;
+        $perPage = 5;
         $list = $listObj->paginate($perPage);
         return  [
             "status" => true,
@@ -203,7 +203,8 @@ class ShiyoController extends Controller
             "Shiyo_Nm" => [
                 "name" => "工事仕様",
                 "class" => "",
-                "width" => 200,
+                "width" => '*',
+                "minWidth" => 200,
             ],
             "Tani_Nm" => [
                 "name" => "単位",
@@ -306,25 +307,27 @@ class ShiyoController extends Controller
             "Shiyo_Nm" => [
                 "name" => "工事仕様",
                 "class" => "",
-                "width" => 378,
-                "line1" => "<input type='text' name='Shiyo_Nm' class='w-100 form-control pl-1 btn-search' />"
+                "width" => '*',
+                "minWidth" => 200,
+                "line1" => "<input type='text' name='Shiyo_Nm' class='w-100 form-control pl-1 btn-search'/>"
             ],
             "Tani_Nm" => [
                 "name" => "単位",
-                "class" => "wj-align-center",
+                "class" => "wj-align-center Tani_Nm",
                 "width" => 67,
                 "line1" => "<button type='button' class='btn btn-search-run btn-primary'>検索</button>"
             ],
             "M_Tanka_IPN" => [
                 "name" => "見積単価",
-                "class" => "wj-align-center",
+                "class" => "wj-align-center M_Tanka_IPN",
                 "width" => "",
                 "line1" => "<button type='button' class='btn btn-search-clear btn-primary'>クリア</button>"
             ],
             "Z_Tanka_IPN" => [
                 "name" => "材料単価",
-                "class" => "wj-align-center",
+                "class" => "wj-align-center Z_Tanka_IPN",
                 "width" => "",
+                "line1" => "<button type='button' class='d-none click'></button>"
             ],
             "R_Tanka_IPN" => [
                 "name" => "労務単価",

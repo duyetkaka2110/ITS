@@ -52,21 +52,21 @@ return [
             "msg" => "を小計し",
             "text" => "小計"
         ],
-        // 計行追加
+        // 合計行追加
         "cmdTotalKe" => [
             "cmd" => "cmdTotalKe",
-            "name" => "計行追加",
-            "icon" => "fa-calculator",
-            "msg" => "を計し",
-            "text" => "計"
-        ],
-        // 合計行追加
-        "cmdTotalGo" => [
-            "cmd" => "cmdTotalGo",
             "name" => "合計行追加",
             "icon" => "fa-calculator",
             "msg" => "を合計し",
             "text" => "合計"
+        ],
+        // 総合計行追加
+        "cmdTotalGo" => [
+            "cmd" => "cmdTotalGo",
+            "name" => "総合計行追加",
+            "icon" => "fa-calculator",
+            "msg" => "を総合計し",
+            "text" => "総合計"
         ],
         // 閉じる
         "cmdExit" => [

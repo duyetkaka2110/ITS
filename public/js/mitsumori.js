@@ -8,7 +8,10 @@ function init() {
     let MitsumoriModal = "#MitsumoriModal";
     let ShiyoEditModal = "#ShiyoEditModal";
     let firstUnitPrice;
-    let formZairyo = ".form-zairyo";
+    let formZairyo = ".form-kosei";
+    let formshiyo2 = ".form-shiyo2";
+
+    $(".modal .modal-content").css("max-height", $(window).height() - 50)
 
     var listModalSavePosition = ["MitsumoriModal", "ShiyoEditModal"];
     // 移動した位置」「変更したサイズ」を記憶しておき、次に同じポップアップウィンドウを開いた際、その位置、サイズを再現する
@@ -109,7 +112,7 @@ function init() {
     // set css style 
     flex.columnHeaders.rows[0].cssClass = "wj-align-center"
     flex.columnHeaders.rows[0].wordWrap = true;
-    flex.columnHeaders.rows.defaultSize = 55;
+    flex.columnHeaders.rows.defaultSize = 65;
     flex.hostElement.addEventListener('contextmenu', (e) => {
         ht = flex.hitTest(e);
         setRowSelected(flex, { first: ht.row })
@@ -305,9 +308,9 @@ function init() {
         $(MitsumoriModal + " input[name=StandDimen]").val(flex_selected["StandDimen"])
         $(MitsumoriModal + " input[name=MakerName]").val(flex_selected["MakerName"])
         $(MitsumoriModal + " select[name=UnitOrg_ID]").val(flex_selected["UnitOrg_ID"])
-        $(MitsumoriModal + " input[name=Quantity]").val(numberFormat(flex_selected["Quantity"]))
-        $(MitsumoriModal + " input[name=UnitPrice]").val(numberFormat(flex_selected["UnitPrice"]))
-        $(MitsumoriModal + " input[name=Amount]").val(numberFormat(flex_selected["Amount"]))
+        $(MitsumoriModal + " input[name=Quantity]").val(flex_selected["Quantity"] ? numberFormat(flex_selected["Quantity"]) : "")
+        $(MitsumoriModal + " input[name=UnitPrice]").val(flex_selected["UnitPrice"] ? numberFormat(flex_selected["UnitPrice"]) : "")
+        $(MitsumoriModal + " input[name=Amount]").val(flex_selected["Amount"] ? numberFormat(flex_selected["Amount"]) : "")
         $(MitsumoriModal + " input[name=Note]").val(flex_selected["Note"])
         $(MitsumoriModal + " input[name=Type]").val(flex_selected["Koshu_ID"])
         $(MitsumoriModal + " input[name=PartName]").val(flex_selected["Bui_ID"])
@@ -371,7 +374,6 @@ function init() {
     function getDataSelected(selectedItems, first, last) {
         selectedItems.sort(sortOnKey("DetailNo", false, false))
         var NoItems = selectedItems.map(el => el.No);
-        console.info(selectedItems)
         var dataSelected = {
             count: selectedItems.length,
             id: selectedItems.map(el => el.id),
@@ -416,6 +418,9 @@ function init() {
                 isReadOnly: key == "AtariSuryo" ? false : true,
                 format: "n0"
             };
+            if ("minWidth" in value) {
+                temp["minWidth"] = value["minWidth"];
+            }
             if (key == 'AtariSuryo') {
                 temp["format"] = "n1";
                 if (flgZairyo) {
@@ -532,23 +537,19 @@ function init() {
                         if (btnClick == "btnSaveNew") {
                             dataSelected = { first: flex.itemsSource.length - 1 };
                             scrollPosition.y = -flex.scrollSize.height;
+                            setTimeout(() => {
+                                flex.scrollIntoView(flex.itemsSource.length - 1, -1)
+                            }, 100);
+                        } else {
+                            flex.scrollPosition = scrollPosition;
                         }
-                        flex.scrollPosition = scrollPosition;
-                        $(MitsumoriModal).modal("hide")
                         setRowSelected(flex, dataSelected)
+                        $(MitsumoriModal).modal("hide")
                     }
                 }
             });
         }
     })
-    function objectifyForm(formArray) {
-        //serialize data function
-        var returnArray = {};
-        $.each(formArray, function (key, value) {
-            returnArray[formArray[i]['name']] = formArray[i]['value'];
-        })
-        return returnArray;
-    }
     function numberFormat(number, str = null) {
         if (!number) return 0;
         return wijmo.Globalize.format(number, str ? str : "n0")
@@ -577,19 +578,32 @@ function init() {
         $.each(headerShiyo, function (key, value) {
             width = value["width"] ? value["width"] : 100;
 
-            layoutDefinition.push(
-                {
-                    colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"], cells: [
-                        { binding: key, header: value["name"], width: width, cssClass: value["class"] },
+            temp1 = {
+                colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"], cells: [
+                    { binding: key, header: value["name"], width: width, cssClass: value["class"] },
+                ]
+            };
+            temp2 = {
+                cells: [
+                    { colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"] },//header line 1
+                    { binding: key, header: value["name"], align: 'center', width: width, cssClass: value["class"] }, // header line 2
+                ]
+            };
+            if ("minWidth" in value) {
+                temp1 = {
+                    colspan: 1, header: value["line1"], align: 'center', width: width, minWidth: value["minWidth"], cssClass: value["class"], cells: [
+                        { binding: key, header: value["name"], width: width, minWidth: value["minWidth"], cssClass: value["class"] },
                     ]
-                });
-            headerLayoutDefinition.push(
-                {
+                };
+                temp2 = {
                     cells: [
-                        { colspan: 1, header: value["line1"], align: 'center', width: width, cssClass: value["class"] },//header line 1
-                        { binding: key, header: value["name"], align: 'center', width: width, cssClass: value["class"] }, // header line 2
+                        { colspan: 1, header: value["line1"], align: 'center', width: width, minWidth: value["minWidth"], cssClass: value["class"] },//header line 1
+                        { binding: key, header: value["name"], align: 'center', width: width, minWidth: value["minWidth"], cssClass: value["class"] }, // header line 2
                     ]
-                });
+                };
+            }
+            layoutDefinition.push(temp1);
+            headerLayoutDefinition.push(temp2);
         })
     }
     let formshiyo = ".form-shiyo";
@@ -683,6 +697,8 @@ function init() {
         $(formshiyo + " select[name=Bui_ID]").val('');
         $(formshiyo + " select[name=Shiyo_Shubetsu_ID]").val('');
         $(formshiyo + " input[name=Shiyo_Nm]").val('');
+        $(formshiyo + " input[name=page]").val(1);
+        shiyoAjax(shiyo_flex);
     })
     var form_shiyo = [];
     var formSelected = $(".form-selected");
@@ -711,12 +727,6 @@ function init() {
             shiyoAjax(shiyo_flex);
         }
     })
-    $("form").bind("keypress", function (e) {
-        if (e.keyCode == 13) {
-            e.preventDefault();
-            return false;
-        }
-    });
     function shiyoAjax(shiyo_flex) {
         dataSearch = $(formshiyo).serializeArray();
         $.ajax({
@@ -854,7 +864,8 @@ function init() {
     })
     $(document).on("click", "#zairyo .btn-search-clear", function (e) {
         $(formZairyo + " .btn-search-zairyo").val("");
-
+        $(formZairyo + " input[name=page]").val(1);
+        zairyoAjax(zairyo_flex);
     })
 
     $(document).on("click", "#zairyo .btn-search-run", function (e) {
@@ -867,7 +878,7 @@ function init() {
         e.preventDefault();
         page = getQueryStringValue($(this).attr('href'), "page")
         if (page) {
-            $(formZairyo + " input[name=page]").val(page);
+            $(".form-kosei input[name=page]").val(page);
             zairyoAjax(zairyo_flex);
         }
     })
@@ -1019,7 +1030,7 @@ function init() {
         });
     })
     function zairyoAjax(zairyo_flex) {
-        dataSearchZairyo = $(formZairyo).serializeArray();
+        dataSearchZairyo = $(".form-kosei").serializeArray();
         $.ajax({
             type: ajaxMethod,
             data: dataSearchZairyo,
@@ -1044,7 +1055,6 @@ function init() {
     }
 
     // 材料構成編集の仕様検索画面
-    let formshiyo2 = ".form-shiyo2";
     let shiyo_flex2 = new wijmo.grid.multirow.MultiRow('#shiyo2', {
         layoutDefinition: layoutDefinition,
         headerLayoutDefinition: headerLayoutDefinition,
@@ -1147,6 +1157,8 @@ function init() {
         $(formshiyo2 + " select[name=Bui_ID]").val('');
         $(formshiyo2 + " select[name=Shiyo_Shubetsu_ID]").val('');
         $(formshiyo2 + " input[name=Shiyo_Nm]").val('');
+        $(formshiyo2 + " input[name=page]").val(1);
+        shiyoAjax2(shiyo_flex2);
     })
     // ページング
     $(document).on("click", "#shiyoPage2 .page-link", function (e) {
@@ -1157,12 +1169,6 @@ function init() {
             shiyoAjax2(shiyo_flex2);
         }
     })
-    $(formshiyo2).bind("keypress", function (e) {
-        if (e.keyCode == 13) {
-            e.preventDefault();
-            return false;
-        }
-    });
     $("input[name=radioSearch]").on("change", function () {
         $(".form-kosei").toggleClass("d-none");
     })
@@ -1191,4 +1197,32 @@ function init() {
             }
         });
     }
+
+    $(".form-disable-13").bind("keypress", function (e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            return false;
+        }
+    });
+    $(formshiyo).bind("keypress", function (e) {
+        if (e.which == 13) {
+            $(".btn-search-clear").focus();
+            e.preventDefault();
+            return false;
+        }
+    });
+    $(formshiyo2).bind("input", function (e) {
+        if (e.which == 13) {
+            $(".btn-search-clear").focus();
+            e.preventDefault();
+            return false;
+        }
+    });
+    $(".form-kosei").bind("keypress", function (e) {
+        if (e.keyCode == 13) {
+            $(".btn-search-clear").focus();
+            e.preventDefault();
+            return false;
+        }
+    });
 }

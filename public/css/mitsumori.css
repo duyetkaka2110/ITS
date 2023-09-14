@@ -28,8 +28,9 @@
     height: 750px;
 }
 
-.wijmo-height-220.wj-flexgrid {
-    max-height: 220px;
+.wijmo-height-220.wj-flexgrid,
+.wj-flexgrid.wijmo-custom {
+    width: 100%;
 }
 
 .wijmo-height-250.wj-flexgrid {
@@ -67,7 +68,7 @@
 }
 
 .modal-dialog.modal-lg {
-    width: 1200px;
+    width: 1300px;
     max-width: 95%;
     min-width: 400px;
     margin-top: 20px;
@@ -188,7 +189,7 @@
 
 #zairyo.wj-flexgrid,
 #zairyo_selected.wj-flexgrid {
-    width: auto;
+    width: 100%;
     max-width: 100%;
 }
 
@@ -235,4 +236,14 @@
 .ui-resizable-se {
     right: -2px;
     bottom: -2px;
+}
+
+.form-shiyo .wj-flexgrid .wj-colheaders .wj-row:nth-child(1) .wj-cell.wj-align-center:nth-child(6),
+.form-shiyo .wj-flexgrid .wj-colheaders .wj-row:nth-child(1) .wj-cell.wj-align-center:nth-child(7),
+.form-shiyo .wj-flexgrid .wj-colheaders .wj-row:nth-child(1) .wj-cell.wj-align-center:nth-child(8),
+.form-shiyo2 .wj-flexgrid .wj-colheaders .wj-row:nth-child(1) .wj-cell.wj-align-center:nth-child(6),
+.form-shiyo2 .wj-flexgrid .wj-colheaders .wj-row:nth-child(1) .wj-cell.wj-align-center:nth-child(7),
+.form-shiyo2 .wj-flexgrid .wj-colheaders .wj-row:nth-child(1) .wj-cell.wj-align-center:nth-child(8), 
+#zairyo.wj-flexgrid .wj-colheaders .wj-row:nth-child(1) .wj-cell.wj-align-center:nth-child(4) {
+    border-right-color: #ff7e69;
 }

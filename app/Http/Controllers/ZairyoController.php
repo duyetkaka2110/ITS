@@ -162,6 +162,7 @@ class ZairyoController extends Controller
         $list = m_zairyo::select(
             m_zairyo::getTableName() . ".Zairyo_ID as Zairyo_Shiyo_ID",
             m_zairyo::getTableName() . ".Zairyo_Nm AS Name",
+            m_zairyo::getTableName() . ".Sort_No",
             "ZS.Zairyo_Shubetsu_ID AS Shubetsu_ID",
             "ZS.Zairyo_Shubetsu_Nm AS Shubetsu_Nm",
             "T.Tani_ID",
@@ -186,6 +187,7 @@ class ZairyoController extends Controller
             ->when($rq->filled("Zairyo_Nm"), function ($q) use ($rq) {
                 return $q->where(m_zairyo::getTableName() . '.Zairyo_Nm', 'LIKE',  "%{$rq->Zairyo_Nm}%");
             })
+            ->orderBy( "ZS.Zairyo_Shubetsu_ID")
             ->orderBy(m_zairyo::getTableName() . ".Sort_No")->paginate($perPage);
         return  [
             "status" => true,
@@ -224,7 +226,8 @@ class ZairyoController extends Controller
             "Name" => [
                 "name" => "仕様/材料名称",
                 "class" => "",
-                "width" => 300,
+                "width" => "*",
+                "minWidth" => 300
             ],
             "Tani_Nm" => [
                 "name" => "単位",
@@ -268,7 +271,8 @@ class ZairyoController extends Controller
             "Name" => [
                 "name" => "材料名称",
                 "class" => "",
-                "width" => 320,
+                "width" => "*",
+                "minWidth" => 320,
                 "line1" => "<input type='text' name='Zairyo_Nm' class='w-100 form-control pl-1 btn-search-zairyo' />"
             ],
             "Tani_Nm" => [
@@ -281,6 +285,7 @@ class ZairyoController extends Controller
                 "name" => "材料単価",
                 "class" => "wj-align-center",
                 "width" => 280,
+                "line1" => "<button type='button' class='d-none click'></button>"
             ]
         ]);
     }

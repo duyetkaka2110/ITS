@@ -90,15 +90,16 @@
                 </button>
             </div>
             <div class="modal-body pt-1">
-                <form class="form-selected">
+                <form class="form-selected form-disable-13">
                     <div class=" float-right mr-2 mb-3">
                         <button type="button" class="btn btn-secondary btn-custom ml-2 mt-1">入力項目クリア</button>
                         <button type="button" class="btn btn-secondary btn-custom ml-2 mt-1">初期値に戻す</button>
                         <button type="button" class="btn btn-secondary btn-custom ml-2 mt-1">全て初期値に戻す</button>
-                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1 btnSave" data-btn="btnSave">選択行に登録</button>
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1 btnSave" data-btn="btnSave">上書き保存</button>
                         <button type="button" class="btn btn-secondary btn-custom ml-2 mt-1">同名行に反映(シート)</button>
                         <button type="button" class="btn btn-secondary btn-custom ml-2 mt-1">同名行に反映(全体)</button>
-                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1 btnSave" data-btn="btnSaveNew">新規行として追加</button>
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1 btnSave" data-btn="btnSaveAdd">挿入して登録</button>
+                        <button type="button" class="btn btn-primary btn-custom ml-2 mt-1 btnSave" data-btn="btnSaveNew">最下行に登録</button>
                         <div class="input-group align-bottom mg-ig-row ml-2 mt-1 d-inline-flex">
                             <input type="number" min=1 max=99 class="form-control p-1" name="RowAdd">
                             <div class="input-group-append">
@@ -257,7 +258,7 @@
                                 <label class="m-0 cursor-point"><input type="radio" checked name="radioSearch" value="form-zairyo"><span class="pl-1">材料検索</span></label>
                                 <label class="m-0 cursor-point"><input type="radio" class="ml-2" name="radioSearch" value="form-shiyo2"><span class="pl-1">仕様検索</span></label>
                             </div>
-                            <form class="form-kosei form-zairyo position-relative">
+                            <form class="form-kosei  position-relative">
                                 {{ Form::hidden("page",0)}}
                                 <div class="zairyo-loading d-none">
                                     <div class="spinner-border text-primary" role="status">
@@ -274,7 +275,7 @@
                                         <span class="sr-only"></span>
                                     </div>
                                 </div>
-                                <div id="shiyo2" class="shiyo2 wijmo-custom wijmo-red wijmo-height-250"></div>
+                                <div id="shiyo2" class="shiyo2 wijmo-custom wijmo-red wijmo-height-2500"></div>
                                 <div id="shiyoPage2" class="shiyoPage2 mt-2"></div>
                             </form>
                         </div>
